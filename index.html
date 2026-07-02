@@ -41,7 +41,8 @@
       </aside>
 
       <main class="main">
-        
+
+        <!-- 대시보드: IP 목록 -->
         <section id="dashboardView" class="view active-view">
           <header class="topbar">
             <div>
@@ -64,25 +65,36 @@
             </div>
           </header>
 
-          <div class="content-grid">
-            <section class="list-panel">
-              <div class="panel-head">
-                <h3>IP 목록</h3>
-                <button id="addSampleBtn" class="ghost-btn">샘플 추가</button>
-              </div>
-              <div id="ipList" class="ip-list"></div>
-              <div id="emptyState" class="empty-state">
-                <strong>아직 저장된 IP가 없습니다.</strong>
-                <span>JSON 입력 화면에서 첫 후보를 저장하세요.</span>
-              </div>
-            </section>
-
-            <section class="detail-panel" id="detailPanel">
-              <div class="detail-empty">IP를 선택하면 상세 분석이 표시됩니다.</div>
-            </section>
+          <div class="list-panel">
+            <div class="panel-head">
+              <h3>IP 목록</h3>
+              <button id="addSampleBtn" class="ghost-btn">샘플 추가</button>
+            </div>
+            <div id="ipList" class="ip-list"></div>
+            <div id="emptyState" class="empty-state">
+              <strong>아직 저장된 IP가 없습니다.</strong>
+              <span>JSON 입력 화면에서 첫 후보를 저장하세요.</span>
+            </div>
           </div>
         </section>
 
+        <!-- ✦ 추가: 상세 분석 페이지 -->
+        <section id="detailView" class="view">
+          <header class="topbar">
+            <div style="display:flex;align-items:center;gap:12px">
+              <button id="backBtn" class="ghost-btn">← 목록으로</button>
+              <div>
+                <p class="eyebrow">상세 분석</p>
+                <h2 id="detailViewTitle">-</h2>
+              </div>
+            </div>
+          </header>
+          <section class="detail-panel" id="detailPanel">
+            <div class="detail-empty">IP를 선택하면 상세 분석이 표시됩니다.</div>
+          </section>
+        </section>
+
+        <!-- JSON 입력 -->
         <section id="importView" class="view">
           <header class="topbar">
             <div>
@@ -113,6 +125,7 @@
           </div>
         </section>
 
+        <!-- 분석 프롬프트 -->
         <section id="promptView" class="view">
           <header class="topbar">
             <div>
@@ -132,6 +145,7 @@
           </section>
         </section>
 
+        <!-- 백업/복원 -->
         <section id="backupView" class="view">
           <header class="topbar">
             <div>
@@ -160,6 +174,7 @@
             </section>
           </div>
         </section>
+
       </main>
     </div>
 
