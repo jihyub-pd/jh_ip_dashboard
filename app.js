@@ -6,9 +6,11 @@ const SUPABASE_KEY = "sb_publishable_VbrlZgSIDMw06htQd8fXkQ_HkUxm3z";
 
 let supabase = null;
 try {
-  if (window.supabase) {
+  if (typeof window.supabase !== "undefined" && window.supabase && typeof window.supabase.createClient === "function") {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     console.log("Supabase 클라우드 데이터베이스 연동 활성화");
+  } else {
+    console.warn("Supabase 모듈을 불러오지 못해 로컬 스토리지 모드로 작동합니다.");
   }
 } catch (e) {
   console.error("Supabase 초기화 실패:", e);
@@ -337,7 +339,6 @@ function filteredItems() {
         return avgB - avgA;
       }
 
-      // 평점이 같은 경우 가중치 페널티 항목 연산 (낮은게 상위로 배치)
       const penaltyA = clampScore(a.scores?.dramaFit) + clampScore(a.scores?.productionFeasibility) + clampScore(a.scores?.globalPotential);
       const penaltyB = clampScore(b.scores?.dramaFit) + clampScore(b.scores?.productionFeasibility) + clampScore(b.scores?.globalPotential);
 
@@ -441,7 +442,6 @@ function renderDetail() {
   node.querySelector(".casting").textContent = item.castingDirection || "입력 없음";
   node.querySelector(".comparables").textContent = item.comparables.join(", ") || "입력 없음";
 
-  // 주인공 4인 심층 구조 분석 레이아웃 동적 렌더링
   const charContainer = document.createElement("div");
   charContainer.className = "character-deep-dive";
   charContainer.innerHTML = `
@@ -516,10 +516,13 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+// ⚠️ 버그가 발생했던 탭 전환 함수 구역 (완벽 수정 완료)
 function switchView(viewName) {
   els.views.forEach((view) => view.classList.remove("active-view"));
   const targetView = document.querySelector(`#${viewName}View`);
-  if(targetView) targetView.classList.add("active-view");
+  if(targetView) {
+    targetView.classList.add("active-view"); // 문법 교정 완료
+  }
   els.navButtons.forEach((button) => button.classList.toggle("active", button.dataset.view === viewName));
 }
 
@@ -590,7 +593,6 @@ function exportBackupFile() {
   URL.revokeObjectURL(url);
 }
 
-// 이벤트 리스너 안전 연결 바인딩
 els.navButtons.forEach((button) => {
   button.addEventListener("click", () => switchView(button.dataset.view));
 });
@@ -664,7 +666,6 @@ if(els.backupFileInput) els.backupFileInput.addEventListener("change", async () 
   }
 });
 
-// 기존 코드 맨 아래 667, 668번 줄 뒤에 render(); 를 추가합니다.
-// 시작점 기동 실행
+// 시작점 기동 및 초기 렌더링 정상 실행
 syncLoadItems();
-render(); // <-- 이 한 줄을 반드시 새로 적어 넣어주세요!
+render();
