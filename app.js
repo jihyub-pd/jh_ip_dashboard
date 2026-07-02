@@ -32,12 +32,13 @@ const scoreLabels = {
   characterAppeal: "캐릭터 매력도",
 };
 
+// ✦ 수정: 각 항목 3개 필수 명시
 const requiredShape = {
   title: "원작 제목",
   originalType: "웹툰 | 웹소설 | 소설 | 영화 | 게임 | 기타",
-  genre: ["판타지", "로맨스", "스릴러"],
+  genre: ["장르1", "장르2", "장르3"],
   logline: "한 줄 소개",
-  premise: "핵심 설정",
+  premise: "세계관/설정/갈등구조 3가지 특징을 포함한 핵심 설정",
   mainCharacters: [
     {
       name: "주인공 이름",
@@ -47,12 +48,12 @@ const requiredShape = {
       improvements: "드라마화 시 개선/각색 포인트"
     }
   ],
-  strengths: ["드라마화 강점"],
-  risks: ["드라마화 리스크"],
-  targetAudience: "예상 타깃층",
+  strengths: ["강점1 — 서로 다른 관점", "강점2 — 서로 다른 관점", "강점3 — 서로 다른 관점"],
+  risks: ["리스크1", "리스크2", "리스크3"],
+  targetAudience: "연령대/성별/취향 등 3가지 측면을 포함한 타깃층",
   productionDifficulty: "낮음 | 보통 | 높음",
-  castingDirection: "캐스팅 방향",
-  comparables: ["유사 성공작"],
+  castingDirection: "주연/조연/연출 방향 3가지를 포함한 캐스팅 방향",
+  comparables: ["유사 성공작1", "유사 성공작2", "유사 성공작3"],
   recommendation: "추천 | 보류 | 리서치 필요",
   scores: {
     dramaFit: 0.0,
@@ -69,9 +70,9 @@ const requiredShape = {
 const sampleIp = {
   title: "회귀한 재벌집 기획자",
   originalType: "웹소설",
-  genre: ["복수", "오피스", "가족", "미스터리"],
+  genre: ["복수", "오피스", "가족"],
   logline: "몰락한 콘텐츠 기획자가 과거로 돌아가 재벌가의 IP 전쟁 한복판에서 자신의 죽음을 설계한 사람을 추적한다.",
-  premise: "엔터테인먼트와 재벌 승계를 결합한 세계관. 주인공은 미래 흥행 데이터를 기억하지만 권력과 윤리 사이에서 선택을 강요받는다.",
+  premise: "① 엔터테인먼트와 재벌 승계를 결합한 콘텐츠 산업 세계관 ② 주인공은 미래 흥행 데이터를 기억하는 회귀자 설정 ③ 권력과 윤리 사이에서 선택을 강요받는 도덕적 딜레마 구조",
   mainCharacters: [
     {
       name: "진도준 (남주1)",
@@ -88,12 +89,20 @@ const sampleIp = {
       improvements: "남주의 복수극에 서사가 묻히지 않도록 대립과 공조 텐션 강화 요망."
     }
   ],
-  strengths: ["한국 드라마에 강한 복수/가족/권력 구도가 선명하다.", "콘텐츠 산업 배경이라 확장하기 쉽다."],
-  risks: ["재벌가 복수물의 기시감이 있어 차별적 직업 디테일이 필요하다."],
-  targetAudience: "30-50대 복수극 시청자와 웹소설 원작 팬덤",
+  strengths: [
+    "한국 드라마에 강한 복수/가족/권력 구도가 선명하다.",
+    "콘텐츠 산업 배경이라 시청자 공감대와 확장성이 높다.",
+    "회귀물 특유의 빌업 카타르시스와 미스터리 요소가 결합돼 몰입도가 강하다."
+  ],
+  risks: [
+    "재벌가 복수물의 기시감이 있어 차별적 직업 디테일이 필요하다.",
+    "회귀 설정 특성상 후반부 긴장감 유지가 어렵다.",
+    "엔터산업 내부 묘사가 부정확할 경우 업계 팬덤 이탈 우려가 있다."
+  ],
+  targetAudience: "30-50대 복수극 시청자 / 웹소설 원작 팬덤 여성층 / 직장인 공감 코드를 선호하는 시청자",
   productionDifficulty: "보통",
-  castingDirection: "지적인 긴장감을 가진 30대 남성 주연",
-  comparables: ["재벌집 막내아들", "스토브리그"],
+  castingDirection: "주연: 지적인 긴장감을 가진 30대 남성 / 여주: 강단 있는 커리어 여성 이미지 / 연출: 장르와 감정선을 동시에 살리는 연출자",
+  comparables: ["재벌집 막내아들", "스토브리그", "미생"],
   recommendation: "추천",
   scores: {
     dramaFit: 8.5,
@@ -393,7 +402,6 @@ function renderFilters() {
   els.typeFilter.value = types.includes(current) ? current : "all";
 }
 
-// ✦ 수정: 카드 클릭 시 detailView로 페이지 전환
 function renderList() {
   if (!els.ipList) return;
   const visible = filteredItems();
@@ -414,7 +422,6 @@ function renderList() {
       </div>
       <div class="tag-row">${[item.originalType, item.recommendation, ...item.genre.slice(0, 3)].map(tagHtml).join("")}</div>
     `;
-    // ✦ 수정: 클릭 시 상세 페이지로 전환
     button.addEventListener("click", () => {
       selectedId = item.id;
       if (els.detailViewTitle) els.detailViewTitle.textContent = item.title;
@@ -443,12 +450,16 @@ function renderDetail() {
   node.querySelector(".score-bars").innerHTML = Object.entries(scoreLabels)
     .map(([key, label]) => scoreRow(label, clampScore(item.scores[key])))
     .join("");
+
+  // ✦ 수정: 각 리스트 항목 3개 보장
   renderListInto(node.querySelector(".strengths"), item.strengths);
   renderListInto(node.querySelector(".risks"), item.risks);
-  node.querySelector(".premise").textContent = item.premise || "입력 없음";
-  node.querySelector(".target").textContent = item.targetAudience || "입력 없음";
-  node.querySelector(".casting").textContent = item.castingDirection || "입력 없음";
-  node.querySelector(".comparables").textContent = item.comparables.join(", ") || "입력 없음";
+
+  // ✦ 수정: premise, targetAudience, castingDirection, comparables 3가지 특징 렌더링
+  renderThreePoints(node.querySelector(".premise"), item.premise);
+  renderThreePoints(node.querySelector(".target"), item.targetAudience);
+  renderThreePoints(node.querySelector(".casting"), item.castingDirection);
+  renderListInto(node.querySelector(".comparables-list"), item.comparables);
 
   const charContainer = document.createElement("div");
   charContainer.className = "character-deep-dive";
@@ -491,15 +502,49 @@ function renderDetail() {
   els.detailPanel.append(node);
 }
 
+// ✦ 수정: 리스트 항목 3개 보장 (부족하면 — 으로 채움)
 function renderListInto(list, values) {
   if (!list) return;
   list.innerHTML = "";
-  const safeValues = values.length ? values : ["입력 없음"];
-  safeValues.forEach((value) => {
+  const padded = [...(Array.isArray(values) ? values : [])];
+  while (padded.length < 3) padded.push("—");
+  padded.slice(0, 3).forEach((value) => {
     const li = document.createElement("li");
     li.textContent = value;
     list.append(li);
   });
+}
+
+// ✦ 추가: 텍스트를 / 또는 ① ② ③ 기준으로 3가지로 나눠 ul로 렌더링
+function renderThreePoints(el, text) {
+  if (!el) return;
+  if (!text) { el.textContent = "—"; return; }
+
+  // ① ② ③ 형태로 구분된 경우
+  let points = [];
+  if (text.includes("①") || text.includes("②") || text.includes("③")) {
+    points = text.split(/[①②③]/).map(s => s.trim()).filter(Boolean);
+  } else if (text.includes(" / ")) {
+    points = text.split(" / ").map(s => s.trim()).filter(Boolean);
+  } else if (text.includes("\n")) {
+    points = text.split("\n").map(s => s.trim()).filter(Boolean);
+  } else {
+    // 구분자 없으면 그냥 텍스트로 표시
+    el.textContent = text;
+    return;
+  }
+
+  while (points.length < 3) points.push("—");
+  const ul = document.createElement("ul");
+  ul.style.cssText = "padding-left:1.2em;margin:0;display:flex;flex-direction:column;gap:4px";
+  points.slice(0, 3).forEach(point => {
+    const li = document.createElement("li");
+    li.textContent = point;
+    li.style.fontSize = "13px";
+    ul.append(li);
+  });
+  el.innerHTML = "";
+  el.append(ul);
 }
 
 function scoreRow(label, value) {
@@ -560,6 +605,12 @@ function updatePrompt() {
 3. 'appealPoints'에는 독자/시청자들이 열광하는 결정적 입덕 매력 요소를 기술해줘.
 4. 'improvements'에는 웹툰/웹소설의 문법을 드라마 편수로 바꿀 때 반드시 보완해야 하는 단점 및 각색 방향을 짚어줘.
 5. 점수 체계는 10.0점 만점이며, 소수점 첫째 자리(예: 8.5)까지 세부적으로 평가해줘.
+6. ★ strengths는 반드시 서로 다른 관점의 강점 3가지를 배열로 작성해줘.
+7. ★ risks는 반드시 서로 다른 리스크 3가지를 배열로 작성해줘.
+8. ★ comparables는 반드시 유사 성공작 3가지를 배열로 작성해줘.
+9. ★ targetAudience는 연령대/성별/취향 등 3가지 측면을 포함해서 작성하되, 각 측면을 ' / ' 로 구분해줘. 예: "30-40대 직장인 남성 / 복수극 선호 여성층 / 재벌 드라마 팬덤"
+10. ★ castingDirection은 주연/조연/연출 방향 3가지를 포함해서 작성하되, 각 항목을 ' / ' 로 구분해줘. 예: "주연: 냉철한 30대 남자 배우 / 여주: 강단 있는 커리어우먼 이미지 / 연출: 장르와 감성 균형 잡는 감독"
+11. ★ premise는 세계관/설정/갈등구조 3가지 특징을 포함해서 작성하되, 각 항목을 ① ② ③ 으로 구분해줘.
 
 아래 명시된 스키마 JSON 포맷을 완벽하게 준수해줘:
 
@@ -620,7 +671,6 @@ els.navButtons.forEach((button) => {
   button.addEventListener("click", () => switchView(button.dataset.view));
 });
 
-// ✦ 추가: 뒤로가기 버튼
 if (els.backBtn) {
   els.backBtn.addEventListener("click", () => {
     switchView("dashboard");
