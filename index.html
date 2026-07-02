@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>드라마 IP 분석 대시보드</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <!-- Supabase 외부 연동 자바스크립트 모듈 주입 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">IP</span>
+          <div>
+            <h1>드라마 IP 보드</h1>
+            <p>원작 분석 저장소</p>
+          </div>
+        </div>
+
+        <div class="metric-stack">
+          <div class="metric">
+            <span>등록 IP</span>
+            <strong id="totalCount">0</strong>
+          </div>
+          <div class="metric">
+            <span>추천 후보</span>
+            <strong id="recommendedCount">0</strong>
+          </div>
+          <div class="metric">
+            <span>평균 평점</span>
+            <strong id="averageScore">0</strong>
+          </div>
+        </div>
+
+        <nav class="side-nav" aria-label="보기">
+          <button class="nav-btn active" data-view="dashboard">대시보드</button>
+          <button class="nav-btn" data-view="import">JSON 입력</button>
+          <button class="nav-btn" data-view="prompt">분석 프롬프트</button>
+          <button class="nav-btn" data-view="backup">백업/복원</button>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section id="dashboardView" class="view active-view">
+          <header class="topbar">
+            <div>
+              <p class="eyebrow">K-Drama Adaptation</p>
+              <h2>원작 IP 후보 비교</h2>
+            </div>
+            <div class="toolbar">
+              <label class="search-box">
+                <span>검색</span>
+                <input id="searchInput" type="search" placeholder="제목, 장르, 상태" />
+              </label>
+              <select id="typeFilter" aria-label="원작 유형">
+                <option value="all">전체 유형</option>
+              </select>
+              <select id="sortSelect" aria-label="정렬">
+                <option value="score">종합 점수순</option>
+                <option value="title">제목순</option>
+                <option value="date">최근 등록순</option>
+              </select>
+            </div>
+          </header>
+
+          <div class="content-grid">
+            <section class="list-panel">
+              <div class="panel-head">
+                <h3>IP 목록</h3>
+                <button id="addSampleBtn" class="ghost-btn">샘플 추가</button>
+              </div>
+              <div id="ipList" class="ip-list"></div>
+              <div id="emptyState" class="empty-state">
+                <strong>아직 저장된 IP가 없습니다.</strong>
+                <span>JSON 입력 화면에서 첫 후보를 저장하세요.</span>
+              </div>
+            </section>
+
+            <section class="detail-panel" id="detailPanel">
+              <div class="detail-empty">IP를 선택하면 상세 분석이 표시됩니다.</div>
+            </section>
+          </div>
+        </section>
+
+        <section id="importView" class="view">
+          <header class="topbar">
+            <div>
+              <p class="eyebrow">Import</p>
+              <h2>분석 JSON 저장</h2>
+            </div>
+            <button id="clearFormBtn" class="ghost-btn">비우기</button>
+          </header>
+
+          <div class="import-grid">
+            <section class="editor-panel">
+              <div class="panel-head">
+                <h3>JSON</h3>
+                <button id="pasteSampleBtn" class="ghost-btn">예시 넣기</button>
+              </div>
+              <textarea id="jsonInput" spellcheck="false" placeholder="{ ... }"></textarea>
+              <div class="import-actions">
+                <button id="validateBtn" class="secondary-btn">검사</button>
+                <button id="saveBtn" class="primary-btn">저장</button>
+              </div>
+              <p id="formMessage" class="form-message" role="status"></p>
+            </section>
+
+            <section class="schema-panel">
+              <h3>필수 구조</h3>
+              <pre id="schemaPreview"></pre>
+            </section>
+          </div>
+        </section>
+
+        <section id="promptView" class="view">
+          <header class="topbar">
+            <div>
+              <p class="eyebrow">Prompt</p>
+              <h2>AI 분석 프롬프트</h2>
+            </div>
+            <button id="copyPromptBtn" class="primary-btn">복사</button>
+          </header>
+
+          <section class="prompt-panel">
+            <label class="title-input">
+              <span>원작 제목</span>
+              <input id="promptTitle" type="text" placeholder="예: 나 혼자만 레벨업" />
+            </label>
+            <textarea id="promptText" readonly></textarea>
+            <p id="copyMessage" class="form-message" role="status"></p>
+          </section>
+        </section>
+
+        <section id="backupView" class="view">
+          <header class="topbar">
+            <div>
+              <p class="eyebrow">Backup</p>
+              <h2>데이터 백업/복원</h2>
+            </div>
+            <button id="exportBtn" class="primary-btn">백업 파일 받기</button>
+          </header>
+
+          <div class="backup-grid">
+            <section class="backup-panel">
+              <h3>백업</h3>
+              <p>현재 브라우저에 저장된 IP 데이터를 JSON 파일로 내려받습니다.</p>
+              <textarea id="backupText" readonly></textarea>
+            </section>
+
+            <section class="backup-panel">
+              <h3>복원</h3>
+              <p>백업 파일 내용을 붙여넣거나 파일을 선택하면 이 브라우저에 다시 저장됩니다.</p>
+              <input id="backupFileInput" type="file" accept="application/json,.json" />
+              <textarea id="restoreInput" spellcheck="false" placeholder="백업 JSON을 붙여넣으세요."></textarea>
+              <div class="import-actions">
+                <button id="restoreBtn" class="secondary-btn">복원</button>
+              </div>
+              <p id="backupMessage" class="form-message" role="status"></p>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="detailTemplate">
+      <article class="detail-card">
+        <div class="detail-header">
+          <div>
+            <p class="eyebrow detail-type"></p>
+            <h2 class="detail-title"></h2>
+            <p class="detail-logline"></p>
+          </div>
+          <div class="score-ring">
+            <span class="score-value"></span>
+            <small>종합</small>
+          </div>
+        </div>
+
+        <div class="tag-row detail-tags"></div>
+
+        <div class="score-bars"></div>
+
+        <div class="analysis-columns">
+          <section>
+            <h3>드라마화 강점</h3>
+            <ul class="strengths"></ul>
+          </section>
+          <section>
+            <h3>리스크</h3>
+            <ul class="risks"></ul>
+          </section>
+        </div>
+
+        <div class="detail-blocks">
+          <div>
+            <h3>핵심 설정</h3>
+            <p class="premise"></p>
+          </div>
+          <div>
+            <h3>타깃</h3>
+            <p class="target"></p>
+          </div>
+          <div>
+            <h3>캐스팅 방향</h3>
+            <p class="casting"></p>
+          </div>
+          <div>
+            <h3>유사 성공작</h3>
+            <p class="comparables"></p>
+          </div>
+        </div>
+
+        <label class="memo-box">
+          <span>메모</span>
+          <textarea class="memo-input"></textarea>
+        </label>
+
+        <div class="detail-actions">
+          <button class="danger-btn delete-btn">삭제</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
