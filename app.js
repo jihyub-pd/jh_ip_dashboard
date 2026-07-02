@@ -2,7 +2,7 @@
 // 1. Supabase 환경 설정
 // ==========================================
 const SUPABASE_URL = "https://ozhdfewlboheqpcvbqgz.supabase.co";
-const SUPABASE_KEY = "sb_publishable_VbrlZgSIDMw06htQd8fXkQ_HkUxm3z";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96aGRmZXdsYm9oZXFwY3ZicWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NzUwMjksImV4cCI6MjA5ODU1MTAyOX0.X5-4JBMX94Y04PPb5zTQpsbLCk4GMAhRa6yNzhBhjuI";
 
 // ✦ 수정: window.supabase 충돌 방지 + DOMContentLoaded 후 초기화
 let supabaseClient = null;
