@@ -1,11 +1,11 @@
 // ==========================================
 // 1. 데이터베이스(Supabase) 환경 설정 및 연결
 // ==========================================
-const SUPABASE_URL = window.env?.SUPABASE_URL || "YOUR_SUPABASE_PROJECT_URL_HERE"; 
-const SUPABASE_KEY = window.env?.SUPABASE_KEY || "YOUR_SUPABASE_ANON_KEY_HERE";
+const SUPABASE_URL = window.env?.SUPABASE_URL || "https://ozhdfewlboheqpcvbqgz.supabase.co"; 
+const SUPABASE_KEY = window.env?.SUPABASE_KEY || "sb_publishable_VBrlZgSIDMwO6htQd8fXkQ_HkUxmg3z";
 
 let supabase = null;
-if (SUPABASE_URL && SUPABASE_URL !== "YOUR_SUPABASE_PROJECT_URL_HERE") {
+if (SUPABASE_URL && SUPABASE_URL !== "https://ozhdfewlboheqpcvbqgz.supabase.co") {
   try {
     supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
     console.log("Supabase 클라우드 데이터베이스 연동 활성화");
@@ -137,7 +137,9 @@ const els = {
 let items = [];
 let selectedId = null;
 
-els.schemaPreview.textContent = JSON.stringify(requiredShape, null, 2);
+if (els.schemaPreview) {
+  els.schemaPreview.textContent = JSON.stringify(requiredShape, null, 2);
+}
 
 // ==========================================
 // 2. 고도화된 실시간 서버 동기화 함수 레이어
@@ -365,14 +367,15 @@ function render() {
 }
 
 function renderMetrics() {
-  els.totalCount.textContent = items.length;
-  els.recommendedCount.textContent = items.filter((item) => item.recommendation.includes("추천")).length;
+  if(els.totalCount) els.totalCount.textContent = items.length;
+  if(els.recommendedCount) els.recommendedCount.textContent = items.filter((item) => item.recommendation.includes("추천")).length;
   
   const rawAvg = items.length ? items.reduce((sum, item) => sum + averageScore(item), 0) / items.length : 0;
-  els.averageScore.textContent = rawAvg.toFixed(1);
+  if(els.averageScore) els.averageScore.textContent = rawAvg.toFixed(1);
 }
 
 function renderFilters() {
+  if (!els.typeFilter) return;
   const current = els.typeFilter.value;
   const types = [...new Set(items.map((item) => item.originalType).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ko"));
   els.typeFilter.innerHTML = '<option value="all">전체 유형</option>';
@@ -386,9 +389,10 @@ function renderFilters() {
 }
 
 function renderList() {
+  if (!els.ipList) return;
   const visible = filteredItems();
   els.ipList.innerHTML = "";
-  els.emptyState.style.display = items.length ? "none" : "grid";
+  if(els.emptyState) els.emptyState.style.display = items.length ? "none" : "grid";
 
   visible.forEach((item) => {
     const button = document.createElement("button");
@@ -414,6 +418,7 @@ function renderList() {
 
 let memoTimeout = null;
 function renderDetail() {
+  if (!els.detailPanel) return;
   const item = items.find((candidate) => candidate.id === selectedId);
   if (!item) {
     els.detailPanel.innerHTML = '<div class="detail-empty">IP를 선택하면 상세 분석이 표시됩니다.</div>';
@@ -513,12 +518,14 @@ function escapeHtml(value) {
 
 function switchView(viewName) {
   els.views.forEach((view) => view.classList.remove("active-view"));
-  document.querySelector(`#${viewName}View`).classList.add("active-view");
+  const targetView = document.querySelector(`#${viewName}View`);
+  if(targetView) targetView.classList.add("active-view");
   els.navButtons.forEach((button) => button.classList.toggle("active", button.dataset.view === viewName));
 }
 
 function updatePrompt() {
-  const title = els.promptTitle.value.trim() || "{{원작 제목}}";
+  if (!els.promptText) return;
+  const title = els.promptTitle?.value.trim() || "{{원작 제목}}";
   els.promptText.value = `다음 원작 IP를 한국 드라마로 제작할 가능성 관점에서 분석해줘.
 반드시 JSON만 출력하고, JSON 밖에는 어떤 설명도 쓰지 마.
 
@@ -567,7 +574,7 @@ async function restoreBackup(text) {
     await syncSaveItem(item);
   }
   render();
-  els.backupMessage.textContent = `${items.length}개 IP를 전체 복원 및 클라우드 동기화했습니다.`;
+  if(els.backupMessage) els.backupMessage.textContent = `${items.length}개 IP를 전체 복원 및 클라우드 동기화했습니다.`;
 }
 
 function exportBackupFile() {
@@ -583,31 +590,32 @@ function exportBackupFile() {
   URL.revokeObjectURL(url);
 }
 
+// 이벤트 리스너 안전 연결 바인딩
 els.navButtons.forEach((button) => {
   button.addEventListener("click", () => switchView(button.dataset.view));
 });
 
 [els.searchInput, els.typeFilter, els.sortSelect].forEach((control) => {
-  control.addEventListener("input", render);
+  if(control) control.addEventListener("input", render);
 });
 
-els.addSampleBtn.addEventListener("click", () => upsertItem(sampleIp));
-els.pasteSampleBtn.addEventListener("click", () => {
+if(els.addSampleBtn) els.addSampleBtn.addEventListener("click", () => upsertItem(sampleIp));
+if(els.pasteSampleBtn) els.pasteSampleBtn.addEventListener("click", () => {
   els.jsonInput.value = JSON.stringify(sampleIp, null, 2);
   els.formMessage.textContent = "예시 JSON을 넣었습니다.";
 });
 
-els.clearFormBtn.addEventListener("click", () => {
+if(els.clearFormBtn) els.clearFormBtn.addEventListener("click", () => {
   els.jsonInput.value = "";
   els.formMessage.textContent = "";
 });
 
-els.validateBtn.addEventListener("click", () => {
+if(els.validateBtn) els.validateBtn.addEventListener("click", () => {
   const result = parseInput();
   els.formMessage.textContent = result.errors.length ? result.errors.join(" ") : "저장 가능한 JSON입니다.";
 });
 
-els.saveBtn.addEventListener("click", () => {
+if(els.saveBtn) els.saveBtn.addEventListener("click", () => {
   const result = parseInput();
   if (result.errors.length) {
     els.formMessage.textContent = result.errors.join(" ");
@@ -618,9 +626,9 @@ els.saveBtn.addEventListener("click", () => {
   switchView("dashboard");
 });
 
-els.promptTitle.addEventListener("input", updatePrompt);
+if(els.promptTitle) els.promptTitle.addEventListener("input", updatePrompt);
 
-els.copyPromptBtn.addEventListener("click", async () => {
+if(els.copyPromptBtn) els.copyPromptBtn.addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText(els.promptText.value);
     els.copyMessage.textContent = "복사했습니다.";
@@ -630,9 +638,9 @@ els.copyPromptBtn.addEventListener("click", async () => {
   }
 });
 
-els.exportBtn.addEventListener("click", exportBackupFile);
+if(els.exportBtn) els.exportBtn.addEventListener("click", exportBackupFile);
 
-els.restoreBtn.addEventListener("click", () => {
+if(els.restoreBtn) els.restoreBtn.addEventListener("click", () => {
   try {
     restoreBackup(els.restoreInput.value.trim());
     switchView("dashboard");
@@ -641,7 +649,7 @@ els.restoreBtn.addEventListener("click", () => {
   }
 });
 
-els.backupFileInput.addEventListener("change", async () => {
+if(els.backupFileInput) els.backupFileInput.addEventListener("change", async () => {
   const file = els.backupFileInput.files?.[0];
   if (!file) return;
   try {
@@ -656,4 +664,5 @@ els.backupFileInput.addEventListener("change", async () => {
   }
 });
 
+// 시작점 기동 실행
 syncLoadItems();
