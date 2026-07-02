@@ -6,11 +6,15 @@ const SUPABASE_KEY = "sb_publishable_VbrlZgSIDMw06htQd8fXkQ_HkUxm3z";
 
 let supabase = null;
 try {
-if (typeof window.Supabase !== "undefined" && window.Supabase && typeof window.Supabase.createClient === "function") {
-  supabase = window.Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  console.log("Supabase 클라우드 데이터베이스 연동 활성화");
-} else {
-    console.warn("Supabase 모듈을 불러오지 못해 로컬 스토리지 모드로 작동합니다.");
+  // GPT 피드백 반영: 공식 라이브러리의 전역 객체명인 대문자 Supabase 검증 안전장치
+  if (typeof window.Supabase !== "undefined" && window.Supabase && typeof window.Supabase.createClient === "function") {
+    supabase = window.Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log("Supabase 클라우드 데이터베이스 연동 활성화");
+  } else if (typeof window.supabase !== "undefined" && window.supabase && typeof window.supabase.createClient === "function") {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log("Supabase 클라우드 데이터베이스 연동 활성화 (소문자 하이브리드)");
+  } else {
+    console.warn("Supabase 패키지를 읽지 못해 로컬 스토리지 모드로 작동합니다.");
   }
 } catch (e) {
   console.error("Supabase 초기화 실패:", e);
@@ -184,6 +188,7 @@ function finalizeLoad() {
   render();
 }
 
+// GPT 피드백 반영: { error } 검증 구문 추가 및 확실한 트래킹 보완
 async function syncSaveItem(normalizedItem) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   if (supabase) {
@@ -195,7 +200,8 @@ async function syncSaveItem(normalizedItem) {
         title: normalizedItem.title,
         content: normalizedItem
       };
-      await supabase.from("kdrama_ips").upsert(dbPayload);
+      const { error } = await supabase.from("kdrama_ips").upsert(dbPayload, { onConflict: "id" });
+      if (error) throw error;
     } catch (e) {
       console.error("서버 DB 저장 오류:", e);
     }
@@ -207,7 +213,8 @@ async function syncDeleteItem(id) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   if (supabase) {
     try {
-      await supabase.from("kdrama_ips").delete().eq("id", id);
+      const { error } = await supabase.from("kdrama_ips").delete().eq("id", id);
+      if (error) throw error;
     } catch (e) {
       console.error("서버 DB 삭제 오류:", e);
     }
@@ -325,12 +332,14 @@ function upsertItem(raw) {
   render();
 }
 
+// GPT 피드백 반영: 요소 누락 방어 구문(?.) 탑재 및 가중치 타이 브레이커 정렬 연산 교정 완료
 function filteredItems() {
-  const query = els.searchInput.value.trim().toLowerCase();
-  const type = els.typeFilter.value;
+  const query = (els.searchInput?.value || "").trim().toLowerCase();
+  const type = els.typeFilter?.value || "all";
+  const sort = els.sortSelect?.value || "score";
   const sorted = [...items];
 
-  if (els.sortSelect.value === "score") {
+  if (sort === "score") {
     sorted.sort((a, b) => {
       const avgA = averageScore(a);
       const avgB = averageScore(b);
@@ -339,12 +348,13 @@ function filteredItems() {
         return avgB - avgA;
       }
 
-      const penaltyA = clampScore(a.scores?.dramaFit) + clampScore(a.scores?.productionFeasibility) + clampScore(a.scores?.globalPotential);
-      const penaltyB = clampScore(b.scores?.dramaFit) + clampScore(b.scores?.productionFeasibility) + clampScore(b.scores?.globalPotential);
+      // 강점 가중치 연산으로 내림차순 정렬 교정 (priorityB - priorityA)
+      const priorityA = clampScore(a.scores?.dramaFit) + clampScore(a.scores?.productionFeasibility) + clampScore(a.scores?.globalPotential);
+      const priorityB = clampScore(b.scores?.dramaFit) + clampScore(b.scores?.productionFeasibility) + clampScore(b.scores?.globalPotential);
 
-      return penaltyA - penaltyB; 
+      return priorityB - priorityA; 
     });
-  } else if (els.sortSelect.value === "title") {
+  } else if (sort === "title") {
     sorted.sort((a, b) => a.title.localeCompare(b.title, "ko"));
   } else {
     sorted.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
@@ -420,7 +430,7 @@ function renderList() {
 let memoTimeout = null;
 function renderDetail() {
   if (!els.detailPanel) return;
-  const item = items.find((candidate) => candidate.id === selectedId);
+  const item = items.find((candidate) => candidate.id !== null && candidate.id === selectedId);
   if (!item) {
     els.detailPanel.innerHTML = '<div class="detail-empty">IP를 선택하면 상세 분석이 표시됩니다.</div>';
     return;
@@ -458,18 +468,20 @@ function renderDetail() {
     </div>
   `;
   const targetBlock = node.querySelector(".detail-blocks");
-  targetBlock.parentNode.insertBefore(charContainer, targetBlock);
+  if(targetBlock) targetBlock.parentNode.insertBefore(charContainer, targetBlock);
 
   const memoInput = node.querySelector(".memo-input");
-  memoInput.value = item.notes;
-  memoInput.addEventListener("input", () => {
-    item.notes = memoInput.value;
-    item.updatedAt = new Date().toISOString();
-    if (memoTimeout) clearTimeout(memoTimeout);
-    memoTimeout = setTimeout(() => {
-      syncSaveItem(item);
-    }, 600);
-  });
+  if(memoInput) {
+    memoInput.value = item.notes;
+    memoInput.addEventListener("input", () => {
+      item.notes = memoInput.value;
+      item.updatedAt = new Date().toISOString();
+      if (memoTimeout) clearTimeout(memoTimeout);
+      memoTimeout = setTimeout(() => {
+        syncSaveItem(item);
+      }, 600);
+    });
+  }
 
   node.querySelector(".delete-btn").addEventListener("click", async () => {
     if (!confirm(`${item.title}을 삭제할까요?`)) return;
@@ -483,6 +495,7 @@ function renderDetail() {
 }
 
 function renderListInto(list, values) {
+  if(!list) return;
   list.innerHTML = "";
   const safeValues = values.length ? values : ["입력 없음"];
   safeValues.forEach((value) => {
@@ -516,14 +529,22 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-// ⚠️ 버그가 발생했던 탭 전환 함수 구역 (완벽 수정 완료)
-function switchView(viewName) {
-  els.views.forEach((view) => view.classList.remove("active-view"));
-  const targetView = document.querySelector(`#${viewName}View`);
-  if(targetView) {
-    targetView.classList.add("active-view"); // 문법 교정 완료
+// GPT 피드백 반영: 강력한 뷰 예외 처리 가드가 포함된 완전체 switchView 함수 교체
+function switchView(viewName = "dashboard") {
+  const safeViewName = viewName || "dashboard";
+  const targetView = document.querySelector(`#${safeViewName}View`);
+
+  if (!targetView) {
+    console.error(`[switchView] #${safeViewName}View를 찾을 수 없습니다. HTML 구조를 점검하세요.`);
+    return;
   }
-  els.navButtons.forEach((button) => button.classList.toggle("active", button.dataset.view === viewName));
+
+  els.views.forEach((view) => view.classList.remove("active-view"));
+  targetView.classList.add("active-view");
+
+  els.navButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.view === safeViewName);
+  });
 }
 
 function updatePrompt() {
@@ -539,133 +560,4 @@ function updatePrompt() {
 2. 각 캐릭터의 'traits'란에는 원작에서 보여준 대표적인 대사 스타일, 시그니처 행동 패턴, 혹은 작중 타 인물들의 커뮤니티나 인물의 평가를 녹여내서 작성해줘.
 3. 'appealPoints'에는 독자/시청자들이 열광하는 결정적 입덕 매력 요소를 기술해줘.
 4. 'improvements'에는 웹툰/웹소설의 문법을 드라마 편수로 바꿀 때 반드시 보완해야 하는 단점 및 각색 방향을 짚어줘.
-5. 점수 체계는 10.0점 만점이며, 소수점 첫째 자리(예: 8.5)까지 세부적으로 평가해줘.
-
-아래 명시된 스키마 JSON 포맷을 완벽하게 준수해줘:
-
-${JSON.stringify(requiredShape, null, 2)}`;
-}
-
-function backupPayload() {
-  return {
-    app: "kdrama-ip-dashboard",
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    items,
-  };
-}
-
-function updateBackupText() {
-  if (!els.backupText) return;
-  els.backupText.value = JSON.stringify(backupPayload(), null, 2);
-}
-
-function parseBackup(text) {
-  const parsed = JSON.parse(text);
-  const rawItems = Array.isArray(parsed) ? parsed : parsed.items;
-  if (!Array.isArray(rawItems)) {
-    throw new Error("items 배열이 있는 백업 JSON이어야 합니다.");
-  }
-  return rawItems.map(normalizeItem);
-}
-
-async function restoreBackup(text) {
-  const restored = parseBackup(text);
-  items = restored;
-  selectedId = items[0]?.id || null;
-  for (const item of items) {
-    await syncSaveItem(item);
-  }
-  render();
-  if(els.backupMessage) els.backupMessage.textContent = `${items.length}개 IP를 전체 복원 및 클라우드 동기화했습니다.`;
-}
-
-function exportBackupFile() {
-  const blob = new Blob([JSON.stringify(backupPayload(), null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  const date = new Date().toISOString().slice(0, 10);
-  anchor.href = url;
-  anchor.download = `kdrama-ip-dashboard-${date}.json`;
-  document.body.append(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
-}
-
-els.navButtons.forEach((button) => {
-  button.addEventListener("click", () => switchView(button.dataset.view));
-});
-
-[els.searchInput, els.typeFilter, els.sortSelect].forEach((control) => {
-  if(control) control.addEventListener("input", render);
-});
-
-if(els.addSampleBtn) els.addSampleBtn.addEventListener("click", () => upsertItem(sampleIp));
-if(els.pasteSampleBtn) els.pasteSampleBtn.addEventListener("click", () => {
-  els.jsonInput.value = JSON.stringify(sampleIp, null, 2);
-  els.formMessage.textContent = "예시 JSON을 넣었습니다.";
-});
-
-if(els.clearFormBtn) els.clearFormBtn.addEventListener("click", () => {
-  els.jsonInput.value = "";
-  els.formMessage.textContent = "";
-});
-
-if(els.validateBtn) els.validateBtn.addEventListener("click", () => {
-  const result = parseInput();
-  els.formMessage.textContent = result.errors.length ? result.errors.join(" ") : "저장 가능한 JSON입니다.";
-});
-
-if(els.saveBtn) els.saveBtn.addEventListener("click", () => {
-  const result = parseInput();
-  if (result.errors.length) {
-    els.formMessage.textContent = result.errors.join(" ");
-    return;
-  }
-  upsertItem(result.raw);
-  els.formMessage.textContent = "저장했습니다.";
-  switchView("dashboard");
-});
-
-if(els.promptTitle) els.promptTitle.addEventListener("input", updatePrompt);
-
-if(els.copyPromptBtn) els.copyPromptBtn.addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(els.promptText.value);
-    els.copyMessage.textContent = "복사했습니다.";
-  } catch {
-    els.promptText.select();
-    els.copyMessage.textContent = "선택된 프롬프트를 복사하세요.";
-  }
-});
-
-if(els.exportBtn) els.exportBtn.addEventListener("click", exportBackupFile);
-
-if(els.restoreBtn) els.restoreBtn.addEventListener("click", () => {
-  try {
-    restoreBackup(els.restoreInput.value.trim());
-    switchView("dashboard");
-  } catch (error) {
-    els.backupMessage.textContent = `복원 실패: ${error.message}`;
-  }
-});
-
-if(els.backupFileInput) els.backupFileInput.addEventListener("change", async () => {
-  const file = els.backupFileInput.files?.[0];
-  if (!file) return;
-  try {
-    const text = await file.text();
-    els.restoreInput.value = text;
-    await restoreBackup(text);
-    switchView("dashboard");
-  } catch (error) {
-    els.backupMessage.textContent = `복원 실패: ${error.message}`;
-  } finally {
-    els.backupFileInput.value = "";
-  }
-});
-
-// 시작점 기동 및 초기 렌더링 정상 실행
-syncLoadItems();
-render();
+5. 점수 체계는 10.0
