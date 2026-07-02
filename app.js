@@ -1,7 +1,7 @@
 // ==========================================
 // 1. Supabase 환경 설정
 // ==========================================
-const SUPABASE_URL = "https://ozhdfewlboheqcvbqgz.supabase.co";
+const SUPABASE_URL = "https://ozhdfewlboheqpcvbqgz.supabase.co";
 const SUPABASE_KEY = "sb_publishable_VbrlZgSIDMw06htQd8fXkQ_HkUxm3z";
 
 // ✦ 수정: window.supabase 충돌 방지 + DOMContentLoaded 후 초기화
