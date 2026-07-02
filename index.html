@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>드라마 IP 분석 대시보드</title>
     <link rel="stylesheet" href="./styles.css" />
-    <!-- Supabase 외부 연동 자바스크립트 모듈 주입 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body>
@@ -145,13 +144,13 @@
           <div class="backup-grid">
             <section class="backup-panel">
               <h3>백업</h3>
-              <p>현재 브라우저에 저장된 IP 데이터를 JSON 파일로 내려받습니다.</p>
+              <p>현재 데이터베이스에 저장된 전체 데이터를 JSON 파일로 내려받습니다.</p>
               <textarea id="backupText" readonly></textarea>
             </section>
 
             <section class="backup-panel">
               <h3>복원</h3>
-              <p>백업 파일 내용을 붙여넣거나 파일을 선택하면 이 브라우저에 다시 저장됩니다.</p>
+              <p>백업 JSON을 붙여넣거나 파일을 업로드하면 원격 DB에 즉시 대치 동기화됩니다.</p>
               <input id="backupFileInput" type="file" accept="application/json,.json" />
               <textarea id="restoreInput" spellcheck="false" placeholder="백업 JSON을 붙여넣으세요."></textarea>
               <div class="import-actions">
