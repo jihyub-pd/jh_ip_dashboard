@@ -664,5 +664,7 @@ if(els.backupFileInput) els.backupFileInput.addEventListener("change", async () 
   }
 });
 
+// 기존 코드 맨 아래 667, 668번 줄 뒤에 render(); 를 추가합니다.
 // 시작점 기동 실행
 syncLoadItems();
+render(); // <-- 이 한 줄을 반드시 새로 적어 넣어주세요!
