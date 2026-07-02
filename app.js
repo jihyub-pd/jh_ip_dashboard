@@ -1,17 +1,17 @@
 // ==========================================
 // 1. 데이터베이스(Supabase) 환경 설정 및 연결
 // ==========================================
-const SUPABASE_URL = window.env?.SUPABASE_URL || "https://ozhdfewlboheqpcvbqgz.supabase.co"; 
-const SUPABASE_KEY = window.env?.SUPABASE_KEY || "sb_publishable_VBrlZgSIDMwO6htQd8fXkQ_HkUxmg3z";
+const SUPABASE_URL = "https://ozhdfewlboheqcvbqgz.supabase.co"; 
+const SUPABASE_KEY = "sb_publishable_VbrlZgSIDMw06htQd8fXkQ_HkUxm3z"; 
 
 let supabase = null;
-if (SUPABASE_URL && SUPABASE_URL !== "https://ozhdfewlboheqpcvbqgz.supabase.co") {
-  try {
-    supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+try {
+  if (window.supabase) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     console.log("Supabase 클라우드 데이터베이스 연동 활성화");
-  } catch (e) {
-    console.error("Supabase 초기화 실패:", e);
   }
+} catch (e) {
+  console.error("Supabase 초기화 실패:", e);
 }
 
 const STORAGE_KEY = "kdrama-ip-dashboard-v1";
