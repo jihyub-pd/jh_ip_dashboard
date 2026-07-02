@@ -574,3 +574,37 @@ input, select {
     font-size: 13px;
   }
 }
+/* ==========================================
+   점수별 평가 근거 UI 추가
+   ========================================== */
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.score-bars {
+  gap: 12px;
+}
+
+.score-card {
+  border: 1px solid var(--line);
+  background: #fffefa;
+  padding: 12px;
+}
+
+.score-reason {
+  margin: 9px 0 0 !important;
+  padding-top: 9px;
+  border-top: 1px dashed var(--line);
+  color: #4b463f !important;
+  font-size: 13px;
+  line-height: 1.55 !important;
+}
+
+.score-reason strong {
+  display: inline-block;
+  margin-right: 6px;
+  color: var(--accent);
+  font-size: 12px;
+}
