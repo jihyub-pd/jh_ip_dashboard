@@ -2,7 +2,7 @@
 // 1. Supabase 환경 설정
 // ==========================================
 const SUPABASE_URL = "https://ozhdfewlboheqpcvbqgz.supabase.co";
-const SUPABASE_KEY = "sb_publishable_VbrlZgSIDMw06htQd8fXkQ_HkUxm3z";
+const SUPABASE_KEY = "sb_publishable_VBrlZgSIDMwO6htQd8fXkQ_HkUxmg3z";
 
 let supabaseClient = null;
 
