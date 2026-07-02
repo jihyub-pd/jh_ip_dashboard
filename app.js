@@ -1,23 +1,24 @@
 // ==========================================
-// 1. 데이터베이스(Supabase) 환경 설정 및 연결
+// 1. Supabase 환경 설정
 // ==========================================
-const SUPABASE_URL = "https://ozhdfewlboheqcvbqgz.supabase.co"; 
-const SUPABASE_KEY = "sb_publishable_VbrlZgSIDMw06htQd8fXkQ_HkUxm3z"; 
+const SUPABASE_URL = "https://ozhdfewlboheqcvbqgz.supabase.co";
+const SUPABASE_KEY = "sb_publishable_VbrlZgSIDMw06htQd8fXkQ_HkUxm3z";
 
-// ✦ 수정: 변수명을 supabaseClient로 변경 (window.supabase와 충돌 방지)
+// ✦ 수정: window.supabase 충돌 방지 + DOMContentLoaded 후 초기화
 let supabaseClient = null;
-try {
-  if (typeof window.Supabase !== "undefined" && window.Supabase && typeof window.Supabase.createClient === "function") {
-    supabaseClient = window.Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.log("Supabase 클라우드 데이터베이스 연동 활성화");
-  } else if (typeof window.supabase !== "undefined" && window.supabase && typeof window.supabase.createClient === "function") {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.log("Supabase 클라우드 데이터베이스 연동 활성화 (소문자 하이브리드)");
-  } else {
-    console.warn("Supabase 패키지를 읽지 못해 로컬 스토리지 모드로 작동합니다.");
+
+function initSupabase() {
+  try {
+    const lib = window.supabase || window.Supabase;
+    if (lib && typeof lib.createClient === "function") {
+      supabaseClient = lib.createClient(SUPABASE_URL, SUPABASE_KEY);
+      console.log("Supabase 연동 성공");
+    } else {
+      console.warn("Supabase 라이브러리 없음 — 로컬 스토리지 모드");
+    }
+  } catch (e) {
+    console.error("Supabase 초기화 실패:", e);
   }
-} catch (e) {
-  console.error("Supabase 초기화 실패:", e);
 }
 
 const STORAGE_KEY = "kdrama-ip-dashboard-v1";
@@ -148,10 +149,9 @@ if (els.schemaPreview) {
 }
 
 // ==========================================
-// 2. 고도화된 실시간 서버 동기화 함수 레이어
+// 2. Supabase 동기화 함수
 // ==========================================
 async function syncLoadItems() {
-  // ✦ 수정: supabase → supabaseClient
   if (supabaseClient) {
     try {
       const { data, error } = await supabaseClient
@@ -191,7 +191,6 @@ function finalizeLoad() {
 
 async function syncSaveItem(normalizedItem) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  // ✦ 수정: supabase → supabaseClient
   if (supabaseClient) {
     try {
       const dbPayload = {
@@ -212,7 +211,6 @@ async function syncSaveItem(normalizedItem) {
 async function syncDeleteItem(id) {
   items = items.filter((candidate) => candidate.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  // ✦ 수정: supabase → supabaseClient
   if (supabaseClient) {
     try {
       const { error } = await supabaseClient.from("kdrama_ips").delete().eq("id", id);
@@ -223,6 +221,9 @@ async function syncDeleteItem(id) {
   }
 }
 
+// ==========================================
+// 3. 유틸리티 함수
+// ==========================================
 function clampScore(value) {
   const number = Number(value);
   if (Number.isNaN(number)) return 0.0;
@@ -237,10 +238,9 @@ function averageScore(item) {
 
 function normalizeItem(raw) {
   const now = new Date().toISOString();
-  
   const rawChars = raw.mainCharacters || raw.characters || [];
   const normalizedChars = Array.isArray(rawChars) ? rawChars.map(c => {
-    if (typeof c === 'object' && c !== null) {
+    if (typeof c === "object" && c !== null) {
       return {
         name: String(c.name || "이름 없음").trim(),
         role: String(c.role || "역할 없음").trim(),
@@ -294,21 +294,18 @@ function validateItem(raw) {
   if (!raw.title) errors.push("title이 필요합니다.");
   if (!raw.logline) errors.push("logline이 필요합니다.");
   if (!raw.scores || typeof raw.scores !== "object") errors.push("scores가 필요합니다.");
-
   Object.keys(scoreLabels).forEach((key) => {
     const value = raw.scores?.[key];
     if (value === undefined || Number.isNaN(Number(value))) {
       errors.push(`scores.${key}는 숫자여야 합니다.`);
     }
   });
-
   return errors;
 }
 
 function parseInput() {
   const text = els.jsonInput.value.trim();
   if (!text) return { errors: ["JSON을 입력하세요."] };
-
   try {
     const parsed = JSON.parse(text);
     const raw = Array.isArray(parsed) ? parsed[0] : parsed;
@@ -334,6 +331,9 @@ function upsertItem(raw) {
   render();
 }
 
+// ==========================================
+// 4. 렌더링 함수
+// ==========================================
 function filteredItems() {
   const query = (els.searchInput?.value || "").trim().toLowerCase();
   const type = els.typeFilter?.value || "all";
@@ -471,9 +471,7 @@ function renderDetail() {
       item.notes = memoInput.value;
       item.updatedAt = new Date().toISOString();
       if (memoTimeout) clearTimeout(memoTimeout);
-      memoTimeout = setTimeout(() => {
-        syncSaveItem(item);
-      }, 600);
+      memoTimeout = setTimeout(() => { syncSaveItem(item); }, 600);
     });
   }
 
@@ -523,23 +521,26 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+// ==========================================
+// 5. 뷰 전환
+// ==========================================
 function switchView(viewName = "dashboard") {
   const safeViewName = viewName || "dashboard";
   const targetView = document.querySelector(`#${safeViewName}View`);
-
   if (!targetView) {
     console.error(`[switchView] #${safeViewName}View를 찾을 수 없습니다.`);
     return;
   }
-
   els.views.forEach((view) => view.classList.remove("active-view"));
   targetView.classList.add("active-view");
-
   els.navButtons.forEach((button) => {
     button.classList.toggle("active", button.dataset.view === safeViewName);
   });
 }
 
+// ==========================================
+// 6. 프롬프트 / 백업
+// ==========================================
 function updatePrompt() {
   if (!els.promptText) return;
   const title = els.promptTitle?.value.trim() || "{{원작 제목}}";
@@ -607,6 +608,9 @@ function exportBackupFile() {
   URL.revokeObjectURL(url);
 }
 
+// ==========================================
+// 7. 이벤트 바인딩
+// ==========================================
 els.navButtons.forEach((button) => {
   button.addEventListener("click", () => switchView(button.dataset.view));
 });
@@ -620,17 +624,14 @@ if (els.pasteSampleBtn) els.pasteSampleBtn.addEventListener("click", () => {
   els.jsonInput.value = JSON.stringify(sampleIp, null, 2);
   els.formMessage.textContent = "예시 JSON을 넣었습니다.";
 });
-
 if (els.clearFormBtn) els.clearFormBtn.addEventListener("click", () => {
   els.jsonInput.value = "";
   els.formMessage.textContent = "";
 });
-
 if (els.validateBtn) els.validateBtn.addEventListener("click", () => {
   const result = parseInput();
   els.formMessage.textContent = result.errors.length ? result.errors.join(" ") : "저장 가능한 JSON입니다.";
 });
-
 if (els.saveBtn) els.saveBtn.addEventListener("click", () => {
   const result = parseInput();
   if (result.errors.length) {
@@ -641,9 +642,7 @@ if (els.saveBtn) els.saveBtn.addEventListener("click", () => {
   els.formMessage.textContent = "저장했습니다.";
   switchView("dashboard");
 });
-
 if (els.promptTitle) els.promptTitle.addEventListener("input", updatePrompt);
-
 if (els.copyPromptBtn) els.copyPromptBtn.addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText(els.promptText.value);
@@ -653,9 +652,7 @@ if (els.copyPromptBtn) els.copyPromptBtn.addEventListener("click", async () => {
     els.copyMessage.textContent = "선택된 프롬프트를 복사하세요.";
   }
 });
-
 if (els.exportBtn) els.exportBtn.addEventListener("click", exportBackupFile);
-
 if (els.restoreBtn) els.restoreBtn.addEventListener("click", async () => {
   try {
     await restoreBackup(els.restoreInput.value.trim());
@@ -664,7 +661,6 @@ if (els.restoreBtn) els.restoreBtn.addEventListener("click", async () => {
     if (els.backupMessage) els.backupMessage.textContent = `복원 실패: ${error.message}`;
   }
 });
-
 if (els.backupFileInput) els.backupFileInput.addEventListener("change", async () => {
   const file = els.backupFileInput.files?.[0];
   if (!file) return;
@@ -680,5 +676,11 @@ if (els.backupFileInput) els.backupFileInput.addEventListener("change", async ()
   }
 });
 
-switchView("dashboard");
-syncLoadItems();
+// ==========================================
+// ✦ 수정: DOMContentLoaded 후 초기화 — CDN 로딩 타이밍 문제 해결
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+  initSupabase();
+  switchView("dashboard");
+  syncLoadItems();
+});
