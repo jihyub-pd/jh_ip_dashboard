@@ -6,10 +6,10 @@ const SUPABASE_KEY = "sb_publishable_VbrlZgSIDMw06htQd8fXkQ_HkUxm3z";
 
 let supabase = null;
 try {
-  if (typeof window.supabase !== "undefined" && window.supabase && typeof window.supabase.createClient === "function") {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.log("Supabase 클라우드 데이터베이스 연동 활성화");
-  } else {
+if (typeof window.Supabase !== "undefined" && window.Supabase && typeof window.Supabase.createClient === "function") {
+  supabase = window.Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log("Supabase 클라우드 데이터베이스 연동 활성화");
+} else {
     console.warn("Supabase 모듈을 불러오지 못해 로컬 스토리지 모드로 작동합니다.");
   }
 } catch (e) {
