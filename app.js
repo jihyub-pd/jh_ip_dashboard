@@ -2,9 +2,8 @@
 // 1. Supabase 환경 설정
 // ==========================================
 const SUPABASE_URL = "https://ozhdfewlboheqpcvbqgz.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96aGRmZXdsYm9oZXFwY3ZicWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NzUwMjksImV4cCI6MjA5ODU1MTAyOX0.X5-4JBMX94Y04PPb5zTQpsbLCk4GMAhRa6yNzhBhjuI";
+const SUPABASE_KEY = "sb_publishable_VbrlZgSIDMw06htQd8fXkQ_HkUxm3z";
 
-// ✦ 수정: window.supabase 충돌 방지 + DOMContentLoaded 후 초기화
 let supabaseClient = null;
 
 function initSupabase() {
@@ -121,6 +120,8 @@ const els = {
   emptyState: document.querySelector("#emptyState"),
   detailPanel: document.querySelector("#detailPanel"),
   detailTemplate: document.querySelector("#detailTemplate"),
+  detailViewTitle: document.querySelector("#detailViewTitle"),
+  backBtn: document.querySelector("#backBtn"),
   addSampleBtn: document.querySelector("#addSampleBtn"),
   pasteSampleBtn: document.querySelector("#pasteSampleBtn"),
   clearFormBtn: document.querySelector("#clearFormBtn"),
@@ -367,7 +368,6 @@ function render() {
   renderMetrics();
   renderFilters();
   renderList();
-  renderDetail();
   updatePrompt();
   updateBackupText();
 }
@@ -393,6 +393,7 @@ function renderFilters() {
   els.typeFilter.value = types.includes(current) ? current : "all";
 }
 
+// ✦ 수정: 카드 클릭 시 detailView로 페이지 전환
 function renderList() {
   if (!els.ipList) return;
   const visible = filteredItems();
@@ -413,9 +414,12 @@ function renderList() {
       </div>
       <div class="tag-row">${[item.originalType, item.recommendation, ...item.genre.slice(0, 3)].map(tagHtml).join("")}</div>
     `;
+    // ✦ 수정: 클릭 시 상세 페이지로 전환
     button.addEventListener("click", () => {
       selectedId = item.id;
-      render();
+      if (els.detailViewTitle) els.detailViewTitle.textContent = item.title;
+      renderDetail();
+      switchView("detail");
     });
     els.ipList.append(button);
   });
@@ -479,6 +483,7 @@ function renderDetail() {
     if (!confirm(`${item.title}을 삭제할까요?`)) return;
     await syncDeleteItem(item.id);
     selectedId = items[0]?.id || null;
+    switchView("dashboard");
     render();
   });
 
@@ -615,6 +620,14 @@ els.navButtons.forEach((button) => {
   button.addEventListener("click", () => switchView(button.dataset.view));
 });
 
+// ✦ 추가: 뒤로가기 버튼
+if (els.backBtn) {
+  els.backBtn.addEventListener("click", () => {
+    switchView("dashboard");
+    render();
+  });
+}
+
 [els.searchInput, els.typeFilter, els.sortSelect].forEach((control) => {
   if (control) control.addEventListener("input", render);
 });
@@ -677,7 +690,7 @@ if (els.backupFileInput) els.backupFileInput.addEventListener("change", async ()
 });
 
 // ==========================================
-// ✦ 수정: DOMContentLoaded 후 초기화 — CDN 로딩 타이밍 문제 해결
+// ✦ 초기화
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   initSupabase();
