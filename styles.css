@@ -24,10 +24,7 @@ body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-button,
-input,
-select,
-textarea {
+button, input, select, textarea {
   font: inherit;
 }
 
@@ -66,13 +63,7 @@ button {
   font-weight: 800;
 }
 
-.brand h1,
-.brand p,
-.topbar h2,
-.topbar p,
-.panel-head h3,
-.detail-card h2,
-.detail-card h3 {
+.brand h1, .brand p, .topbar h2, .topbar p, .panel-head h3, .detail-card h2, .detail-card h3 {
   margin: 0;
 }
 
@@ -123,8 +114,7 @@ button {
   text-align: left;
 }
 
-.nav-btn.active,
-.nav-btn:hover {
+.nav-btn.active, .nav-btn:hover {
   border-color: rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.09);
   color: #fffaf0;
@@ -136,11 +126,11 @@ button {
 }
 
 .view {
-  display: none;
+  display: none; /* 기본 숨김 */
 }
 
 .active-view {
-  display: block;
+  display: block !important; /* 클릭 전환 연동용 강제 활성화 */
 }
 
 .topbar {
@@ -172,39 +162,30 @@ button {
   flex-wrap: wrap;
 }
 
-.search-box,
-.title-input,
-.memo-box {
+.search-box, .title-input, .memo-box {
   display: grid;
   gap: 7px;
 }
 
-.search-box span,
-.title-input span,
-.memo-box span {
+.search-box span, .title-input span, .memo-box span {
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
 }
 
-input,
-select,
-textarea {
+input, select, textarea {
   border: 1px solid var(--line);
   background: #fffefa;
   color: var(--ink);
   outline: none;
 }
 
-input:focus,
-select:focus,
-textarea:focus {
+input:focus, select:focus, textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(18, 106, 90, 0.12);
 }
 
-input,
-select {
+input, select {
   height: 42px;
   padding: 0 12px;
 }
@@ -216,12 +197,7 @@ select {
   align-items: start;
 }
 
-.list-panel,
-.detail-panel,
-.editor-panel,
-.schema-panel,
-.prompt-panel,
-.backup-panel {
+.list-panel, .detail-panel, .editor-panel, .schema-panel, .prompt-panel, .backup-panel {
   border: 1px solid var(--line);
   background: var(--panel);
   box-shadow: var(--shadow);
@@ -236,10 +212,7 @@ select {
   margin-bottom: 14px;
 }
 
-.ghost-btn,
-.secondary-btn,
-.primary-btn,
-.danger-btn {
+.ghost-btn, .secondary-btn, .primary-btn, .danger-btn {
   min-height: 40px;
   border: 1px solid var(--line);
   padding: 0 14px;
@@ -278,8 +251,7 @@ select {
   text-align: left;
 }
 
-.ip-card.active,
-.ip-card:hover {
+.ip-card.active, .ip-card:hover {
   border-color: var(--accent);
 }
 
@@ -327,8 +299,7 @@ select {
   font-weight: 750;
 }
 
-.empty-state,
-.detail-empty {
+.empty-state, .detail-empty {
   display: grid;
   place-items: center;
   min-height: 240px;
@@ -408,17 +379,13 @@ select {
   background: var(--accent-3);
 }
 
-.analysis-columns,
-.detail-blocks,
-.import-grid,
-.backup-grid {
+.analysis-columns, .detail-blocks, .import-grid, .backup-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
-.analysis-columns section,
-.detail-blocks > div {
+.analysis-columns section, .detail-blocks > div {
   border-top: 1px solid var(--line);
   padding-top: 14px;
 }
@@ -439,7 +406,7 @@ select {
   line-height: 1.58;
 }
 
-/* 캐릭터 심층 분석 레이아웃 모듈 추가 */
+/* 캐릭터 주인공 4인 입덕분석 반응형 그리드 아키텍처 */
 .character-deep-dive {
   grid-column: 1 / -1;
   margin: 10px 0;
@@ -449,12 +416,15 @@ select {
   margin-top: 15px; 
   border-bottom: 2px solid var(--line); 
   padding-bottom: 6px;
+  font-size: 16px;
+  font-weight: 800;
 }
 
 .char-grid {
   display: grid; 
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
   gap: 14px; 
+  margin-top: 12px;
 }
 
 .char-sub-card {
@@ -500,8 +470,7 @@ select {
   justify-content: flex-end;
 }
 
-.editor-panel textarea,
-.prompt-panel textarea {
+.editor-panel textarea, .prompt-panel textarea {
   width: 100%;
   min-height: 430px;
   padding: 14px;
@@ -546,8 +515,7 @@ select {
   gap: 12px;
 }
 
-.backup-panel h3,
-.backup-panel p {
+.backup-panel h3, .backup-panel p {
   margin: 0;
 }
 
@@ -576,44 +544,31 @@ select {
   .app-shell {
     grid-template-columns: 1fr;
   }
-
   .sidebar {
     position: static;
   }
-
-  .import-grid,
-  .backup-grid {
+  .import-grid, .backup-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 720px) {
-  .main,
-  .sidebar {
+  .main, .sidebar {
     padding: 20px;
   }
-
-  .topbar,
-  .detail-header {
+  .topbar, .detail-header {
     align-items: stretch;
     flex-direction: column;
   }
-
   .toolbar {
     align-items: stretch;
   }
-
-  .toolbar > *,
-  .toolbar input,
-  .toolbar select {
+  .toolbar > *, .toolbar input, .toolbar select {
     width: 100%;
   }
-
-  .analysis-columns,
-  .detail-blocks {
+  .analysis-columns, .detail-blocks {
     grid-template-columns: 1fr;
   }
-
   .score-row {
     grid-template-columns: 86px minmax(0, 1fr) 34px;
     font-size: 13px;
