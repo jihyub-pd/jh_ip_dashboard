@@ -232,10 +232,7 @@ async function saveItemToCloud(normalizedItem) {
     .from("kdrama_ips")
     .upsert(dbPayload, { onConflict: "id" });
 
-  if (error) {
-    return { ok: false, mode: "cloud", error };
-  }
-
+  if (error) return { ok: false, mode: "cloud", error };
   return { ok: true, mode: "cloud" };
 }
 
@@ -253,7 +250,6 @@ async function syncLoadItems() {
 
       const cloudItems = Array.isArray(data) ? data.map(rowToItem) : [];
 
-      // 기존 브라우저 localStorage에만 있던 데이터를 Supabase로 최초 1회 올립니다.
       if (cloudItems.length === 0 && localItems.length > 0 && !localStorage.getItem(MIGRATION_KEY)) {
         const migrated = [];
         for (const item of localItems) {
@@ -598,7 +594,6 @@ function renderDetail() {
 
   renderListInto(node.querySelector(".strengths"), item.strengths);
   renderListInto(node.querySelector(".risks"), item.risks);
-
   renderThreePoints(node.querySelector(".premise"), item.premise);
   renderThreePoints(node.querySelector(".target"), item.targetAudience);
   renderThreePoints(node.querySelector(".casting"), item.castingDirection);
@@ -628,7 +623,6 @@ function renderDetail() {
     memoInput.addEventListener("input", () => {
       item.notes = memoInput.value;
       item.updatedAt = new Date().toISOString();
-
       if (memoTimeout) clearTimeout(memoTimeout);
       memoTimeout = setTimeout(async () => {
         const result = await syncSaveItem(item, { silent: true });
@@ -667,10 +661,7 @@ function renderListInto(list, values) {
 
 function renderThreePoints(el, text) {
   if (!el) return;
-  if (!text) {
-    el.textContent = "—";
-    return;
-  }
+  if (!text) { el.textContent = "—"; return; }
 
   let points = [];
   if (text.includes("①") || text.includes("②") || text.includes("③")) {
@@ -767,6 +758,19 @@ function updatePrompt() {
 12. ★ scoreRationales는 scores의 7개 항목과 같은 key를 반드시 포함해줘.
 13. ★ scoreRationales의 각 항목은 왜 그 점수를 줬는지 1~2문장으로 설명해줘. 단순 칭찬이 아니라 원작의 장점, 약점, 제작/시장 리스크를 같이 반영해줘.
 14. ★ scoreRationales의 key는 반드시 dramaFit, marketPotential, productionFeasibility, originality, scalability, globalPotential, characterAppeal 순서로 작성해줘.
+
+★ 점수 기준표 (반드시 준수 — 이 기준을 벗어나면 분석 신뢰도가 없다):
+- 9.0~10.0: 글로벌 팬덤 보유, 타매체 성공 사례 존재, 리스크가 극히 낮은 초대형 IP에만 부여
+- 7.0~8.9: 명확한 강점이 있으나 각색 과제나 시장 리스크가 존재하는 유망 IP
+- 5.0~6.9: 가능성은 있으나 리스크가 강점과 비슷하거나 더 큰 IP
+- 3.0~4.9: 드라마화 시 상당한 재창작이 필요하거나 시장성이 불확실한 IP
+- 1.0~2.9: 현재 시점에서 드라마화 비추천
+
+★ 채점 원칙:
+- 대부분의 IP는 5.0~7.5 사이에 분포해야 정상이다.
+- 평균 점수가 7.5를 초과하면 근거를 반드시 재검토하고 하향 조정해줘.
+- 9점 이상은 전지적 독자 시점, 무빙, 재혼 황후처럼 이미 수백억 조회수와 글로벌 팬덤을 가진 IP에만 해당한다.
+- 점수는 냉정하게 줘. 칭찬보다 현실적인 리스크를 더 반영해줘.
 
 점수 항목 정의:
 - dramaFit: 한국 드라마 문법, 회차별 사건 구성, 감정선 지속 가능성
