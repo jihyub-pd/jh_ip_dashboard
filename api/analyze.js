@@ -1,14 +1,13 @@
 // api/analyze.js
-// ✨ v4: 대시보드 데이터 정확도·분석 수준 강화 버전
-//   - 기획 리포트(mode: 'report') 기능 제거 → 할당량을 대시보드 품질에 집중
-//   - 3단계 파이프라인:
-//       [1단계] Google Search 그라운딩 — 작품 개요 리서치 (flash)
-//       [2단계] Google Search 그라운딩 — 등장인물 전용 심층 리서치 (flash)
-//       [3단계] 리서치 근거 기반 심층 분석 JSON 구조화 (pro)
+// ✨ v5: 빈 응답(finishReason: STOP) 안정화 버전
+//   - 3단계 파이프라인: ①작품 개요 검색 → ②인물 심층 검색 → ③분석 JSON 구조화
+//   - 빈 응답 발생 시 자동 재시도 (최대 3회)
+//   - 검색 리서치 단계는 thinking 비활성화 → 빈 응답 현상 차단 + 속도 개선
+//   - 에러 메시지에 실패 단계 표시
 //   - SDK 의존성 제로 (REST 직접 호출)
 
 const RESEARCH_MODEL = "gemini-2.5-flash"; // 검색 리서치 단계
-const ANALYSIS_MODEL = "gemini-2.5-flash";   // 최종 분석 단계 (타임아웃 잦으면 "gemini-2.5-flash"로 변경)
+const ANALYSIS_MODEL = "gemini-2.5-flash"; // 최종 분석 단계 (유료 결제 시 "gemini-2.5-pro" 권장)
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 const SYSTEM_PERSONA =
@@ -19,17 +18,23 @@ const SYSTEM_PERSONA =
   "칭찬 일변도가 아니라 약점과 제작·시장·법적 리스크를 균형 있게 반영하고, " +
   "점수는 항목 간 차이를 두어 냉정하게 평가합니다.";
 
-// Gemini REST 호출 공통 함수
-async function callGemini(apiKey, { model, prompt, useSearch = false, jsonMode = false, temperature = 0.7 }) {
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+// Gemini REST 호출 공통 함수 — 빈 응답 시 자동 재시도 (최대 3회)
+async function callGemini(apiKey, { model, prompt, label = "", useSearch = false, jsonMode = false, temperature = 0.7, thinkingBudget = null }) {
   const body = {
     system_instruction: { parts: [{ text: SYSTEM_PERSONA }] },
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: {
       temperature,
-      maxOutputTokens: 8192
+      maxOutputTokens: 16384
     }
   };
 
+  // thinkingBudget: 0이면 thinking 비활성화 (빈 응답 현상 차단 + 속도 향상)
+  if (thinkingBudget !== null) {
+    body.generationConfig.thinkingConfig = { thinkingBudget };
+  }
   if (useSearch) {
     body.tools = [{ google_search: {} }];
   }
@@ -37,30 +42,45 @@ async function callGemini(apiKey, { model, prompt, useSearch = false, jsonMode =
     body.generationConfig.responseMimeType = "application/json";
   }
 
-  const response = await fetch(`${API_BASE}/${model}:generateContent`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": apiKey
-    },
-    body: JSON.stringify(body)
-  });
+  const MAX_ATTEMPTS = 3;
+  let lastError = null;
 
-  const data = await response.json().catch(() => null);
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const response = await fetch(`${API_BASE}/${model}:generateContent`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey
+      },
+      body: JSON.stringify(body)
+    });
 
-  if (!response.ok) {
-    const googleMsg = data?.error?.message || `HTTP ${response.status}`;
-    throw new Error(`Gemini API 오류 (${model}): ${googleMsg}`);
-  }
+    const data = await response.json().catch(() => null);
 
-  const parts = data?.candidates?.[0]?.content?.parts || [];
-  const text = parts.map(p => p.text || "").join("").trim();
+    if (!response.ok) {
+      const googleMsg = data?.error?.message || `HTTP ${response.status}`;
+      // 429(할당량)나 503(과부하)은 잠시 대기 후 재시도, 그 외는 즉시 실패
+      if ((response.status === 429 || response.status === 503) && attempt < MAX_ATTEMPTS) {
+        lastError = new Error(`[${label}] Gemini API 오류 (${model}): ${googleMsg}`);
+        await sleep(3000 * attempt);
+        continue;
+      }
+      throw new Error(`[${label}] Gemini API 오류 (${model}): ${googleMsg}`);
+    }
 
-  if (!text) {
+    // thought(내부 사고) 파트는 제외하고 실제 텍스트 파트만 수집
+    const parts = data?.candidates?.[0]?.content?.parts || [];
+    const text = parts.filter(p => !p.thought).map(p => p.text || "").join("").trim();
+
+    if (text) return text;
+
+    // 빈 응답 → 재시도
     const finishReason = data?.candidates?.[0]?.finishReason || "UNKNOWN";
-    throw new Error(`Gemini 응답이 비어 있습니다. (${model}, finishReason: ${finishReason})`);
+    lastError = new Error(`[${label}] Gemini 응답이 비어 있습니다. (${model}, finishReason: ${finishReason}, 시도 ${attempt}/${MAX_ATTEMPTS})`);
+    if (attempt < MAX_ATTEMPTS) await sleep(1500 * attempt);
   }
-  return text;
+
+  throw lastError;
 }
 
 export default async function handler(req, res) {
@@ -101,8 +121,10 @@ export default async function handler(req, res) {
     const overviewText = await callGemini(apiKey, {
       model: RESEARCH_MODEL,
       prompt: overviewPrompt,
+      label: "1단계 작품 리서치",
       useSearch: true,
-      temperature: 0.2
+      temperature: 0.2,
+      thinkingBudget: 0 // 검색 단계는 thinking 불필요 → 빈 응답 차단 + 속도 향상
     });
 
     // =============================================================
@@ -130,8 +152,10 @@ ${overviewText.slice(0, 1500)}
     const characterText = await callGemini(apiKey, {
       model: RESEARCH_MODEL,
       prompt: characterPrompt,
+      label: "2단계 인물 리서치",
       useSearch: true,
-      temperature: 0.2
+      temperature: 0.2,
+      thinkingBudget: 0
     });
 
     // =============================================================
@@ -219,8 +243,10 @@ ${characterText}
     let responseText = await callGemini(apiKey, {
       model: ANALYSIS_MODEL,
       prompt: promptJson,
+      label: "3단계 분석 구조화",
       jsonMode: true,
-      temperature: 0.5
+      temperature: 0.5,
+      thinkingBudget: 2048 // 분석 단계는 적당한 thinking 허용 (품질 유지)
     });
 
     if (responseText.startsWith("```")) {
