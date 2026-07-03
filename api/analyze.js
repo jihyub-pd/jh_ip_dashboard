@@ -6,11 +6,11 @@ export default async function handler(req, res) {
 
   const { title, item, mode } = req.body;
 
-  // 🛠️ [중요] 따옴표 안에 실제 구글 API Key("AIzaSy...")를 정확히 복사해 넣습니다.
+  // 🛠️ 본인의 실제 Gemini API Key를 그대로 유지합니다.
   const RAW_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6JzeBpSVEYwmUDyoGRnWrZJTDaUhaICbZ-gzrZGZf4E5Q";
   const apiKey = RAW_KEY.trim().replace(/['"]/g, "");
 
-  if (!apiKey || apiKey.includes("AQ.Ab8RN6JzeBpSVEYwmUDyoGRnWrZJTDaUhaICbZ-gzrZGZf4E5Q") || apiKey.length < 10) {
+  if (!apiKey || apiKey.length < 10) {
     return res.status(400).json({ 
       success: false, 
       error: '서버 소스코드(api/analyze.js) 내부에 유효한 Gemini API Key가 입력되지 않았습니다.' 
@@ -24,12 +24,15 @@ export default async function handler(req, res) {
     if (mode === 'report') {
       if (!item) return res.status(400).json({ error: 'IP 데이터가 누락되었습니다.' });
 
-      // 🚨 [모델명 교정] gemini-1.5-flash-latest 로 엔드포인트 규격 고정
+      // 🚨 [인증 교정] URL 뒤의 ?key= 대신 헤더에 'x-goog-api-key'를 심어 구글 서버에 명확히 API Key임을 명시합니다.
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey
+          },
           body: JSON.stringify({
             contents: [{
               parts: [{
@@ -76,12 +79,15 @@ export default async function handler(req, res) {
       notes: "검토 메모 요약"
     };
 
-    // 🚨 [모델명 교정] gemini-1.5-flash-latest 로 엔드포인트 규격 고정
+    // 🚨 [인증 교정] URL 뒤의 ?key= 대신 헤더에 'x-goog-api-key'를 심어 구글 서버에 명확히 API Key임을 명시합니다.
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey
+        },
         body: JSON.stringify({
           contents: [{
             parts: [{
