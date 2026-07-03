@@ -125,9 +125,9 @@ const sampleIp = {
   },
   scoreRationales: {
     dramaFit: "복수, 가족 권력, 회귀라는 한국 드라마 친화적 장치가 뚜렷하고 회차별 미션 구조로 나누기 쉽다. 다만 후반부 반복감을 줄이는 각색이 필요해 만점보다는 낮게 평가했다.",
-    marketPotential: "재벌가 복수극과 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮고, 원작형 회귀물 팬덤까지 흡수할 수 " +
+    marketPotential: "재벌가 복수극 및 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮고, 원작형 회귀물 팬덤까지 흡수할 수 있다.",
+    productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간이지만 재벌가 공간, 기업 인수전 묘사를 설득력 있게 구현하려면 세트와 고급 조연 캐스팅 비용이 올라갈 수 " +
       "있다.",
-    productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간이지만 재벌가 공간, 기업 인수전 묘사를 설득력 있게 구현하려면 세트와 고급 조연 캐스팅 비용이 올라갈 수 있다.",
     originality: "회귀 재벌 복수물 자체는 익숙하지만 엔터 IP 산업을 전면에 놓는 점이 차별화 포인트다.",
     scalability: "콘텐츠 기업, 아이돌, 제작사, 플랫폼 전쟁 등으로 에피소드 확장이 쉽고 시즌제나 스핀오프 가능성도 있다.",
     globalPotential: "권력 승계와 복수 정서는 보편적이지만 한국 재벌·엔터 산업의 세부 맥락은 해외 시청자에게 설명이 필요할 수 있다.",
@@ -171,6 +171,16 @@ const els = {
   restoreInput: document.querySelector("#restoreInput"),
   restoreBtn: document.querySelector("#restoreBtn"),
   backupMessage: document.querySelector("#backupMessage"),
+  
+  aiAnalysisSection: document.querySelector("#ai-analysis-section"),
+  reanalyzeBtn: document.querySelector("#reanalyze-btn"),
+  analysisLoading: document.querySelector("#analysis-loading"),
+  analysisResult: document.querySelector("#analysis-result"),
+
+  // ⭐ [수정 핵심 1] 자동 생성용 HTML 태그들을 JS가 인식할 수 있게 엘리먼트 정의 추가
+  autoGenTitle: document.querySelector("#autoGenTitle"),
+  autoGenBtn: document.querySelector("#autoGenBtn"),
+  autoGenStatus: document.querySelector("#autoGenStatus")
 };
 
 let items = [];
@@ -381,6 +391,7 @@ function normalizeItem(raw, options = {}) {
     },
     scoreRationales: normalizeScoreRationales(raw.scoreRationales || raw.scoreReasons || raw.scoreAnalysis || raw.scoreDescriptions),
     notes: String(raw.notes || "").trim(),
+    aiReport: raw.aiReport || ""
   };
 }
 
@@ -422,6 +433,9 @@ async function upsertItem(raw) {
   if (existingIndex >= 0) {
     normalized.id = items[existingIndex].id;
     normalized.createdAt = items[existingIndex].createdAt;
+    if (items[existingIndex].aiReport && !normalized.aiReport) {
+      normalized.aiReport = items[existingIndex].aiReport;
+    }
     items[existingIndex] = normalized;
   } else {
     items.unshift(normalized);
@@ -581,7 +595,7 @@ function renderDetail() {
   renderThreePoints(node.querySelector(".casting"), item.castingDirection);
   renderListInto(node.querySelector(".comparables-list"), item.comparables);
 
-  // 캐릭터 배열 변환 (백틱 문법 에러를 차단하기 위해 순수 문자열 연산 방식으로 안전하게 처리)
+  // 캐릭터 배열 변환 (안전한 컴포넌트 결합식 설계)
   const charactersHtml = (item.mainCharacters || []).map(char => {
     return '<div class="char-sub-card">' +
       '<h4>' + escapeHtml(char.name) + ' <small>(' + escapeHtml(char.role) + ')</small></h4>' +
@@ -627,6 +641,97 @@ function renderDetail() {
 
   els.detailPanel.innerHTML = "";
   els.detailPanel.append(node);
+
+  // 하단 Gemini AI 리포트 자동 트리거 연결
+  loadAiAnalysis(item);
+}
+
+// ==========================================
+// ⭐ Gemini 기획 리포트 연동 파트
+// ==========================================
+async function loadAiAnalysis(item) {
+  if (!els.aiAnalysisSection) return;
+  els.aiAnalysisSection.style.display = "block";
+  if (item.aiReport) {
+    els.analysisLoading.style.display = "none";
+    els.analysisResult.style.display = "block";
+    els.analysisResult.innerHTML = item.aiReport;
+    return;
+  }
+  await runAiAnalysis(item);
+}
+
+async function runAiAnalysis(item) {
+  if (!els.analysisLoading || !els.analysisResult) return;
+  els.analysisLoading.style.display = "block";
+  els.analysisResult.style.display = "none";
+  try {
+    const response = await fetch("/api/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ item, mode: 'report' })
+    });
+    if (!response.ok) throw new Error("AI 리포트 호출 패킷 오류");
+    const data = await response.json();
+    const formattedResult = data.result.replace(/\n/g, "<br>");
+    els.analysisResult.innerHTML = formattedResult;
+    item.aiReport = formattedResult;
+    await syncSaveItem(item, { silent: true });
+  } catch (error) {
+    els.analysisResult.innerHTML = `<p style="color:red;">⚠️ 리포트 빌드 에러: ${error.message}</p>`;
+  } finally {
+    els.analysisLoading.style.display = "none";
+    els.analysisResult.style.display = "block";
+  }
+}
+
+// ==========================================
+// ⭐ 신규 구현: 제목 입력 기반 자동 리서치 핸들러
+// ==========================================
+async function handleAiAutoGen() {
+  if (!els.autoGenTitle || !els.autoGenBtn || !els.autoGenStatus) return;
+  
+  const title = els.autoGenTitle.value.trim();
+  console.log("자동 생성 트리거 가동 — 원작 명칭:", title); // 이제 콘솔 탭에 로그가 기록됩니다.
+
+  if (!title) {
+    alert("분석하고자 하는 원작 작품의 제목을 입력해 주세요.");
+    return;
+  }
+
+  // UI 상태 변경 및 더블 탭 락
+  els.autoGenBtn.disabled = true;
+  els.autoGenStatus.style.display = "block";
+
+  try {
+    const response = await fetch("/api/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title })
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Gemini 파싱 엔진 내부 오류");
+    }
+
+    // 신규 아이템 세팅 및 인서트
+    const newDashboardItem = await upsertItem(data.payload);
+    
+    // 성공 피드백 인터랙션
+    els.autoGenTitle.value = "";
+    selectedId = newDashboardItem.id;
+    if (els.detailViewTitle) els.detailViewTitle.textContent = newDashboardItem.title;
+    renderDetail();
+    switchView("detail");
+
+  } catch (error) {
+    console.error("자동 대시보드 구축 에러 로그:", error);
+    alert(`자동 생성 실패: ${error.message}`);
+  } finally {
+    els.autoGenBtn.disabled = false;
+    els.autoGenStatus.style.display = "none";
+  }
 }
 
 function renderListInto(list, values) {
@@ -682,135 +787,22 @@ function scoreRow(label, value, rationale) {
   `;
 }
 
-function tagHtml(value) {
-  return value ? `<span class="tag">${escapeHtml(value)}</span>` : "";
-}
-
+function tagHtml(value) { return value ? `<span class="tag">${escapeHtml(value)}</span>` : ""; }
 function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
 
-// ==========================================
-// 6. 뷰 전환
-// ==========================================
 function switchView(viewName = "dashboard") {
   const safeViewName = viewName || "dashboard";
   const targetView = document.querySelector(`#${safeViewName}View`);
-  if (!targetView) {
-    console.error(`[switchView] #${safeViewName}View를 찾을 수 없습니다.`);
-    return;
-  }
+  if (!targetView) return;
   els.views.forEach((view) => view.classList.remove("active-view"));
   targetView.classList.add("active-view");
-  els.navButtons.forEach((button) => {
-    button.classList.toggle("active", button.dataset.view === safeViewName);
-  });
+  els.navButtons.forEach((button) => { button.classList.toggle("active", button.dataset.view === safeViewName); });
 }
 
 // ==========================================
-// 7. 프롬프트 / 백업
-// ==========================================
-function updatePrompt() {
-  if (!els.promptText) return;
-  const title = els.promptTitle?.value.trim() || "{{원작 제목}}";
-  els.promptText.value = `다음 원작 IP를 한국 드라마로 제작할 가능성 관점에서 분석해줘.
-반드시 JSON만 출력하고, JSON 밖에는 어떤 설명도 쓰지 마.
-
-원작 제목: ${title}
-
-주요 분석 가이드라인:
-1. 주인공 4인(핵심 주연급)을 선정하여 심층 분석해줘.
-2. 각 캐릭터의 'traits'란에는 원작에서 보여준 대표적인 대사 스타일, 시그니처 행동 패턴, 혹은 작중 타 인물들의 커뮤니티나 인물의 평가를 녹여내서 작성해줘.
-3. 'appealPoints'에는 독자/시청자들이 열광하는 결정적 입덕 매력 요소를 기술해줘.
-4. 'improvements'에는 웹툰/웹소설의 문법을 드라마 편수로 바꿀 때 반드시 보완해야 하는 단점 및 각색 방향을 짚어줘.
-5. 점수 체계는 10.0점 만점이며, 소수점 첫째 자리(예: 8.5)까지 세부적으로 평가해줘.
-6. ★ strengths는 반드시 서로 다른 관점의 강점 3가지를 배열로 작성해줘.
-7. ★ risks는 반드시 서로 다른 리스크 3가지를 배열로 작성해줘.
-8. ★ comparables는 반드시 유사 성공작 3가지를 배열로 작성해줘.
-9. ★ targetAudience는 연령대/성별/취향 등 3가지 측면을 포함해서 작성하되, 각 측면을 ' / ' 로 구분해줘.
-10. ★ castingDirection은 주연/조연/연출 방향 3가지를 포함해서 작성하되, 각 항목을 ' / ' 로 구분해줘.
-11. ★ premise는 세계관/설정/갈등구조 3가지 특징을 포함해서 작성하되, 각 항목을 ① ② ③ 으로 구분해줘.
-12. ★ scoreRationales는 scores의 7개 항목과 같은 key를 반드시 포함해줘.
-13. ★ scoreRationales의 각 항목은 왜 그 점수를 줬는지 1~2문장으로 설명해줘. 단순 칭찬이 아니라 원작의 장점, 약점, 제작/시장 리스크를 같이 반영해줘.
-14. ★ scoreRationales의 key는 반드시 dramaFit, marketPotential, productionFeasibility, originality, scalability, globalPotential, characterAppeal 순서로 작성해줘.
-
-★ 점수 기준표 (반드시 준수):
-- 9.0~10.0: 글로벌 팬덤 보유, 타매체 성공 사례 존재, 리스크가 극히 낮은 초대형 IP에만 부여
-- 7.0~8.9: 명확한 강점이 있으나 각색 과제나 시장 리스크가 존재하는 유망 IP
-- 5.0~6.9: 가능성은 있으나 리스크가 강점과 비슷하거나 더 큰 IP
-- 3.0~4.9: 드라마화 시 상당한 재창작이 필요하거나 시장성이 불확실한 IP
-- 1.0~2.9: 현재 시점에서 드라마화 비추천
-
-★ 채점 원칙:
-- 대부분의 IP는 5.0~7.5 사이에 분포해야 정상이다.
-- 평균 점수가 7.5를 초과하면 근거를 반드시 재검토하고 하향 조정해줘.
-- 9점 이상은 전지적 독자 시점, 무빙, 재혼 황후처럼 이미 수백억 조회수와 글로벌 팬덤을 가진 IP에만 해당한다.
-- 점수는 냉정하게 줘. 칭찬보다 현실적인 리스크를 더 반영해줘.
-
-점수 항목 정의:
-- dramaFit: 한국 드라마 문법, 회차별 사건 구성, 감정선 지속 가능성
-- marketPotential: 대중성, 원작 팬덤, 화제성, 편성/플랫폼 매력
-- productionFeasibility: 제작비, CG/액션/세트 난도, 캐스팅 부담
-- originality: 설정과 장르 변주의 신선도, 기존 작품과의 차별성
-- scalability: 시즌제, 스핀오프, 부가 IP 확장 가능성
-- globalPotential: 해외 시청자 이해도, 보편 정서, 글로벌 플랫폼 적합성
-- characterAppeal: 주연급 인물의 매력, 관계성, 팬덤 형성 가능성
-
-아래 명시된 스키마 JSON 포맷을 완벽하게 준수해줘:
-
-${JSON.stringify(requiredShape, null, 2)}`;
-}
-
-function backupPayload() {
-  return { app: "kdrama-ip-dashboard", version: 2, exportedAt: new Date().toISOString(), items };
-}
-
-function updateBackupText() {
-  if (!els.backupText) return;
-  els.backupText.value = JSON.stringify(backupPayload(), null, 2);
-}
-
-function parseBackup(text) {
-  const parsed = JSON.parse(text);
-  const rawItems = Array.isArray(parsed) ? parsed : parsed.items;
-  if (!Array.isArray(rawItems)) throw new Error("items 배열이 있는 백업 JSON이어야 합니다.");
-  return rawItems.map((item) => normalizeItem(item, { keepUpdatedAt: true }));
-}
-
-async function restoreBackup(text) {
-  const restored = parseBackup(text);
-  items = restored;
-  selectedId = items[0]?.id || null;
-  setLocalItems(items);
-  if (supabaseClient) await replaceCloudItems(items);
-  render();
-  if (els.backupMessage) {
-    els.backupMessage.textContent = supabaseClient
-      ? `${items.length}개 IP를 전체 복원하고 Supabase와 대치 동기화했습니다.`
-      : `${items.length}개 IP를 현재 브라우저 로컬 저장소에 복원했습니다.`;
-  }
-}
-
-function exportBackupFile() {
-  const blob = new Blob([JSON.stringify(backupPayload(), null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  const date = new Date().toISOString().slice(0, 10);
-  anchor.href = url;
-  anchor.download = `kdrama-ip-dashboard-${date}.json`;
-  document.body.append(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
-}
-
-// ==========================================
-// 8. 이벤트 바인딩
+// 8. 이벤트 바인딩 하단부
 // ==========================================
 els.navButtons.forEach((button) => {
   button.addEventListener("click", () => switchView(button.dataset.view));
@@ -831,9 +823,7 @@ if (els.deleteSelectedBtn) {
     els.deleteSelectedBtn.disabled = true;
     els.deleteSelectedBtn.textContent = "삭제 중...";
     try {
-      for (const id of selectedIds) {
-        await syncDeleteItem(id);
-      }
+      for (const id of selectedIds) { await syncDeleteItem(id); }
       selectedIds.clear();
       toggleSelectMode();
       render();
@@ -881,9 +871,7 @@ if (els.saveBtn) {
     els.formMessage.textContent = "저장 중입니다...";
     try {
       await upsertItem(result.raw);
-      els.formMessage.textContent = supabaseClient
-        ? "Supabase DB에 저장했습니다."
-        : "Supabase 연결이 없어 현재 브라우저에만 저장했습니다.";
+      els.formMessage.textContent = supabaseClient ? "Supabase DB에 저장했습니다." : "로컬에 저장했습니다.";
       switchView("dashboard");
     } catch (error) {
       els.formMessage.textContent = `저장 실패: ${getErrorMessage(error)}`;
@@ -893,44 +881,16 @@ if (els.saveBtn) {
   });
 }
 
-if (els.promptTitle) els.promptTitle.addEventListener("input", updatePrompt);
-
-if (els.copyPromptBtn) {
-  els.copyPromptBtn.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(els.promptText.value);
-      els.copyMessage.textContent = "복사했습니다.";
-    } catch {
-      els.promptText.select();
-      els.copyMessage.textContent = "선택된 프롬프트를 복사하세요.";
-    }
+if (els.reanalyzeBtn) {
+  els.reanalyzeBtn.addEventListener("click", () => {
+    const item = items.find((c) => c.id === selectedId);
+    if (item) runAiAnalysis(item);
   });
 }
 
-if (els.exportBtn) els.exportBtn.addEventListener("click", exportBackupFile);
-
-if (els.restoreBtn) {
-  els.restoreBtn.addEventListener("click", async () => {
-    try { await restoreBackup(els.restoreInput.value.trim()); switchView("dashboard"); }
-    catch (error) { if (els.backupMessage) els.backupMessage.textContent = `복원 실패: ${getErrorMessage(error)}`; }
-  });
-}
-
-if (els.backupFileInput) {
-  els.backupFileInput.addEventListener("change", async () => {
-    const file = els.backupFileInput.files?.[0];
-    if (!file) return;
-    try {
-      const text = await file.text();
-      els.restoreInput.value = text;
-      await restoreBackup(text);
-      switchView("dashboard");
-    } catch (error) {
-      els.backupMessage.textContent = `복원 실패: ${getErrorMessage(error)}`;
-    } finally {
-      els.backupFileInput.value = "";
-    }
-  });
+// ⭐ [수정 핵심 2] 버튼 클릭 시 동작을 수행하는 이벤트 핸들러 바인딩 실행 코드 추가
+if (els.autoGenBtn) {
+  els.autoGenBtn.addEventListener("click", handleAiAutoGen);
 }
 
 // ==========================================
