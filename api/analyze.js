@@ -1,21 +1,15 @@
 // api/analyze.js
 export default async function handler(req, res) {
-  // CORS 및 POST 메서드 외의 요청 방어
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   const { title, item, mode } = req.body;
 
-  // -------------------------------------------------------------
-  // 🛠️ [안정화 가이드] Vercel 환경변수 인식이 꼬일 때를 대비해
-  // process.env 뒤에 본인의 실제 Gemini API Key를 백업용으로 붙여넣어 줍니다.
-  // 예: const apiKey = (process.env.GEMINI_API_KEY || "AIzaSy...").trim();
-  // -------------------------------------------------------------
-  const RAW_KEY = process.env.GEMINI_API_KEY || "여기에_실제_Gemini_API_키를_넣으세요";
+  // 🛠️ 본인의 실제 Gemini API Key를 여기에 정확히 입력해 주세요.
+  const RAW_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6LgC7pc1N2CJCY-sR1sqygTFlnftBH-USZuXeHaeVLbSg";
   const apiKey = RAW_KEY.trim().replace(/['"]/g, "");
 
-  // API Key 누락 및 형식 예외 처리
   if (!apiKey || apiKey.includes("여기에_실제") || apiKey.length < 10) {
     return res.status(400).json({ 
       success: false, 
@@ -25,20 +19,21 @@ export default async function handler(req, res) {
 
   try {
     // =============================================================
-    // Case 1: 상세화면 하단 — 드라마화 연출/각색 기획 리포트 생성 (HTML 리턴)
+    // Case 1: 상세화면 하단 — 드라마화 연출/각색 기획 리포트 생성
     // =============================================================
     if (mode === 'report') {
       if (!item) return res.status(400).json({ error: 'IP 데이터가 누락되었습니다.' });
 
+      // 🛠️ [교정] 구글 오피셜 API 정식 엔드포인트 주소(v1/models/gemini-1.5-flash)로 변경하여 호환성 확보
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `당신은 프로 드라마 제작 프로듀서(PD)이자 최고 수준의 콘텐츠 기획 분석가입니다. 아래 제공된 원작 IP 후보의 대시보드 정형화 데이터를 정밀 분석하여, '드라마화 연출 및 각색 방향 기획 리포트'를 한국어로 상세히 작성해 주세요. 결과는 HTML 마크업(<h3>, <p>, <ul>, <li> 등) 형태로만 감싸서 출력해 주세요. 별도의 마크다운(\`\`\`) 기호나 설명 조각은 절대 붙이지 마세요.\n\n[원작 정보]\n${JSON.stringify(item, null, 2)}`
+                text: `당신은 프로 드라마 제작 프로듀서(PD)이자 최고 수준의 콘텐츠 기획 분석가입니다. 아래 제공된 원작 IP 후보의 대시보드 정형화 데이터를 정밀 분석하여, '드라마화 연출 및 각색 방향 기획 리포트'를 한국어로 상세히 작성해 주세요. 결과는 HTML 마크업(<h3>, <p>, <ul>, <li> 등) 형태로만 감싸서 출력해 주세요. 별도의 마크다운 기호(\`\`\`)는 절대 붙이지 마세요.\n\n[원작 정보]\n${JSON.stringify(item, null, 2)}`
               }]
             }]
           })
@@ -47,7 +42,7 @@ export default async function handler(req, res) {
 
       const data = await response.json();
       if (!response.ok || data.error) {
-        throw new Error(data.error?.message || `Gemini API 리포트 세션 실패 (Status: ${response.status})`);
+        throw new Error(data.error?.message || `Gemini API 호출 실패 (Status: ${response.status})`);
       }
 
       const analysisText = data.candidates?.[0]?.content?.parts?.[0]?.text || "<p>리포트를 생성할 수 없습니다.</p>";
@@ -55,7 +50,7 @@ export default async function handler(req, res) {
     }
 
     // =============================================================
-    // Case 2: 대시보드 메인 — 원작 타이틀 기반 데이터 자동 추출 생성 (JSON 리턴)
+    // Case 2: 대시보드 메인 — 원작 타이틀 기반 데이터 자동 추출 생성
     // =============================================================
     if (!title) return res.status(400).json({ error: '원작 제목이 입력되지 않았습니다.' });
 
@@ -81,8 +76,9 @@ export default async function handler(req, res) {
       notes: "검토 메모 요약"
     };
 
+    // 🛠️ [교정] 구글 오피셜 API 정식 엔드포인트 주소(v1/models/gemini-1.5-flash)로 변경하여 호환성 확보
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -99,7 +95,7 @@ export default async function handler(req, res) {
     const data = await response.json();
     
     if (!response.ok || data.error) {
-      throw new Error(data.error?.message || `Gemini 모델러 통신 실패 (Status: ${response.status})`);
+      throw new Error(data.error?.message || `Gemini API 호출 실패 (Status: ${response.status})`);
     }
 
     if (!data.candidates || data.candidates.length === 0) {
@@ -111,17 +107,15 @@ export default async function handler(req, res) {
 
     let responseText = part.text.trim();
     
-    // AI가 마크다운 껍데기를 기어코 붙여서 줄 때를 대비한 3중 정제 필터링
     if (responseText.startsWith("```")) {
       responseText = responseText.replace(/^```json/, "").replace(/^```/, "").replace(/```$/, "").trim();
     }
 
-    // 순수 JSON 객체로 파싱 후 프론트엔드로 배달
     const parsedPayload = JSON.parse(responseText);
     return res.status(200).json({ success: true, payload: parsedPayload });
 
   } catch (error) {
-    console.error("백엔드 오류 로그:", error);
+    console.error("백엔드 에러 로그:", error);
     return res.status(500).json({ success: false, error: error.message });
   }
 }
