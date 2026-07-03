@@ -6,7 +6,7 @@ export default async function handler(req, res) {
 
   const { title, item, mode } = req.body;
 
-  // 🛠️ 본인의 실제 Gemini API Key를 여기에 정확히 입력해 주세요.
+  // 🛠️ 본인의 실제 Gemini API Key를 입력해 주세요.
   const RAW_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6LgC7pc1N2CJCY-sR1sqygTFlnftBH-USZuXeHaeVLbSg";
   const apiKey = RAW_KEY.trim().replace(/['"]/g, "");
 
@@ -24,9 +24,9 @@ export default async function handler(req, res) {
     if (mode === 'report') {
       if (!item) return res.status(400).json({ error: 'IP 데이터가 누락되었습니다.' });
 
-      // 🛠️ [교정] 구글 오피셜 API 정식 엔드포인트 주소(v1/models/gemini-1.5-flash)로 변경하여 호환성 확보
+      // 🛠️ [교정] v1beta 엔드포인트와 공식 모델 명칭(gemini-1.5-flash-latest) 결합
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -76,9 +76,9 @@ export default async function handler(req, res) {
       notes: "검토 메모 요약"
     };
 
-    // 🛠️ [교정] 구글 오피셜 API 정식 엔드포인트 주소(v1/models/gemini-1.5-flash)로 변경하여 호환성 확보
+    // 🛠️ [교정] v1beta 엔드포인트와 공식 모델 명칭(gemini-1.5-flash-latest) 결합
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
