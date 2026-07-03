@@ -50,7 +50,7 @@ const requiredShape = {
       improvements: "드라마화 시 개선/각색 포인트"
     }
   ],
-  strengths: ["강점1", "강점2", "강점3"],
+  strengths: ["강점1 — 서로 다른 관점", "강점2 — 서로 다른 관점", "강점3 — 서로 다른 관점"],
   risks: ["리스크1", "리스크2", "리스크3"],
   targetAudience: "연령대/성별/취향 등 3가지 측면을 포함한 타깃층",
   productionDifficulty: "낮음 | 보통 | 높음",
@@ -67,13 +67,13 @@ const requiredShape = {
     characterAppeal: 0.0,
   },
   scoreRationales: {
-    dramaFit: "이유",
-    marketPotential: "이유",
-    productionFeasibility: "이유",
-    originality: "이유",
-    scalability: "이유",
-    globalPotential: "이유",
-    characterAppeal: "이유",
+    dramaFit: "드라마 적합 점수를 이렇게 준 이유",
+    marketPotential: "흥행성 점수를 이렇게 준 이유",
+    productionFeasibility: "제작성 점수를 이렇게 준 이유",
+    originality: "차별성 점수를 이렇게 준 이유",
+    scalability: "확장성 점수를 이렇게 준 이유",
+    globalPotential: "글로벌 점수를 이렇게 준 이유",
+    characterAppeal: "캐릭터 매력도 점수를 이렇게 준 이유",
   },
   notes: "선택 메모",
 };
@@ -125,11 +125,11 @@ const sampleIp = {
     characterAppeal: 9.5
   },
   scoreRationales: {
-    dramaFit: "복수, 가족 권력, 회귀라는 한국 드라마 친화적 장치가 뚜렷하고 회차별 미션 구조로 나누기 쉽다.",
-    marketPotential: "재벌가 복수극 및 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮다.",
-    productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간이지만 기업 인수전 묘사를 설득력 있게 구현하려면 고급 조연 캐스팅 비용이 필요하다.",
+    dramaFit: "복수, 가족 권력, 회귀라는 한국 드라마 친화적 장치가 뚜렷하고 회차별 미션 구조로 나누기 쉽다. 다만 후반부 반복감을 줄이는 각색이 필요해 만점보다는 낮게 평가했다.",
+    marketPotential: "재벌가 복수극 및 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮고, 원작형 회귀물 팬덤까지 흡수할 수 " + "있다.",
+    productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간이지만 재벌가 공간, 기업 인수전 묘사를 설득력 있게 구현하려면 세트와 고급 조연 캐스팅 비용이 올라갈 수 있다.",
     originality: "회귀 재벌 복수물 자체는 익숙하지만 엔터 IP 산업을 전면에 놓는 점이 차별화 포인트다.",
-    scalability: "콘텐츠 기업, 아이돌, 제작사, 플랫폼 전쟁 등으로 에피소드 확장이 쉽다.",
+    scalability: "콘텐츠 기업, 아이돌, 제작사, 플랫폼 전쟁 등으로 에피소드 확장이 쉽고 시즌제나 스핀오프 가능성도 있다.",
     globalPotential: "권력 승계와 복수 정서는 보편적이지만 한국 재벌·엔터 산업의 세부 맥락은 해외 시청자에게 설명이 필요할 수 있습니다.",
     characterAppeal: "미래 정보를 활용하는 전략형 남주와 강단 있는 검사 캐릭터가 팬덤을 만들기 좋다."
   },
@@ -192,7 +192,7 @@ if (els.schemaPreview) {
 }
 
 // ==========================================
-// 2. Supabase 및 로컬 저장소 핵심 동기화 함수 (완벽 복구)
+// 2. Supabase 동기화 함수
 // ==========================================
 function getLocalItems() {
   try {
@@ -286,20 +286,6 @@ async function syncSaveItem(normalizedItem, options = {}) {
   return result;
 }
 
-// 🚨 누락되었던 핵심 데이터 업데이트/인서트 함수 완전 복구
-async function upsertItem(rawInput) {
-  const normalized = normalizeItem(rawInput);
-  const idx = items.findIndex((item) => item.id === normalized.id);
-  if (idx > -1) {
-    items[idx] = normalized;
-  } else {
-    items.unshift(normalized);
-  }
-  await syncSaveItem(normalized);
-  render();
-  return normalized;
-}
-
 async function syncDeleteItem(id) {
   const previousItems = [...items];
   items = items.filter((candidate) => candidate.id !== id);
@@ -315,8 +301,24 @@ async function syncDeleteItem(id) {
   }
 }
 
+async function replaceCloudItems(restoredItems) {
+  if (!supabaseClient) return;
+  const { data, error: loadError } = await supabaseClient.from("kdrama_ips").select("id");
+  if (loadError) throw loadError;
+  const restoredIds = new Set(restoredItems.map((item) => item.id));
+  const idsToDelete = (data || []).map((row) => row.id).filter((id) => !restoredIds.has(id));
+  if (idsToDelete.length > 0) {
+    const { error: deleteError } = await supabaseClient.from("kdrama_ips").delete().in("id", idsToDelete);
+    if (deleteError) throw deleteError;
+  }
+  for (const item of restoredItems) {
+    const result = await saveItemToCloud(item);
+    if (!result.ok) throw new Error(getErrorMessage(result.error));
+  }
+}
+
 // ==========================================
-// 3. 유틸리티 및 규격화 함수
+// 3. 유틸리티 함수
 // ==========================================
 function clampScore(value) {
   const number = Number(value);
@@ -339,7 +341,9 @@ function normalizeScoreRationales(raw) {
 }
 
 function scoreRationaleText(item, key) {
-  return item.scoreRationales?.[key] || "평가 근거가 입력되었습니다.";
+  const text = item.scoreRationales?.[key];
+  if (text) return text;
+  return "평가 근거가 입력되었습니다.";
 }
 
 function normalizeItem(raw, options = {}) {
@@ -355,7 +359,7 @@ function normalizeItem(raw, options = {}) {
         improvements: String(c.improvements || "분석 없음").trim()
       };
     }
-    return { name: String(c).trim(), role: "주연", traits: "정보 없음", appealPoints: "정보 없음", improvements: "정보 없음" };
+    return { name: String(c).trim(), role: "주연", traits: "대사/행동 정보 없음", appealPoints: "입덕 포인트 없음", improvements: "각색점 정보 없음" };
   }) : [];
 
   return {
@@ -384,7 +388,7 @@ function normalizeItem(raw, options = {}) {
       globalPotential: clampScore(raw.scores?.globalPotential),
       characterAppeal: clampScore(raw.scores?.characterAppeal),
     },
-    scoreRationales: normalizeScoreRationales(raw.scoreRationales || raw.scoreReasons || raw.scoreAnalysis),
+    scoreRationales: normalizeScoreRationales(raw.scoreRationales || raw.scoreReasons || raw.scoreAnalysis || raw.scoreDescriptions),
     notes: String(raw.notes || "").trim(),
     aiReport: raw.aiReport || ""
   };
@@ -396,21 +400,54 @@ function toArray(value) {
   return String(value).split(",").map((item) => item.trim()).filter(Boolean);
 }
 
+function validateItem(raw) {
+  const errors = [];
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) errors.push("JSON 객체여야 합니다.");
+  if (!raw.title) errors.push("title이 필요합니다.");
+  if (!raw.logline) errors.push("logline이 필요합니다.");
+  if (!raw.scores || typeof raw.scores !== "object") errors.push("scores가 필요합니다.");
+  Object.keys(scoreLabels).forEach((key) => {
+    const value = raw.scores?.[key];
+    if (value === undefined || Number.isNaN(Number(value))) errors.push(`scores.${key}는 숫자여야 합니다.`);
+  });
+  return errors;
+}
+
 function parseInput() {
-  if (!els.jsonInput) return { errors: ["인풋창이 없습니다."] };
-  const txt = els.jsonInput.value.trim();
-  if (!txt) return { errors: ["내용이 비어 있습니다."] };
+  const text = els.jsonInput.value.trim();
+  if (!text) return { errors: ["JSON을 입력하세요."] };
   try {
-    const raw = JSON.parse(txt);
-    if (!raw.title) return { errors: ["'title' 필드는 필수입니다."], raw };
-    return { errors: [], raw };
-  } catch (e) {
-    return { errors: [`JSON 문법 오류: ${e.message}`] };
+    const parsed = JSON.parse(text);
+    const raw = Array.isArray(parsed) ? parsed[0] : parsed;
+    const errors = validateItem(raw);
+    return { raw, errors };
+  } catch (error) {
+    return { errors: [`JSON 형식 오류: ${error.message}`] };
   }
 }
 
+async function upsertItem(raw) {
+  const normalized = normalizeItem(raw);
+  const existingIndex = items.findIndex((item) => item.id === normalized.id || item.title === normalized.title);
+  if (existingIndex >= 0) {
+    normalized.id = items[existingIndex].id;
+    normalized.createdAt = items[existingIndex].createdAt;
+    if (items[existingIndex].aiReport && !normalized.aiReport) {
+      normalized.aiReport = items[existingIndex].aiReport;
+    }
+    items[existingIndex] = normalized;
+  } else {
+    items.unshift(normalized);
+  }
+  selectedId = normalized.id;
+  render();
+  const result = await syncSaveItem(normalized);
+  if (!result.ok) throw new Error(getErrorMessage(result.error));
+  return normalized;
+}
+
 // ==========================================
-// 4. 선택 모드 및 필터 렌더링
+// 4. 선택 모드
 // ==========================================
 function toggleSelectMode() {
   selectMode = !selectMode;
@@ -423,6 +460,9 @@ function toggleSelectMode() {
   renderList();
 }
 
+// ==========================================
+// 5. 렌더링 함수
+// ==========================================
 function filteredItems() {
   const query = (els.searchInput?.value || "").trim().toLowerCase();
   const type = els.typeFilter?.value || "all";
@@ -430,7 +470,14 @@ function filteredItems() {
   const sorted = [...items];
 
   if (sort === "score") {
-    sorted.sort((a, b) => averageScore(b) - averageScore(a));
+    sorted.sort((a, b) => {
+      const avgA = averageScore(a);
+      const avgB = averageScore(b);
+      if (avgA !== avgB) return avgB - avgA;
+      const priorityA = clampScore(a.scores?.dramaFit) + clampScore(a.scores?.productionFeasibility) + clampScore(a.scores?.globalPotential);
+      const priorityB = clampScore(b.scores?.dramaFit) + clampScore(b.scores?.productionFeasibility) + clampScore(b.scores?.globalPotential);
+      return priorityB - priorityA;
+    });
   } else if (sort === "title") {
     sorted.sort((a, b) => a.title.localeCompare(b.title, "ko"));
   } else {
@@ -445,10 +492,22 @@ function filteredItems() {
   });
 }
 
+function updatePrompt() {
+  if (!els.promptText) return;
+  const title = els.promptTitle?.value?.trim() || "{{원작 제목}}";
+  els.promptText.value = `다음 원작 IP를 한국 드라마로 제작할 가능성 관점에서 분석해줘.\n반드시 JSON만 출력하고, JSON 밖에는 어떤 설명도 쓰지 마.\n\n원작 제목: ${title}\n\n${JSON.stringify(requiredShape, null, 2)}`;
+}
+
+function updateBackupText() {
+  if (!els.backupText) return;
+  els.backupText.value = JSON.stringify({ app: "kdrama-ip-dashboard", version: 2, exportedAt: new Date().toISOString(), items }, null, 2);
+}
+
 function render() {
   renderMetrics();
   renderFilters();
   renderList();
+  updatePrompt();       
   updateBackupText();   
 }
 
@@ -500,8 +559,11 @@ function renderList() {
 
     button.addEventListener("click", () => {
       if (selectMode) {
-        if (selectedIds.has(item.id)) selectedIds.delete(item.id);
-        else selectedIds.add(item.id);
+        if (selectedIds.has(item.id)) {
+          selectedIds.delete(item.id);
+        } else {
+          selectedIds.add(item.id);
+        }
         if (els.deleteSelectedBtn) els.deleteSelectedBtn.textContent = `선택 삭제 (${selectedIds.size})`;
         renderList();
       } else {
@@ -511,15 +573,16 @@ function renderList() {
         switchView("detail");
       }
     });
+
     els.ipList.append(button);
   });
 }
 
-// ==========================================
-// 5. 상세 정보 및 심층 분석 카드 UI 구현
-// ==========================================
 let memoTimeout = null;
 
+// ==========================================
+// 6. 상세 화면 렌더링 및 에러 대책 보완 파트 🛠️
+// ==========================================
 function renderDetail() {
   if (!els.detailPanel) return;
   const item = items.find((candidate) => candidate.id === selectedId);
@@ -545,10 +608,11 @@ function renderDetail() {
   renderThreePoints(node.querySelector(".casting"), item.castingDirection);
   renderListInto(node.querySelector(".comparables-list"), item.comparables);
 
+  // 캐릭터 심층 분석 노드 생성
   const charactersHtml = (item.mainCharacters || []).map(char => {
     return '<div class="char-sub-card">' +
       '<h4>' + escapeHtml(char.name) + ' <small>(' + escapeHtml(char.role) + ')</small></h4>' +
-      '<p><strong>특징/대사/행동:</strong> ' + escapeHtml(char.traits) + '</p>' +
+      '<p><strong>특징/대사/행동/평가:</strong> ' + escapeHtml(char.traits) + '</p>' +
       '<p><strong style="color:var(--accent-3);">입덕 포인트:</strong> ' + escapeHtml(char.appealPoints) + '</p>' +
       '<p><strong style="color:var(--accent-2);">개선/각색점:</strong> ' + escapeHtml(char.improvements) + '</p>' +
       '</div>';
@@ -559,9 +623,15 @@ function renderDetail() {
   charContainer.innerHTML = '<h3 class="char-dive-title">주인공 심층 연출 분석</h3>' +
     '<div class="char-grid">' + charactersHtml + '</div>';
 
+  // 🚨 [크래시 방어] targetBlock 요소를 찾지 못해도 오류 없이 유연하게 결합하도록 예외 처리 보완
   const targetBlock = node.querySelector(".detail-blocks") || node.querySelector(".detail-info-grid");
   if (targetBlock && targetBlock.parentNode) {
     targetBlock.parentNode.insertBefore(charContainer, targetBlock);
+  } else {
+    const firstChild = node.firstElementChild;
+    if (firstChild) {
+      firstChild.appendChild(charContainer);
+    }
   }
 
   const memoInput = node.querySelector(".memo-input");
@@ -572,7 +642,8 @@ function renderDetail() {
       item.updatedAt = new Date().toISOString();
       if (memoTimeout) clearTimeout(memoTimeout);
       memoTimeout = setTimeout(async () => {
-        await syncSaveItem(item, { silent: true });
+        const result = await syncSaveItem(item, { silent: true });
+        if (!result.ok) console.warn("메모 클라우드 저장 실패:", result.error);
       }, 600);
     });
   }
@@ -584,7 +655,9 @@ function renderDetail() {
       selectedId = items[0]?.id || null;
       switchView("dashboard");
       render();
-    } catch (error) { alert(`삭제 실패: ${getErrorMessage(error)}`); }
+    } catch (error) {
+      alert(`삭제 실패: ${getErrorMessage(error)}`);
+    }
   });
 
   els.detailPanel.innerHTML = "";
@@ -594,36 +667,81 @@ function renderDetail() {
 }
 
 // ==========================================
-// 6. 실시간 할당량 레이어 표출 바인딩 위젯
+// 7. Gemini API 연동 — 자동 생성 & 기획 리포트
 // ==========================================
-function updateQuotaDisplay(remaining, reset) {
-  let quotaBox = document.querySelector("#api-quota-widget");
-  if (!quotaBox) {
-    quotaBox = document.createElement("div");
-    quotaBox.id = "api-quota-widget";
-    quotaBox.style.cssText = "margin-top:12px; padding:10px 14px; background:#1e293b; border-radius:6px; color:#94a3b8; font-size:12px; display:flex; justify-content:space-between; align-items:center; border:1px solid #334155;";
-    const targetParent = els.autoGenStatus?.parentNode;
-    if (targetParent) targetParent.appendChild(quotaBox);
+
+// 공통: /api/analyze 호출 + 서버의 실제 에러 메시지 표출
+async function callAnalyzeApi(body) {
+  const response = await fetch("/api/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch (_) {
+    // JSON 파싱 실패 (예: Vercel 타임아웃 HTML 응답 등)
   }
-  
-  const cleanReset = reset ? reset.replace("s", "초") : "0초";
-  quotaBox.innerHTML = `
-    <div style="display:flex; align-items:center; gap:6px;">
-      <span style="display:inline-block; width:6px; height:6px; background:#22c55e; border-radius:50%"></span>
-      <span>Gemini API 실시간 할당량 리서치</span>
-    </div>
-    <div style="text-align:right;">
-      <strong>분당 남은 시도: <span style="color:#f8fafc; font-size:13px;">${remaining}회</span></strong> / 초기화까지 약 ${cleanReset}
-    </div>
-  `;
+
+  if (!response.ok || !data || data.success === false) {
+    const serverMsg = data?.error || data?.message || "(서버 상세 메시지 없음 — Vercel Logs 탭에서 확인 필요)";
+    throw new Error(`API 오류 (Status: ${response.status})\n서버 메시지: ${serverMsg}`);
+  }
+  return data;
 }
 
-// ==========================================
-// 7. 🚨 [거짓 정보 원천 차단] 구글 API 자동 연동 인터페이스
-// ==========================================
+// 상세화면 하단 — Gemini 드라마화 기획 리포트 로드 (캐시 우선)
+async function loadAiAnalysis(item) {
+  if (!els.aiAnalysisSection) return;
+  els.aiAnalysisSection.style.display = "block";
+
+  // 이미 생성된 리포트가 있으면 재호출 없이 즉시 표시
+  if (item.aiReport) {
+    els.analysisLoading.style.display = "none";
+    els.analysisResult.style.display = "block";
+    els.analysisResult.innerHTML = item.aiReport;
+    return;
+  }
+
+  await runAiAnalysis(item);
+}
+
+// 상세화면 하단 — Gemini 기획 리포트 신규/재생성
+async function runAiAnalysis(item) {
+  if (!els.analysisLoading || !els.analysisResult) return;
+
+  els.analysisLoading.style.display = "block";
+  els.analysisResult.style.display = "none";
+  if (els.reanalyzeBtn) els.reanalyzeBtn.disabled = true;
+
+  try {
+    const data = await callAnalyzeApi({ mode: "report", item });
+    const reportHtml = data.result || "<p>리포트를 생성할 수 없습니다.</p>";
+
+    item.aiReport = reportHtml;
+    item.updatedAt = new Date().toISOString();
+    els.analysisResult.innerHTML = reportHtml;
+
+    // 생성된 리포트를 DB에 캐싱 (다음 조회 시 재호출 방지)
+    const result = await syncSaveItem(item, { silent: true });
+    if (!result.ok) console.warn("리포트 클라우드 저장 실패:", result.error);
+
+  } catch (error) {
+    console.error("기획 리포트 생성 오류:", error);
+    els.analysisResult.innerHTML = `<p style="color:var(--accent-2);">리포트 생성 실패: ${escapeHtml(error.message)}</p>`;
+  } finally {
+    els.analysisLoading.style.display = "none";
+    els.analysisResult.style.display = "block";
+    if (els.reanalyzeBtn) els.reanalyzeBtn.disabled = false;
+  }
+}
+
+// 대시보드 메인 — 원작 제목 기반 Gemini 자동 분석/등록
 async function handleAiAutoGen() {
   if (!els.autoGenTitle || !els.autoGenBtn || !els.autoGenStatus) return;
-  
+
   const title = els.autoGenTitle.value.trim();
   if (!title) {
     alert("분석하고자 하는 원작 작품의 제목을 입력해 주세요.");
@@ -634,28 +752,15 @@ async function handleAiAutoGen() {
   els.autoGenStatus.style.display = "block";
 
   try {
-    const response = await fetch("/api/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title })
-    });
+    const data = await callAnalyzeApi({ title });
 
-    if (!response.ok) {
-      throw new Error(`구글 서버 인증 이슈 혹은 할당량 소진으로 정상 응답을 수신하지 못했습니다. (Status: ${response.status})`);
+    const payload = data.payload;
+    if (!payload || !payload.title) {
+      throw new Error("응답은 수신했으나 payload 구조가 올바르지 않습니다.");
     }
 
-    const data = await response.json();
-    if (!data.success || !data.payload) {
-      throw new Error(data.error || "Gemini 분석 데이터 형식이 올바르지 않습니다.");
-    }
+    const newDashboardItem = await upsertItem(payload);
 
-    if (data.rateLimit) {
-      updateQuotaDisplay(data.rateLimit.remaining, data.rateLimit.reset);
-    }
-
-    // 완전 복구된 upsertItem 호출로 데이터 유실 차단
-    const newDashboardItem = await upsertItem(data.payload);
-    
     els.autoGenTitle.value = "";
     selectedId = newDashboardItem.id;
     if (els.detailViewTitle) els.detailViewTitle.textContent = newDashboardItem.title;
@@ -671,54 +776,6 @@ async function handleAiAutoGen() {
   }
 }
 
-async function loadAiAnalysis(item) {
-  if (!els.aiAnalysisSection) return;
-  els.aiAnalysisSection.style.display = "block";
-  
-  if (item.aiReport) {
-    els.analysisLoading.style.display = "none";
-    els.analysisResult.style.display = "block";
-    els.analysisResult.innerHTML = item.aiReport;
-    return;
-  }
-  await runAiAnalysis(item);
-}
-
-async function runAiAnalysis(item) {
-  if (!els.analysisLoading || !els.analysisResult) return;
-  els.analysisLoading.style.display = "block";
-  els.analysisResult.style.display = "none";
-  
-  try {
-    const response = await fetch("/api/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ item, mode: 'report' })
-    });
-    
-    if (!response.ok) throw new Error("리포트 서버 내부 응답 지연");
-    
-    const data = await response.json();
-    if (data.result) {
-      if (data.rateLimit) {
-        updateQuotaDisplay(data.rateLimit.remaining, data.rateLimit.reset);
-      }
-      const formattedResult = data.result.replace(/\n/g, "<br>");
-      els.analysisResult.innerHTML = formattedResult;
-      item.aiReport = formattedResult;
-      await syncSaveItem(item, { silent: true });
-    }
-  } catch (error) {
-    els.analysisResult.innerHTML = `<p style="color:red;">⚠️ 리포트 생성에 실패했습니다. (원인: 할당량 초과 또는 락)</p>`;
-  } finally {
-    els.analysisLoading.style.display = "none";
-    els.analysisResult.style.display = "block";
-  }
-}
-
-// ==========================================
-// 8. 서브 뷰 컴포넌트 렌더러 유틸
-// ==========================================
 function renderListInto(list, values) {
   if (!list) return;
   list.innerHTML = "";
@@ -777,11 +834,6 @@ function escapeHtml(value) {
   return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
 
-function updateBackupText() {
-  if (!els.backupText) return;
-  els.backupText.value = JSON.stringify({ app: "kdrama-ip-dashboard", version: 2, exportedAt: new Date().toISOString(), items }, null, 2);
-}
-
 function switchView(viewName = "dashboard") {
   const safeViewName = viewName || "dashboard";
   const targetView = document.querySelector(`#${safeViewName}View`);
@@ -792,7 +844,7 @@ function switchView(viewName = "dashboard") {
 }
 
 // ==========================================
-// 9. 글로벌 이벤트 리스너 바인딩
+// 8. 이벤트 바인딩 바디부
 // ==========================================
 els.navButtons.forEach((button) => {
   button.addEventListener("click", () => switchView(button.dataset.view));
@@ -810,12 +862,18 @@ if (els.deleteSelectedBtn) {
   els.deleteSelectedBtn.addEventListener("click", async () => {
     if (selectedIds.size === 0) { alert("삭제할 IP를 선택해주세요."); return; }
     if (!confirm(`선택한 ${selectedIds.size}개의 IP를 삭제할까요?`)) return;
+    els.deleteSelectedBtn.disabled = true;
+    els.deleteSelectedBtn.textContent = "삭제 중...";
     try {
       for (const id of selectedIds) { await syncDeleteItem(id); }
       selectedIds.clear();
       toggleSelectMode();
       render();
-    } catch (error) { alert(`삭제 실패: ${getErrorMessage(error)}`); }
+    } catch (error) {
+      alert(`삭제 실패: ${getErrorMessage(error)}`);
+    } finally {
+      els.deleteSelectedBtn.disabled = false;
+    }
   });
 }
 
@@ -832,21 +890,36 @@ if (els.addSampleBtn) {
 if (els.pasteSampleBtn) {
   els.pasteSampleBtn.addEventListener("click", () => {
     els.jsonInput.value = JSON.stringify(sampleIp, null, 2);
+    els.formMessage.textContent = "예시 JSON을 넣었습니다.";
   });
 }
 
 if (els.clearFormBtn) {
-  els.clearFormBtn.addEventListener("click", () => { els.jsonInput.value = ""; });
+  els.clearFormBtn.addEventListener("click", () => { els.jsonInput.value = ""; els.formMessage.textContent = ""; });
+}
+
+if (els.validateBtn) {
+  els.validateBtn.addEventListener("click", () => {
+    const result = parseInput();
+    els.formMessage.textContent = result.errors.length ? result.errors.join(" ") : "저장 가능한 JSON입니다.";
+  });
 }
 
 if (els.saveBtn) {
   els.saveBtn.addEventListener("click", async () => {
     const result = parseInput();
-    if (result.errors.length) { alert(result.errors.join("\n")); return; }
+    if (result.errors.length) { els.formMessage.textContent = result.errors.join(" "); return; }
+    els.saveBtn.disabled = true;
+    els.formMessage.textContent = "저장 중입니다...";
     try {
       await upsertItem(result.raw);
+      els.formMessage.textContent = supabaseClient ? "Supabase DB에 저장했습니다." : "로컬에 저장했습니다.";
       switchView("dashboard");
-    } catch (error) { alert(`저장 실패: ${getErrorMessage(error)}`); }
+    } catch (error) {
+      els.formMessage.textContent = `저장 실패: ${getErrorMessage(error)}`;
+    } finally {
+      els.saveBtn.disabled = false;
+    }
   });
 }
 
@@ -862,7 +935,7 @@ if (els.autoGenBtn) {
 }
 
 // ==========================================
-// 10. 엔트리 포인트 초기화
+// 9. 초기화
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   initSupabase();
