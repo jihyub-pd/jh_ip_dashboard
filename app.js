@@ -491,7 +491,6 @@ function filteredItems() {
   });
 }
 
-// ⭐ [수정 반영] 유실되었던 하위 텍스트 렌더러 파트 재정의 복원
 function updatePrompt() {
   if (!els.promptText) return;
   const title = els.promptTitle?.value?.trim() || "{{원작 제목}}";
@@ -507,8 +506,8 @@ function render() {
   renderMetrics();
   renderFilters();
   renderList();
-  updatePrompt();       // 이제 ReferenceError 없이 정상 호출됩니다.
-  updateBackupText();   // 이제 ReferenceError 없이 정상 호출됩니다.
+  updatePrompt();       
+  updateBackupText();   
 }
 
 function renderMetrics() {
@@ -605,7 +604,6 @@ function renderDetail() {
   renderThreePoints(node.querySelector(".casting"), item.castingDirection);
   renderListInto(node.querySelector(".comparables-list"), item.comparables);
 
-  // 캐릭터 컴포넌트 조합식 렌더러 안전 보존
   const charactersHtml = (item.mainCharacters || []).map(char => {
     return '<div class="char-sub-card">' +
       '<h4>' + escapeHtml(char.name) + ' <small>(' + escapeHtml(char.role) + ')</small></h4>' +
@@ -652,7 +650,6 @@ function renderDetail() {
   els.detailPanel.innerHTML = "";
   els.detailPanel.append(node);
 
-  // 하단 Gemini AI 리포트 출력 연동 가동
   loadAiAnalysis(item);
 }
 
@@ -696,7 +693,7 @@ async function runAiAnalysis(item) {
 }
 
 // ==========================================
-// ⭐ 제목 입력 기반 자동 기획 생성 핸들러 
+// ⭐ [에러 핸들링 보완] 자동 생성 패널 컨트롤러
 // ==========================================
 async function handleAiAutoGen() {
   if (!els.autoGenTitle || !els.autoGenBtn || !els.autoGenStatus) return;
@@ -719,6 +716,12 @@ async function handleAiAutoGen() {
       body: JSON.stringify({ title })
     });
 
+    // 🚨 백엔드 500 내지 HTML 규격 예외 필터링 레이어
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error(`서버에서 올바른 JSON 규격이 아닌 에러 문서(Status: ${response.status})를 반환했습니다. api/analyze.js 파일 패치 상태를 점검해 주세요.`);
+    }
+
     const data = await response.json();
     if (!response.ok || !data.success) {
       throw new Error(data.error || "Gemini 파싱 엔진 내부 오류");
@@ -734,7 +737,7 @@ async function handleAiAutoGen() {
 
   } catch (error) {
     console.error("자동 대시보드 구축 에러 로그:", error);
-    alert(`자동 생성 실패: ${error.message}`);
+    alert(`자동 생성 실패:\n${error.message}`);
   } finally {
     els.autoGenBtn.disabled = false;
     els.autoGenStatus.style.display = "none";
@@ -895,7 +898,6 @@ if (els.reanalyzeBtn) {
   });
 }
 
-// [바인딩 실행] 자동 생성 버튼 리스너 세팅
 if (els.autoGenBtn) {
   els.autoGenBtn.addEventListener("click", handleAiAutoGen);
 }
