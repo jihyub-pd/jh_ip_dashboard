@@ -129,7 +129,7 @@ const sampleIp = {
     productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간이지만 재벌가 공간, 기업 인수전 묘사를 설득력 있게 구현하려면 세트와 고급 조연 캐스팅 비용이 올라갈 수 있다.",
     originality: "회귀 재벌 복수물 자체는 익숙하지만 엔터 IP 산업을 전면에 놓는 점이 차별화 포인트다.",
     scalability: "콘텐츠 기업, 아이돌, 제작사, 플랫폼 전쟁 등으로 에피소드 확장이 쉽고 시즌제나 스핀오프 가능성도 있다.",
-    globalPotential: "권력 승계와 복수 정서는 보편적이지만 한국 재벌·엔터 산업의 세부 맥락은 해외 시청자에게 설명이 필요할 수 있다.",
+    globalPotential: "권력 승계와 복수 정서는 보편적이지만 한국 재벌·엔터 산업의 세부 맥락은 해외 시청자에게 설명이 필요할 수 exhaustion.",
     characterAppeal: "미래 정보를 활용하는 전략형 남주와 강단 있는 검사 캐릭터가 팬덤을 만들기 좋다."
   },
   notes: "차별화 포인트는 엔터 산업 리얼리티와 주인공의 도덕적 딜레마.",
@@ -579,6 +579,9 @@ function renderList() {
 
 let memoTimeout = null;
 
+// ==========================================
+// 6. 상세 화면 렌더링 및 에러 대책 보완 파트 🛠️
+// ==========================================
 function renderDetail() {
   if (!els.detailPanel) return;
   const item = items.find((candidate) => candidate.id === selectedId);
@@ -604,6 +607,7 @@ function renderDetail() {
   renderThreePoints(node.querySelector(".casting"), item.castingDirection);
   renderListInto(node.querySelector(".comparables-list"), item.comparables);
 
+  // 캐릭터 심층 분석 노드 생성
   const charactersHtml = (item.mainCharacters || []).map(char => {
     return '<div class="char-sub-card">' +
       '<h4>' + escapeHtml(char.name) + ' <small>(' + escapeHtml(char.role) + ')</small></h4>' +
@@ -618,8 +622,16 @@ function renderDetail() {
   charContainer.innerHTML = '<h3 class="char-dive-title">주인공 4인 심층 분석</h3>' +
     '<div class="char-grid">' + charactersHtml + '</div>';
 
-  const targetBlock = node.querySelector(".detail-blocks");
-  if (targetBlock) targetBlock.parentNode.insertBefore(charContainer, targetBlock);
+  // 🚨 [크래시 방어] targetBlock 요소를 찾지 못해도 오류 없이 유연하게 결합하도록 예외 처리 보완
+  const targetBlock = node.querySelector(".detail-blocks") || node.querySelector(".detail-info-grid");
+  if (targetBlock && targetBlock.parentNode) {
+    targetBlock.parentNode.insertBefore(charContainer, targetBlock);
+  } else {
+    const firstChild = node.firstElementChild;
+    if (firstChild) {
+      firstChild.appendChild(charContainer);
+    }
+  }
 
   const memoInput = node.querySelector(".memo-input");
   if (memoInput) {
@@ -654,7 +666,7 @@ function renderDetail() {
 }
 
 // ==========================================
-// ⭐ Gemini 기획 리포트 연동 파트
+// 7. Gemini 기획 리포트 연동 파트
 // ==========================================
 async function loadAiAnalysis(item) {
   if (!els.aiAnalysisSection) return;
@@ -692,9 +704,6 @@ async function runAiAnalysis(item) {
   }
 }
 
-// ==========================================
-// ⭐ [에러 핸들링 보완] 자동 생성 패널 컨트롤러
-// ==========================================
 async function handleAiAutoGen() {
   if (!els.autoGenTitle || !els.autoGenBtn || !els.autoGenStatus) return;
   
@@ -716,7 +725,6 @@ async function handleAiAutoGen() {
       body: JSON.stringify({ title })
     });
 
-    // 🚨 백엔드 500 내지 HTML 규격 예외 필터링 레이어
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
       throw new Error(`서버에서 올바른 JSON 규격이 아닌 에러 문서(Status: ${response.status})를 반환했습니다. api/analyze.js 파일 패치 상태를 점검해 주세요.`);
