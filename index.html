@@ -42,8 +42,25 @@
 
       <main class="main">
 
-        <!-- 대시보드: IP 목록 -->
         <section id="dashboardView" class="view active-view">
+          
+          <section class="list-panel" style="margin-bottom: 24px; border: 2px solid var(--accent); background: var(--soft);">
+            <div class="panel-head" style="margin-bottom: 8px;">
+              <h3 style="color: var(--accent); font-weight: 800;">✨ AI 원작 대시보드 자동 생성</h3>
+              <span style="font-size: 12px; color: var(--muted);">원작 제목만 입력하면 Gemini가 데이터를 자동 분석하여 등록합니다.</span>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: flex-end;">
+              <label class="title-input" style="flex: 1; gap: 4px;">
+                <span style="font-size: 11px; font-weight: bold; color: var(--accent);">원작 작품 제목</span>
+                <input id="autoGenTitle" type="text" placeholder="예: 회귀한 재벌집 기획자, 전지적 독자 시점" style="width: 100%; height: 42px;" />
+              </label>
+              <button id="autoGenBtn" class="primary-btn" style="height: 42px; min-width: 140px;">🚀 자동 생성하기</button>
+            </div>
+            <div id="autoGenStatus" style="display: none; margin-top: 12px; padding: 10px; background: #fff; border: 1px solid var(--line); font-size: 13px;">
+              <span class="status-text" style="font-weight: 700; color: var(--accent-3);">🤖 Gemini가 원작 데이터를 리서치하고 분석 리포트를 빌드 중입니다... (약 10~20초 소요)</span>
+            </div>
+          </section>
+
           <header class="topbar">
             <div>
               <p class="eyebrow">K-Drama Adaptation</p>
@@ -66,7 +83,6 @@
           </header>
 
           <div class="list-panel">
-            <!-- ✦ 수정: 선택 모드 버튼 추가 -->
             <div class="panel-head">
               <h3>IP 목록</h3>
               <div style="display:flex;gap:8px;align-items:center">
@@ -78,12 +94,11 @@
             <div id="ipList" class="ip-list"></div>
             <div id="emptyState" class="empty-state">
               <strong>아직 저장된 IP가 없습니다.</strong>
-              <span>JSON 입력 화면에서 첫 후보를 저장하세요.</span>
+              <span>위 입력창에 원작 제목을 입력해 AI 대시보드를 자동으로 생성해 보세요!</span>
             </div>
           </div>
         </section>
 
-        <!-- 상세 분석 페이지 -->
         <section id="detailView" class="view">
           <header class="topbar">
             <div style="display:flex;align-items:center;gap:12px">
@@ -94,12 +109,25 @@
               </div>
             </div>
           </header>
+          
           <section class="detail-panel" id="detailPanel">
             <div class="detail-empty">IP를 선택하면 상세 분석이 표시됩니다.</div>
           </section>
+
+          <section id="ai-analysis-section" class="analysis-container" style="margin-top: 24px; display: none;">
+            <div class="analysis-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 16px;">
+              <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--accent);">✨ Gemini AI 드라마화 기획 리포트</h3>
+              <button id="reanalyze-btn" class="ghost-btn">🔄 다시 분석하기</button>
+            </div>
+            <div id="analysis-loading" class="loading-spinner" style="display: none; text-align: center; padding: 20px 0;">
+              <p style="color: var(--muted); font-style: italic;">Gemini가 원작 데이터를 기반으로 드라마화 연출 포인트 및 빌드업 방향을 분석 중입니다...</p>
+            </div>
+            <div id="analysis-result" class="analysis-content" style="line-height: 1.6;">
+              <p class="placeholder-text" style="color: var(--muted); font-style: italic;">원작 데이터 분석 중...</p>
+            </div>
+          </section>
         </section>
 
-        <!-- JSON 입력 -->
         <section id="importView" class="view">
           <header class="topbar">
             <div>
@@ -130,7 +158,6 @@
           </div>
         </section>
 
-        <!-- 분석 프롬프트 -->
         <section id="promptView" class="view">
           <header class="topbar">
             <div>
@@ -150,7 +177,6 @@
           </section>
         </section>
 
-        <!-- 백업/복원 -->
         <section id="backupView" class="view">
           <header class="topbar">
             <div>
