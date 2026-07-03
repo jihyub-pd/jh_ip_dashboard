@@ -2,16 +2,21 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default async function handler(req, res) {
+  // CORS 및 메서드 제한 필터링
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // body 데이터 안전하게 구조분해 할당 (기본값 설정으로 undefined 에러 방지)
+  // 데이터 구조분해 안전 할당
   const { title = '', item = null, mode = '' } = req.body || {};
 
-  // Google AI Studio 정식 API Key 바인딩
+  // 🛠️ 환경변수 우선 매핑 및 하드코딩 키 안정화 파싱
   const RAW_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6J1WNkpJNND-zgVyYIPY8ELvCMa-ekYKX_LWPi2acybSQ";
   const apiKey = RAW_KEY.trim().replace(/['"]/g, "");
+
+  if (!apiKey || apiKey.length < 10) {
+    return res.status(401).json({ success: false, error: "유효한 구글 API 자격 증명이 누락되었습니다." });
+  }
 
   try {
     const ai = new GoogleGenerativeAI(apiKey);
@@ -71,17 +76,18 @@ export default async function handler(req, res) {
       notes: "검토 메모 요약"
     };
 
-    const promptJson = `원작 작품 [${trimmedTitle}]에 대한 실제 인터넷에 공개된 대중적 평가, 줄거리, 실제 캐릭터 설정을 정밀 역추적하여 한국 드라마 기획 데이터 세트를 구성해줘. 원작에 존재하지 않는 허구의 주인공 이름이나 지어낸 가짜 스토리를 포함해서는 절대 안 되며, 반드시 원작의 팩트 데이터만을 기반으로 가공해야 해. 다른 설명 없이 명시된 스키마 구조를 완벽히 준수하는 순수 JSON 데이터 1개만 중괄호 { 로 시작해서 } 로 끝나게 출력해줘.\n\n[스키마 구조]\n${JSON.stringify(jsonSchemaGuide, null, 2)}`;
+    const promptJson = `원작 작품 [${trimmedTitle}]에 대한 실제 인터넷에 공개된 대중적 평가, 줄거리, 실제 캐릭터 설정을 정밀 역추적하여 한국 드라마 기획 데이터 세트를 구성해줘. 원작에 존재하지 않는 허구의 주인공 이름이나 지어낸 가짜 스토리를 포함해서는 절대 안 되며, 반드시 원작의 팩트 데이터만을 기반으로 가공해야 해. 다른 설명 없이 명시된 스키마 구조를 완벽히 준수하는 순수 JSON 데이터 1개만 리턴해줘.\n\n[스키마 구조]\n${JSON.stringify(jsonSchemaGuide, null, 2)}`;
 
-    // 에러 방지를 위해 가 장 안전하고 직관적인 단일 스트링 프롬프트 주입 방식으로 변경
     const resultJson = await model.generateContent({
       contents: [{ parts: [{ text: promptJson }] }],
       generationConfig: { responseMimeType: "application/json" }
     });
 
     let responseText = resultJson.response.text().trim();
-    if (responseText.startsWith("```")) {
-      responseText = responseText.replace(/^```json/, "").replace(/^```/, "").replace(/```$/, "").trim();
+    
+    // 🛠️ [안정성 보완] 마크다운 잔여 기호 및 양끝 공백을 원천 제거하여 JSON 파싱 실패 크래시 방지
+    if (responseText.includes("{")) {
+      responseText = responseText.substring(responseText.indexOf("{"), responseText.lastIndexOf("}") + 1);
     }
 
     const parsedPayload = JSON.parse(responseText);
@@ -96,8 +102,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    // Vercel Server Log에서 정확한 에러 추적이 가능하도록 콘솔 출력 보완
     console.error("공식 SDK 백엔드 런타임 상세 오류:", error);
-    return res.status(500).json({ success: false, error: error.message || "서버 내부 오류가 발생했습니다." });
+    return res.status(500).json({ success: false, error: error.message || "서버 내부 처리 중 예외가 발생했습니다." });
   }
 }
