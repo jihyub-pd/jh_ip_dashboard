@@ -1,0 +1,10 @@
+{
+  "name": "ip-dashboard",
+  "version": "1.0.0",
+  "description": "K-Drama IP Dashboard",
+  "main": "index.html",
+  "scripts": {
+    "start": "echo 'No build step required for static frontend'"
+  },
+  "dependencies": {}
+}
