@@ -8,7 +8,7 @@
 //   - SDK 의존성 제로 (REST 직접 호출)
 
 const RESEARCH_MODEL = "gemini-2.5-flash"; // 검색 리서치 단계
-const ANALYSIS_MODEL = "gemini-2.5-pro";   // 최종 분석 단계 (타임아웃 잦으면 "gemini-2.5-flash"로 변경)
+const ANALYSIS_MODEL = "gemini-2.5-flash";   // 최종 분석 단계 (타임아웃 잦으면 "gemini-2.5-flash"로 변경)
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 const SYSTEM_PERSONA =
