@@ -1,10 +1,12 @@
 {
   "name": "ip-dashboard",
   "version": "1.0.0",
-  "description": "K-Drama IP Dashboard",
+  "description": "K-Drama IP Dashboard with Google Official SDK",
   "main": "index.html",
   "scripts": {
-    "start": "echo 'No build step required for static frontend'"
+    "start": "echo 'No build step required'"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0"
+  }
 }
