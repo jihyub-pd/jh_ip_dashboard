@@ -42,7 +42,6 @@
 
       <main class="main">
 
-        <!-- 대시보드: IP 목록 -->
         <section id="dashboardView" class="view active-view">
           <header class="topbar">
             <div>
@@ -66,7 +65,6 @@
           </header>
 
           <div class="list-panel">
-            <!-- ✦ 수정: 선택 모드 버튼 추가 -->
             <div class="panel-head">
               <h3>IP 목록</h3>
               <div style="display:flex;gap:8px;align-items:center">
@@ -83,7 +81,6 @@
           </div>
         </section>
 
-        <!-- 상세 분석 페이지 -->
         <section id="detailView" class="view">
           <header class="topbar">
             <div style="display:flex;align-items:center;gap:12px">
@@ -94,12 +91,27 @@
               </div>
             </div>
           </header>
+          
           <section class="detail-panel" id="detailPanel">
             <div class="detail-empty">IP를 선택하면 상세 분석이 표시됩니다.</div>
           </section>
+
+          <section id="ai-analysis-section" class="analysis-container" style="margin-top: 24px; display: none;">
+            <div class="analysis-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-bottom: 16px;">
+              <h3 style="margin: 0;">✨ Gemini AI 드라마화 기획 리포트</h3>
+              <button id="reanalyze-btn" class="ghost-btn">🔄 다시 분석하기</button>
+            </div>
+            
+            <div id="analysis-loading" class="loading-spinner" style="display: none; text-align: center; padding: 20px 0;">
+              <p>Gemini가 원작 데이터를 기반으로 드라마화 연출 포인트 및 빌드업 방향을 분석 중입니다...</p>
+            </div>
+            
+            <div id="analysis-result" class="analysis-content" style="line-height: 1.6;">
+              <p class="placeholder-text" style="color: #888; font-style: italic;">원작 데이터 분석 중...</p>
+            </div>
+          </section>
         </section>
 
-        <!-- JSON 입력 -->
         <section id="importView" class="view">
           <header class="topbar">
             <div>
@@ -130,7 +142,6 @@
           </div>
         </section>
 
-        <!-- 분석 프롬프트 -->
         <section id="promptView" class="view">
           <header class="topbar">
             <div>
@@ -150,7 +161,6 @@
           </section>
         </section>
 
-        <!-- 백업/복원 -->
         <section id="backupView" class="view">
           <header class="topbar">
             <div>
