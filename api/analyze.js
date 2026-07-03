@@ -7,14 +7,11 @@ export default async function handler(req, res) {
 
   const { title, item, mode } = req.body;
 
-  // -------------------------------------------------------------
-  // 🛠️ [최종 안정화 지점] Vercel 환경변수 인식이 꼬일 때를 대비해
-  // 따옴표 안에 본인의 실제 구글 API Key("AIzaSy...")를 정확히 복사해 넣어줍니다.
-  // -------------------------------------------------------------
+  // 🛠️ [중요] Vercel 환경변수 미인식 대책: 따옴표 안에 실제 구글 API Key("AIzaSy...")를 정확히 복사해 넣습니다.
   const RAW_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6LgC7pc1N2CJCY-sR1sqygTFlnftBH-USZuXeHaeVLbSg";
   const apiKey = RAW_KEY.trim().replace(/['"]/g, "");
 
-  // API Key 누락 및 형식 예외 처리
+  // API Key 예외 처리
   if (!apiKey || apiKey.includes("여기에_실제") || apiKey.length < 10) {
     return res.status(400).json({ 
       success: false, 
@@ -29,6 +26,7 @@ export default async function handler(req, res) {
     if (mode === 'report') {
       if (!item) return res.status(400).json({ error: 'IP 데이터가 누락되었습니다.' });
 
+      // 🚨 구글 REST API 정식 규격 패스 매핑 (v1beta 엔드포인트 주소 교정)
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
         {
@@ -80,7 +78,7 @@ export default async function handler(req, res) {
       notes: "검토 메모 요약"
     };
 
-    // 구글 오피셜 REST 규격 엔드포인트 URL 정밀 매핑 완료
+    // 🚨 구글 REST API 정식 규격 패스 매핑 (v1beta 엔드포인트 주소 교정)
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
@@ -111,12 +109,10 @@ export default async function handler(req, res) {
 
     let responseText = part.text.trim();
     
-    // AI 마크다운 백틱 껍데기 제거 3중 정제 필터
     if (responseText.startsWith("```")) {
       responseText = responseText.replace(/^```json/, "").replace(/^```/, "").replace(/```$/, "").trim();
     }
 
-    // 순수 JSON 객체로 파싱 후 프론트엔드로 전송
     const parsedPayload = JSON.parse(responseText);
     return res.status(200).json({ success: true, payload: parsedPayload });
 
