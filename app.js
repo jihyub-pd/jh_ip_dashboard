@@ -125,12 +125,12 @@ const sampleIp = {
   },
   scoreRationales: {
     dramaFit: "복수, 가족 권력, 회귀라는 한국 드라마 친화적 장치가 뚜렷하고 회차별 미션 구조로 나누기 쉽다. 다만 후반부 반복감을 줄이는 각색이 필요해 만점보다는 낮게 평가했다.",
-    marketPotential: "재벌가 복수극과 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮고, 원작형 회귀물 팬덤까지 흡수할 수 있다. 플랫폼 홍보 문구로도 강한 카타르시스를 전달하기 쉽다.",
-    productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간 수준이지만, 재벌가 공간, 기업 인수전, 엔터 산업 묘사를 설득력 있게 구현하려면 세트와 고급 조연 캐스팅 비용이 올라갈 수 있다.",
-    originality: "회귀 재벌 복수물 자체는 익숙하지만 엔터 IP 산업을 전면에 놓는 점이 차별화 포인트다. 업계 리얼리티를 얼마나 밀도 있게 넣느냐에 따라 신선도가 크게 달라진다.",
-    scalability: "콘텐츠 기업, 아이돌, 제작사, 플랫폼 전쟁 등으로 에피소드 확장이 쉽고 시즌제나 스핀오프 가능성도 있다. IP 산업 메타 구조라 부가 콘텐츠로도 확장하기 좋다.",
-    globalPotential: "권력 승계와 복수 정서는 보편적이지만 한국 재벌·엔터 산업의 세부 맥락은 해외 시청자에게 설명이 필요할 수 있다. 캐릭터 중심으로 각색하면 글로벌 접근성이 올라간다.",
-    characterAppeal: "미래 정보를 활용하는 전략형 남주와 강단 있는 검사 캐릭터가 팬덤을 만들기 좋다. 인물 간 대립과 공조 텐션을 강화하면 배우 캐스팅 효과가 크게 살아날 수 있다."
+    marketPotential: "재벌가 복수극과 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮고, 원작형 회귀물 팬덤까지 흡수할 수 있다.",
+    productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간이지만 재벌가 공간, 기업 인수전 묘사를 설득력 있게 구현하려면 세트와 고급 조연 캐스팅 비용이 올라갈 수 있다.",
+    originality: "회귀 재벌 복수물 자체는 익숙하지만 엔터 IP 산업을 전면에 놓는 점이 차별화 포인트다.",
+    scalability: "콘텐츠 기업, 아이돌, 제작사, 플랫폼 전쟁 등으로 에피소드 확장이 쉽고 시즌제나 스핀오프 가능성도 있다.",
+    globalPotential: "권력 승계와 복수 정서는 보편적이지만 한국 재벌·엔터 산업의 세부 맥락은 해외 시청자에게 설명이 필요할 수 있다.",
+    characterAppeal: "미래 정보를 활용하는 전략형 남주와 강단 있는 검사 캐릭터가 팬덤을 만들기 좋다."
   },
   notes: "차별화 포인트는 엔터 산업 리얼리티와 주인공의 도덕적 딜레마.",
 };
@@ -151,6 +151,8 @@ const els = {
   detailViewTitle: document.querySelector("#detailViewTitle"),
   backBtn: document.querySelector("#backBtn"),
   addSampleBtn: document.querySelector("#addSampleBtn"),
+  toggleSelectBtn: document.querySelector("#toggleSelectBtn"),
+  deleteSelectedBtn: document.querySelector("#deleteSelectedBtn"),
   pasteSampleBtn: document.querySelector("#pasteSampleBtn"),
   clearFormBtn: document.querySelector("#clearFormBtn"),
   jsonInput: document.querySelector("#jsonInput"),
@@ -172,6 +174,8 @@ const els = {
 
 let items = [];
 let selectedId = null;
+let selectMode = false;
+let selectedIds = new Set();
 
 if (els.schemaPreview) {
   els.schemaPreview.textContent = JSON.stringify(requiredShape, null, 2);
@@ -197,11 +201,7 @@ function getErrorMessage(error) {
   if (!error) return "알 수 없는 오류";
   if (typeof error === "string") return error;
   if (error.message) return error.message;
-  try {
-    return JSON.stringify(error);
-  } catch {
-    return String(error);
-  }
+  try { return JSON.stringify(error); } catch { return String(error); }
 }
 
 function rowToItem(dbItem) {
@@ -216,10 +216,7 @@ function rowToItem(dbItem) {
 }
 
 async function saveItemToCloud(normalizedItem) {
-  if (!supabaseClient) {
-    return { ok: false, mode: "local", error: "Supabase client가 초기화되지 않았습니다." };
-  }
-
+  if (!supabaseClient) return { ok: false, mode: "local", error: "Supabase client가 초기화되지 않았습니다." };
   const dbPayload = {
     id: normalizedItem.id,
     title: normalizedItem.title,
@@ -227,29 +224,21 @@ async function saveItemToCloud(normalizedItem) {
     updatedAt: normalizedItem.updatedAt,
     content: normalizedItem,
   };
-
-  const { error } = await supabaseClient
-    .from("kdrama_ips")
-    .upsert(dbPayload, { onConflict: "id" });
-
+  const { error } = await supabaseClient.from("kdrama_ips").upsert(dbPayload, { onConflict: "id" });
   if (error) return { ok: false, mode: "cloud", error };
   return { ok: true, mode: "cloud" };
 }
 
 async function syncLoadItems() {
   const localItems = getLocalItems();
-
   if (supabaseClient) {
     try {
       const { data, error } = await supabaseClient
         .from("kdrama_ips")
         .select("id,title,createdAt,updatedAt,content")
         .order("updatedAt", { ascending: false });
-
       if (error) throw error;
-
       const cloudItems = Array.isArray(data) ? data.map(rowToItem) : [];
-
       if (cloudItems.length === 0 && localItems.length > 0 && !localStorage.getItem(MIGRATION_KEY)) {
         const migrated = [];
         for (const item of localItems) {
@@ -262,40 +251,28 @@ async function syncLoadItems() {
       } else {
         items = cloudItems;
       }
-
       setLocalItems(items);
       finalizeLoad();
       return;
     } catch (e) {
       console.warn("클라우드 로드 실패, 로컬 저장소 전환:", e);
-      if (els.formMessage) {
-        els.formMessage.textContent = `Supabase 로드 실패: ${getErrorMessage(e)} / 현재 브라우저 로컬 데이터만 표시됩니다.`;
-      }
+      if (els.formMessage) els.formMessage.textContent = `Supabase 로드 실패: ${getErrorMessage(e)} / 로컬 데이터만 표시됩니다.`;
     }
   }
-
   items = localItems;
   finalizeLoad();
 }
 
 function finalizeLoad() {
-  if (!selectedId && items.length > 0) {
-    selectedId = items[0].id;
-  }
+  if (!selectedId && items.length > 0) selectedId = items[0].id;
   render();
 }
 
 async function syncSaveItem(normalizedItem, options = {}) {
   setLocalItems(items);
-
-  if (!supabaseClient) {
-    return { ok: false, mode: "local", error: "Supabase가 연결되지 않아 현재 브라우저에만 저장했습니다." };
-  }
-
+  if (!supabaseClient) return { ok: false, mode: "local", error: "Supabase가 연결되지 않아 현재 브라우저에만 저장했습니다." };
   const result = await saveItemToCloud(normalizedItem);
-  if (!result.ok && !options.silent) {
-    console.error("서버 DB 저장 오류:", result.error);
-  }
+  if (!result.ok && !options.silent) console.error("서버 DB 저장 오류:", result.error);
   return result;
 }
 
@@ -303,13 +280,8 @@ async function syncDeleteItem(id) {
   const previousItems = [...items];
   items = items.filter((candidate) => candidate.id !== id);
   setLocalItems(items);
-
   if (supabaseClient) {
-    const { error } = await supabaseClient
-      .from("kdrama_ips")
-      .delete()
-      .eq("id", id);
-
+    const { error } = await supabaseClient.from("kdrama_ips").delete().eq("id", id);
     if (error) {
       items = previousItems;
       setLocalItems(items);
@@ -321,27 +293,14 @@ async function syncDeleteItem(id) {
 
 async function replaceCloudItems(restoredItems) {
   if (!supabaseClient) return;
-
-  const { data, error: loadError } = await supabaseClient
-    .from("kdrama_ips")
-    .select("id");
-
+  const { data, error: loadError } = await supabaseClient.from("kdrama_ips").select("id");
   if (loadError) throw loadError;
-
   const restoredIds = new Set(restoredItems.map((item) => item.id));
-  const idsToDelete = (data || [])
-    .map((row) => row.id)
-    .filter((id) => !restoredIds.has(id));
-
+  const idsToDelete = (data || []).map((row) => row.id).filter((id) => !restoredIds.has(id));
   if (idsToDelete.length > 0) {
-    const { error: deleteError } = await supabaseClient
-      .from("kdrama_ips")
-      .delete()
-      .in("id", idsToDelete);
-
+    const { error: deleteError } = await supabaseClient.from("kdrama_ips").delete().in("id", idsToDelete);
     if (deleteError) throw deleteError;
   }
-
   for (const item of restoredItems) {
     const result = await saveItemToCloud(item);
     if (!result.ok) throw new Error(getErrorMessage(result.error));
@@ -438,9 +397,7 @@ function validateItem(raw) {
   if (!raw.scores || typeof raw.scores !== "object") errors.push("scores가 필요합니다.");
   Object.keys(scoreLabels).forEach((key) => {
     const value = raw.scores?.[key];
-    if (value === undefined || Number.isNaN(Number(value))) {
-      errors.push(`scores.${key}는 숫자여야 합니다.`);
-    }
+    if (value === undefined || Number.isNaN(Number(value))) errors.push(`scores.${key}는 숫자여야 합니다.`);
   });
   return errors;
 }
@@ -461,7 +418,6 @@ function parseInput() {
 async function upsertItem(raw) {
   const normalized = normalizeItem(raw);
   const existingIndex = items.findIndex((item) => item.id === normalized.id || item.title === normalized.title);
-
   if (existingIndex >= 0) {
     normalized.id = items[existingIndex].id;
     normalized.createdAt = items[existingIndex].createdAt;
@@ -469,20 +425,29 @@ async function upsertItem(raw) {
   } else {
     items.unshift(normalized);
   }
-
   selectedId = normalized.id;
   render();
-
   const result = await syncSaveItem(normalized);
-  if (!result.ok) {
-    throw new Error(getErrorMessage(result.error));
-  }
-
+  if (!result.ok) throw new Error(getErrorMessage(result.error));
   return normalized;
 }
 
 // ==========================================
-// 4. 렌더링 함수
+// 4. 선택 모드
+// ==========================================
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  selectedIds.clear();
+  if (els.toggleSelectBtn) els.toggleSelectBtn.textContent = selectMode ? "취소" : "선택 모드";
+  if (els.deleteSelectedBtn) {
+    els.deleteSelectedBtn.style.display = selectMode ? "inline-flex" : "none";
+    els.deleteSelectedBtn.textContent = "선택 삭제 (0)";
+  }
+  renderList();
+}
+
+// ==========================================
+// 5. 렌더링 함수
 // ==========================================
 function filteredItems() {
   const query = (els.searchInput?.value || "").trim().toLowerCase();
@@ -549,25 +514,41 @@ function renderList() {
   if (els.emptyState) els.emptyState.style.display = items.length ? "none" : "grid";
 
   visible.forEach((item) => {
+    const isSelected = selectedIds.has(item.id);
     const button = document.createElement("button");
-    button.className = `ip-card ${item.id === selectedId ? "active" : ""}`;
+    button.className = `ip-card ${!selectMode && item.id === selectedId ? "active" : ""} ${selectMode && isSelected ? "selected" : ""}`;
     button.type = "button";
     button.innerHTML = `
       <div class="ip-card-top">
-        <div>
-          <h3>${escapeHtml(item.title)}</h3>
-          <p>${escapeHtml(item.logline || "로그라인 없음")}</p>
+        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+          ${selectMode ? `<input type="checkbox" class="ip-checkbox" ${isSelected ? "checked" : ""} onclick="event.stopPropagation()" style="width:16px;height:16px;flex-shrink:0;cursor:pointer;accent-color:var(--accent-1)">` : ""}
+          <div style="flex:1;min-width:0">
+            <h3>${escapeHtml(item.title)}</h3>
+            <p>${escapeHtml(item.logline || "로그라인 없음")}</p>
+          </div>
         </div>
         <span class="mini-score">${averageScore(item).toFixed(1)}</span>
       </div>
       <div class="tag-row">${[item.originalType, item.recommendation, ...item.genre.slice(0, 3)].map(tagHtml).join("")}</div>
     `;
+
     button.addEventListener("click", () => {
-      selectedId = item.id;
-      if (els.detailViewTitle) els.detailViewTitle.textContent = item.title;
-      renderDetail();
-      switchView("detail");
+      if (selectMode) {
+        if (selectedIds.has(item.id)) {
+          selectedIds.delete(item.id);
+        } else {
+          selectedIds.add(item.id);
+        }
+        if (els.deleteSelectedBtn) els.deleteSelectedBtn.textContent = `선택 삭제 (${selectedIds.size})`;
+        renderList();
+      } else {
+        selectedId = item.id;
+        if (els.detailViewTitle) els.detailViewTitle.textContent = item.title;
+        renderDetail();
+        switchView("detail");
+      }
     });
+
     els.ipList.append(button);
   });
 }
@@ -662,7 +643,6 @@ function renderListInto(list, values) {
 function renderThreePoints(el, text) {
   if (!el) return;
   if (!text) { el.textContent = "—"; return; }
-
   let points = [];
   if (text.includes("①") || text.includes("②") || text.includes("③")) {
     points = text.split(/[①②③]/).map(s => s.trim()).filter(Boolean);
@@ -674,7 +654,6 @@ function renderThreePoints(el, text) {
     el.textContent = text;
     return;
   }
-
   while (points.length < 3) points.push("—");
   const ul = document.createElement("ul");
   ul.style.cssText = "padding-left:1.2em;margin:0;display:flex;flex-direction:column;gap:4px";
@@ -716,7 +695,7 @@ function escapeHtml(value) {
 }
 
 // ==========================================
-// 5. 뷰 전환
+// 6. 뷰 전환
 // ==========================================
 function switchView(viewName = "dashboard") {
   const safeViewName = viewName || "dashboard";
@@ -733,7 +712,7 @@ function switchView(viewName = "dashboard") {
 }
 
 // ==========================================
-// 6. 프롬프트 / 백업
+// 7. 프롬프트 / 백업
 // ==========================================
 function updatePrompt() {
   if (!els.promptText) return;
@@ -752,14 +731,14 @@ function updatePrompt() {
 6. ★ strengths는 반드시 서로 다른 관점의 강점 3가지를 배열로 작성해줘.
 7. ★ risks는 반드시 서로 다른 리스크 3가지를 배열로 작성해줘.
 8. ★ comparables는 반드시 유사 성공작 3가지를 배열로 작성해줘.
-9. ★ targetAudience는 연령대/성별/취향 등 3가지 측면을 포함해서 작성하되, 각 측면을 ' / ' 로 구분해줘. 예: "30-40대 직장인 남성 / 복수극 선호 여성층 / 재벌 드라마 팬덤"
-10. ★ castingDirection은 주연/조연/연출 방향 3가지를 포함해서 작성하되, 각 항목을 ' / ' 로 구분해줘. 예: "주연: 냉철한 30대 남자 배우 / 여주: 강단 있는 커리어우먼 이미지 / 연출: 장르와 감성 균형 잡는 감독"
+9. ★ targetAudience는 연령대/성별/취향 등 3가지 측면을 포함해서 작성하되, 각 측면을 ' / ' 로 구분해줘.
+10. ★ castingDirection은 주연/조연/연출 방향 3가지를 포함해서 작성하되, 각 항목을 ' / ' 로 구분해줘.
 11. ★ premise는 세계관/설정/갈등구조 3가지 특징을 포함해서 작성하되, 각 항목을 ① ② ③ 으로 구분해줘.
 12. ★ scoreRationales는 scores의 7개 항목과 같은 key를 반드시 포함해줘.
 13. ★ scoreRationales의 각 항목은 왜 그 점수를 줬는지 1~2문장으로 설명해줘. 단순 칭찬이 아니라 원작의 장점, 약점, 제작/시장 리스크를 같이 반영해줘.
 14. ★ scoreRationales의 key는 반드시 dramaFit, marketPotential, productionFeasibility, originality, scalability, globalPotential, characterAppeal 순서로 작성해줘.
 
-★ 점수 기준표 (반드시 준수 — 이 기준을 벗어나면 분석 신뢰도가 없다):
+★ 점수 기준표 (반드시 준수):
 - 9.0~10.0: 글로벌 팬덤 보유, 타매체 성공 사례 존재, 리스크가 극히 낮은 초대형 IP에만 부여
 - 7.0~8.9: 명확한 강점이 있으나 각색 과제나 시장 리스크가 존재하는 유망 IP
 - 5.0~6.9: 가능성은 있으나 리스크가 강점과 비슷하거나 더 큰 IP
@@ -787,12 +766,7 @@ ${JSON.stringify(requiredShape, null, 2)}`;
 }
 
 function backupPayload() {
-  return {
-    app: "kdrama-ip-dashboard",
-    version: 2,
-    exportedAt: new Date().toISOString(),
-    items,
-  };
+  return { app: "kdrama-ip-dashboard", version: 2, exportedAt: new Date().toISOString(), items };
 }
 
 function updateBackupText() {
@@ -803,9 +777,7 @@ function updateBackupText() {
 function parseBackup(text) {
   const parsed = JSON.parse(text);
   const rawItems = Array.isArray(parsed) ? parsed : parsed.items;
-  if (!Array.isArray(rawItems)) {
-    throw new Error("items 배열이 있는 백업 JSON이어야 합니다.");
-  }
+  if (!Array.isArray(rawItems)) throw new Error("items 배열이 있는 백업 JSON이어야 합니다.");
   return rawItems.map((item) => normalizeItem(item, { keepUpdatedAt: true }));
 }
 
@@ -814,17 +786,12 @@ async function restoreBackup(text) {
   items = restored;
   selectedId = items[0]?.id || null;
   setLocalItems(items);
-
-  if (supabaseClient) {
-    await replaceCloudItems(items);
-  }
-
+  if (supabaseClient) await replaceCloudItems(items);
   render();
-
   if (els.backupMessage) {
     els.backupMessage.textContent = supabaseClient
       ? `${items.length}개 IP를 전체 복원하고 Supabase와 대치 동기화했습니다.`
-      : `${items.length}개 IP를 현재 브라우저 로컬 저장소에 복원했습니다. Supabase 연결을 확인하세요.`;
+      : `${items.length}개 IP를 현재 브라우저 로컬 저장소에 복원했습니다.`;
   }
 }
 
@@ -842,16 +809,38 @@ function exportBackupFile() {
 }
 
 // ==========================================
-// 7. 이벤트 바인딩
+// 8. 이벤트 바인딩
 // ==========================================
 els.navButtons.forEach((button) => {
   button.addEventListener("click", () => switchView(button.dataset.view));
 });
 
 if (els.backBtn) {
-  els.backBtn.addEventListener("click", () => {
-    switchView("dashboard");
-    render();
+  els.backBtn.addEventListener("click", () => { switchView("dashboard"); render(); });
+}
+
+if (els.toggleSelectBtn) {
+  els.toggleSelectBtn.addEventListener("click", toggleSelectMode);
+}
+
+if (els.deleteSelectedBtn) {
+  els.deleteSelectedBtn.addEventListener("click", async () => {
+    if (selectedIds.size === 0) { alert("삭제할 IP를 선택해주세요."); return; }
+    if (!confirm(`선택한 ${selectedIds.size}개의 IP를 삭제할까요?`)) return;
+    els.deleteSelectedBtn.disabled = true;
+    els.deleteSelectedBtn.textContent = "삭제 중...";
+    try {
+      for (const id of selectedIds) {
+        await syncDeleteItem(id);
+      }
+      selectedIds.clear();
+      toggleSelectMode();
+      render();
+    } catch (error) {
+      alert(`삭제 실패: ${getErrorMessage(error)}`);
+    } finally {
+      els.deleteSelectedBtn.disabled = false;
+    }
   });
 }
 
@@ -861,11 +850,7 @@ if (els.backBtn) {
 
 if (els.addSampleBtn) {
   els.addSampleBtn.addEventListener("click", async () => {
-    try {
-      await upsertItem(sampleIp);
-    } catch (error) {
-      alert(`샘플 저장 실패: ${getErrorMessage(error)}`);
-    }
+    try { await upsertItem(sampleIp); } catch (error) { alert(`샘플 저장 실패: ${getErrorMessage(error)}`); }
   });
 }
 
@@ -877,10 +862,7 @@ if (els.pasteSampleBtn) {
 }
 
 if (els.clearFormBtn) {
-  els.clearFormBtn.addEventListener("click", () => {
-    els.jsonInput.value = "";
-    els.formMessage.textContent = "";
-  });
+  els.clearFormBtn.addEventListener("click", () => { els.jsonInput.value = ""; els.formMessage.textContent = ""; });
 }
 
 if (els.validateBtn) {
@@ -893,31 +875,24 @@ if (els.validateBtn) {
 if (els.saveBtn) {
   els.saveBtn.addEventListener("click", async () => {
     const result = parseInput();
-    if (result.errors.length) {
-      els.formMessage.textContent = result.errors.join(" ");
-      return;
-    }
-
+    if (result.errors.length) { els.formMessage.textContent = result.errors.join(" "); return; }
     els.saveBtn.disabled = true;
     els.formMessage.textContent = "저장 중입니다...";
-
     try {
       await upsertItem(result.raw);
       els.formMessage.textContent = supabaseClient
-        ? "Supabase DB에 저장했습니다. 다른 브라우저에서도 새로고침하면 불러올 수 있습니다."
+        ? "Supabase DB에 저장했습니다."
         : "Supabase 연결이 없어 현재 브라우저에만 저장했습니다.";
       switchView("dashboard");
     } catch (error) {
-      els.formMessage.textContent = `Supabase 저장 실패: ${getErrorMessage(error)} / RLS 정책과 테이블 권한을 확인하세요.`;
+      els.formMessage.textContent = `저장 실패: ${getErrorMessage(error)}`;
     } finally {
       els.saveBtn.disabled = false;
     }
   });
 }
 
-if (els.promptTitle) {
-  els.promptTitle.addEventListener("input", updatePrompt);
-}
+if (els.promptTitle) els.promptTitle.addEventListener("input", updatePrompt);
 
 if (els.copyPromptBtn) {
   els.copyPromptBtn.addEventListener("click", async () => {
@@ -931,18 +906,12 @@ if (els.copyPromptBtn) {
   });
 }
 
-if (els.exportBtn) {
-  els.exportBtn.addEventListener("click", exportBackupFile);
-}
+if (els.exportBtn) els.exportBtn.addEventListener("click", exportBackupFile);
 
 if (els.restoreBtn) {
   els.restoreBtn.addEventListener("click", async () => {
-    try {
-      await restoreBackup(els.restoreInput.value.trim());
-      switchView("dashboard");
-    } catch (error) {
-      if (els.backupMessage) els.backupMessage.textContent = `복원 실패: ${getErrorMessage(error)}`;
-    }
+    try { await restoreBackup(els.restoreInput.value.trim()); switchView("dashboard"); }
+    catch (error) { if (els.backupMessage) els.backupMessage.textContent = `복원 실패: ${getErrorMessage(error)}`; }
   });
 }
 
@@ -964,7 +933,7 @@ if (els.backupFileInput) {
 }
 
 // ==========================================
-// 8. 초기화
+// 9. 초기화
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   initSupabase();
