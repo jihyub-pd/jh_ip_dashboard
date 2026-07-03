@@ -1,5 +1,5 @@
 // api/analyze.js
-import { GoogleGenAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -8,23 +8,13 @@ export default async function handler(req, res) {
 
   const { title, item, mode } = req.body;
 
-  // 🛠️ 구글 AI Studio의 정식 키를 그대로 유지합니다.
+  // 확인해주신 구글 AI Studio의 정식 키를 그대로 물고 들어갑니다.
   const RAW_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6J1WNkpJNND-zgVyYIPY8ELvCMa-ekYKX_LWPi2acybSQ";
   const apiKey = RAW_KEY.trim().replace(/['"]/g, "");
 
   try {
-    // 🚨 [🚨 문법 오정정] 네임스페이스나 export 구조에 구애받지 않도록 인스턴스를 확실하게 생성합니다.
-    let ai;
-    if (typeof GoogleGenAI === 'function') {
-      ai = new GoogleGenAI({ apiKey });
-    } else if (GoogleGenAI && typeof GoogleGenAI.GoogleGenAI === 'function') {
-      ai = new GoogleGenAI.GoogleGenAI({ apiKey });
-    } else {
-      // 위 방식이 모두 안 맞을 때를 대비한 최신 팩토리 메서드 우회형
-      const { GoogleGenAI: GAILib } = require('@google/generative-ai');
-      ai = new GAILib({ apiKey });
-    }
-
+    // 🚨 [최종 교정 지점] 최신 SDK 라이브러리의 정식 생성자 메인 모듈인 GoogleGenerativeAI 클래스를 호출합니다.
+    const ai = new GoogleGenerativeAI(apiKey);
     const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // =============================================================
@@ -84,7 +74,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, payload: parsedPayload });
 
   } catch (error) {
-    console.error("SDK 백엔드 내부 예외 처리오류:", error);
+    console.error("공식 SDK 백엔드 최종 런타임 오류:", error);
     return res.status(500).json({ success: false, error: error.message });
   }
 }
