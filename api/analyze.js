@@ -1,18 +1,16 @@
 // api/analyze.js
 export default async function handler(req, res) {
-  // CORS 및 POST 메서드 외의 요청 방어
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   const { title, item, mode } = req.body;
 
-  // 🛠️ [중요] Vercel 환경변수 미인식 대책: 따옴표 안에 실제 구글 API Key("AIzaSy...")를 정확히 복사해 넣습니다.
-  const RAW_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6LgC7pc1N2CJCY-sR1sqygTFlnftBH-USZuXeHaeVLbSg";
+  // 🛠️ [중요] 따옴표 안에 실제 구글 API Key("AIzaSy...")를 정확히 복사해 넣습니다.
+  const RAW_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6JzeBpSVEYwmUDyoGRnWrZJTDaUhaICbZ-gzrZGZf4E5Q";
   const apiKey = RAW_KEY.trim().replace(/['"]/g, "");
 
-  // API Key 예외 처리
-  if (!apiKey || apiKey.includes("여기에_실제") || apiKey.length < 10) {
+  if (!apiKey || apiKey.includes("AQ.Ab8RN6JzeBpSVEYwmUDyoGRnWrZJTDaUhaICbZ-gzrZGZf4E5Q") || apiKey.length < 10) {
     return res.status(400).json({ 
       success: false, 
       error: '서버 소스코드(api/analyze.js) 내부에 유효한 Gemini API Key가 입력되지 않았습니다.' 
@@ -26,9 +24,9 @@ export default async function handler(req, res) {
     if (mode === 'report') {
       if (!item) return res.status(400).json({ error: 'IP 데이터가 누락되었습니다.' });
 
-      // 🚨 구글 REST API 정식 규격 패스 매핑 (v1beta 엔드포인트 주소 교정)
+      // 🚨 [모델명 교정] gemini-1.5-flash-latest 로 엔드포인트 규격 고정
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -78,9 +76,9 @@ export default async function handler(req, res) {
       notes: "검토 메모 요약"
     };
 
-    // 🚨 구글 REST API 정식 규격 패스 매핑 (v1beta 엔드포인트 주소 교정)
+    // 🚨 [모델명 교정] gemini-1.5-flash-latest 로 엔드포인트 규격 고정
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
