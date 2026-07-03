@@ -125,7 +125,8 @@ const sampleIp = {
   },
   scoreRationales: {
     dramaFit: "복수, 가족 권력, 회귀라는 한국 드라마 친화적 장치가 뚜렷하고 회차별 미션 구조로 나누기 쉽다. 다만 후반부 반복감을 줄이는 각색이 필요해 만점보다는 낮게 평가했다.",
-    marketPotential: "재벌가 복수극과 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮고, 원작형 회귀물 팬덤까지 흡수할 수 있다.",
+    marketPotential: "재벌가 복수극과 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮고, 원작형 회귀물 팬덤까지 흡수할 수 " +
+      "있다.",
     productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간이지만 재벌가 공간, 기업 인수전 묘사를 설득력 있게 구현하려면 세트와 고급 조연 캐스팅 비용이 올라갈 수 있다.",
     originality: "회귀 재벌 복수물 자체는 익숙하지만 엔터 IP 산업을 전면에 놓는 점이 차별화 포인트다.",
     scalability: "콘텐츠 기업, 아이돌, 제작사, 플랫폼 전쟁 등으로 에피소드 확장이 쉽고 시즌제나 스핀오프 가능성도 있다.",
@@ -580,21 +581,21 @@ function renderDetail() {
   renderThreePoints(node.querySelector(".casting"), item.castingDirection);
   renderListInto(node.querySelector(".comparables-list"), item.comparables);
 
+  // 캐릭터 배열 변환 (백틱 문법 에러를 차단하기 위해 순수 문자열 연산 방식으로 안전하게 처리)
+  const charactersHtml = (item.mainCharacters || []).map(char => {
+    return '<div class="char-sub-card">' +
+      '<h4>' + escapeHtml(char.name) + ' <small>(' + escapeHtml(char.role) + ')</small></h4>' +
+      '<p><strong>특징/대사/행동/평가:</strong> ' + escapeHtml(char.traits) + '</p>' +
+      '<p><strong style="color:var(--accent-3);">입덕 포인트:</strong> ' + escapeHtml(char.appealPoints) + '</p>' +
+      '<p><strong style="color:var(--accent-2);">개선/각색점:</strong> ' + escapeHtml(char.improvements) + '</p>' +
+      '</div>';
+  }).join("");
+
   const charContainer = document.createElement("div");
   charContainer.className = "character-deep-dive";
-  charContainer.innerHTML = `
-    <h3 class="char-dive-title">주인공 4인 심층 분석</h3>
-    <div class="char-grid">
-      ${(item.mainCharacters || []).map(char => `
-        <div class="char-sub-card">
-          <h4>${escapeHtml(char.name)} <small>(${escapeHtml(char.role)})</small></h4>
-          <p><strong>특징/대사/행동/평가:</strong> ${escapeHtml(char.traits)}</p>
-          <p><strong style="color:var(--accent-3);">입덕 포인트:</strong> ${escapeHtml(char.appealPoints)}</p>
-          <p><strong style="color:var(--accent-2);">개선/각색점:</strong> ${escapeHtml(char.improvements)}</p>
-        </div>
-      `).join("")}
-    </div>
-  `;
+  charContainer.innerHTML = '<h3 class="char-dive-title">주인공 4인 심층 분석</h3>' +
+    '<div class="char-grid">' + charactersHtml + '</div>';
+
   const targetBlock = node.querySelector(".detail-blocks");
   if (targetBlock) targetBlock.parentNode.insertBefore(charContainer, targetBlock);
 
