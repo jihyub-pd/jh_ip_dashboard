@@ -125,7 +125,7 @@ const sampleIp = {
   },
   scoreRationales: {
     dramaFit: "복수, 가족 권력, 회귀라는 한국 드라마 친화적 장치가 뚜렷하고 회차별 미션 구조로 나누기 쉽다. 다만 후반부 반복감을 줄이는 각색이 필요해 만점보다는 낮게 평가했다.",
-    marketPotential: "재벌가 복수극과 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮고, 원작형 회귀물 팬덤까지 흡수할 수 있다.",
+    marketPotential: "재벌가 복수극 및 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮고, 원작형 회귀물 팬덤까지 흡수할 수 있다.",
     productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간이지만 재벌가 공간, 기업 인수전 묘사를 설득력 있게 구현하려면 세트와 고급 조연 캐스팅 비용이 올라갈 수 있다.",
     originality: "회귀 재벌 복수물 자체는 익숙하지만 엔터 IP 산업을 전면에 놓는 점이 차별화 포인트다.",
     scalability: "콘텐츠 기업, 아이돌, 제작사, 플랫폼 전쟁 등으로 에피소드 확장이 쉽고 시즌제나 스핀오프 가능성도 있다.",
@@ -170,6 +170,12 @@ const els = {
   restoreInput: document.querySelector("#restoreInput"),
   restoreBtn: document.querySelector("#restoreBtn"),
   backupMessage: document.querySelector("#backupMessage"),
+  
+  // ⭐ html 수정 버전에 맞춘 AI 연동 요소 추가
+  aiAnalysisSection: document.querySelector("#ai-analysis-section"),
+  reanalyzeBtn: document.querySelector("#reanalyze-btn"),
+  analysisLoading: document.querySelector("#analysis-loading"),
+  analysisResult: document.querySelector("#analysis-result")
 };
 
 let items = [];
@@ -380,6 +386,8 @@ function normalizeItem(raw, options = {}) {
     },
     scoreRationales: normalizeScoreRationales(raw.scoreRationales || raw.scoreReasons || raw.scoreAnalysis || raw.scoreDescriptions),
     notes: String(raw.notes || "").trim(),
+    // AI 리포트 결과 캐싱용 필드 추가
+    aiReport: raw.aiReport || ""
   };
 }
 
@@ -421,6 +429,10 @@ async function upsertItem(raw) {
   if (existingIndex >= 0) {
     normalized.id = items[existingIndex].id;
     normalized.createdAt = items[existingIndex].createdAt;
+    // 기존에 받아둔 AI 리포트가 있다면 승계 처리
+    if (items[existingIndex].aiReport && !normalized.aiReport) {
+      normalized.aiReport = items[existingIndex].aiReport;
+    }
     items[existingIndex] = normalized;
   } else {
     items.unshift(normalized);
@@ -560,6 +572,7 @@ function renderDetail() {
   const item = items.find((candidate) => candidate.id === selectedId);
   if (!item) {
     els.detailPanel.innerHTML = '<div class="detail-empty">IP를 선택하면 상세 분석이 표시됩니다.</div>';
+    if (els.aiAnalysisSection) els.aiAnalysisSection.style.display = "none";
     return;
   }
 
@@ -626,6 +639,67 @@ function renderDetail() {
 
   els.detailPanel.innerHTML = "";
   els.detailPanel.append(node);
+
+  // ⭐ 상세 페이지 바인딩 시 AI 분석 결과도 함께 로드 및 렌더링 수행
+  loadAiAnalysis(item);
+}
+
+// ==========================================
+// ⭐ 신규 추가: Gemini AI 실시간 심층 분석 로직
+// ==========================================
+async function loadAiAnalysis(item) {
+  if (!els.aiAnalysisSection) return;
+  
+  // AI 분석 영역 오픈
+  els.aiAnalysisSection.style.display = "block";
+  
+  // 이미 이전에 분석해둔 결과가 있는 경우, API 호출 없이 바로 로드해 출력 시간 절약
+  if (item.aiReport) {
+    els.analysisLoading.style.display = "none";
+    els.analysisResult.style.display = "block";
+    els.analysisResult.innerHTML = item.aiReport;
+    return;
+  }
+
+  // 저장된 분석이 없다면 신규 분석 가동
+  await runAiAnalysis(item);
+}
+
+async function runAiAnalysis(item) {
+  if (!els.analysisLoading || !els.analysisResult) return;
+
+  els.analysisLoading.style.display = "block";
+  els.analysisResult.style.display = "none";
+
+  try {
+    // 백엔드 API (api/analyze.js)로 현재 선택된 원작 IP 객체를 통째로 전달
+    const response = await fetch("/api/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ item })
+    });
+
+    if (!response.ok) throw new Error("AI 서버 분석 도중 에러가 발생했습니다.");
+    
+    const data = await response.json();
+    const markdownOrHtml = data.result || "<p>분석 데이터 생성에 실패했습니다.</p>";
+
+    // 결과 처리 (줄바꿈이 적용되도록 세팅)
+    const formattedResult = markdownOrHtml.replace(/\n/g, "<br>");
+    els.analysisResult.innerHTML = formattedResult;
+
+    // 현재 메모리에 할당된 item에 결과 캐싱 후 백엔드 서버/로컬 스토리지에 동기화 보관
+    item.aiReport = formattedResult;
+    item.updatedAt = new Date().toISOString();
+    await syncSaveItem(item, { silent: true });
+
+  } catch (error) {
+    console.error(error);
+    els.analysisResult.innerHTML = `<p style="color:var(--danger-color, #e53e3e);">⚠️ 분석 오류: ${escapeHtml(error.message)}</p>`;
+  } finally {
+    els.analysisLoading.style.display = "none";
+    els.analysisResult.style.display = "block";
+  }
 }
 
 function renderListInto(list, values) {
@@ -928,6 +1002,17 @@ if (els.backupFileInput) {
       els.backupMessage.textContent = `복원 실패: ${getErrorMessage(error)}`;
     } finally {
       els.backupFileInput.value = "";
+    }
+  });
+}
+
+// ⭐ 새로 추가된 '다시 분석하기' 버튼 이벤트 바인딩
+if (els.reanalyzeBtn) {
+  els.reanalyzeBtn.addEventListener("click", async () => {
+    const item = items.find((candidate) => candidate.id === selectedId);
+    if (!item) return;
+    if (confirm("Gemini AI 리포트를 최신 데이터 기준 파일로 다시 생성하시겠습니까?")) {
+      await runAiAnalysis(item);
     }
   });
 }
