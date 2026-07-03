@@ -126,8 +126,7 @@ const sampleIp = {
   scoreRationales: {
     dramaFit: "복수, 가족 권력, 회귀라는 한국 드라마 친화적 장치가 뚜렷하고 회차별 미션 구조로 나누기 쉽다. 다만 후반부 반복감을 줄이는 각색이 필요해 만점보다는 낮게 평가했다.",
     marketPotential: "재벌가 복수극 및 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮고, 원작형 회귀물 팬덤까지 흡수할 수 있다.",
-    productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간이지만 재벌가 공간, 기업 인수전 묘사를 설득력 있게 구현하려면 세트와 고급 조연 캐스팅 비용이 올라갈 수 " +
-      "있다.",
+    productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간이지만 재벌가 공간, 기업 인수전 묘사를 설득력 있게 구현하려면 세트와 고급 조연 캐스팅 비용이 올라갈 수 있다.",
     originality: "회귀 재벌 복수물 자체는 익숙하지만 엔터 IP 산업을 전면에 놓는 점이 차별화 포인트다.",
     scalability: "콘텐츠 기업, 아이돌, 제작사, 플랫폼 전쟁 등으로 에피소드 확장이 쉽고 시즌제나 스핀오프 가능성도 있다.",
     globalPotential: "권력 승계와 복수 정서는 보편적이지만 한국 재벌·엔터 산업의 세부 맥락은 해외 시청자에게 설명이 필요할 수 있다.",
@@ -177,7 +176,6 @@ const els = {
   analysisLoading: document.querySelector("#analysis-loading"),
   analysisResult: document.querySelector("#analysis-result"),
 
-  // ⭐ [수정 핵심 1] 자동 생성용 HTML 태그들을 JS가 인식할 수 있게 엘리먼트 정의 추가
   autoGenTitle: document.querySelector("#autoGenTitle"),
   autoGenBtn: document.querySelector("#autoGenBtn"),
   autoGenStatus: document.querySelector("#autoGenStatus")
@@ -467,7 +465,7 @@ function toggleSelectMode() {
 function filteredItems() {
   const query = (els.searchInput?.value || "").trim().toLowerCase();
   const type = els.typeFilter?.value || "all";
-  const sort = els.sortSelect?.value || "score";
+  const sort = els.sortSelect?.value || "sort";
   const sorted = [...items];
 
   if (sort === "score") {
@@ -493,12 +491,24 @@ function filteredItems() {
   });
 }
 
+// ⭐ [수정 반영] 유실되었던 하위 텍스트 렌더러 파트 재정의 복원
+function updatePrompt() {
+  if (!els.promptText) return;
+  const title = els.promptTitle?.value?.trim() || "{{원작 제목}}";
+  els.promptText.value = `다음 원작 IP를 한국 드라마로 제작할 가능성 관점에서 분석해줘.\n반드시 JSON만 출력하고, JSON 밖에는 어떤 설명도 쓰지 마.\n\n원작 제목: ${title}\n\n${JSON.stringify(requiredShape, null, 2)}`;
+}
+
+function updateBackupText() {
+  if (!els.backupText) return;
+  els.backupText.value = JSON.stringify({ app: "kdrama-ip-dashboard", version: 2, exportedAt: new Date().toISOString(), items }, null, 2);
+}
+
 function render() {
   renderMetrics();
   renderFilters();
   renderList();
-  updatePrompt();
-  updateBackupText();
+  updatePrompt();       // 이제 ReferenceError 없이 정상 호출됩니다.
+  updateBackupText();   // 이제 ReferenceError 없이 정상 호출됩니다.
 }
 
 function renderMetrics() {
@@ -595,7 +605,7 @@ function renderDetail() {
   renderThreePoints(node.querySelector(".casting"), item.castingDirection);
   renderListInto(node.querySelector(".comparables-list"), item.comparables);
 
-  // 캐릭터 배열 변환 (안전한 컴포넌트 결합식 설계)
+  // 캐릭터 컴포넌트 조합식 렌더러 안전 보존
   const charactersHtml = (item.mainCharacters || []).map(char => {
     return '<div class="char-sub-card">' +
       '<h4>' + escapeHtml(char.name) + ' <small>(' + escapeHtml(char.role) + ')</small></h4>' +
@@ -642,7 +652,7 @@ function renderDetail() {
   els.detailPanel.innerHTML = "";
   els.detailPanel.append(node);
 
-  // 하단 Gemini AI 리포트 자동 트리거 연결
+  // 하단 Gemini AI 리포트 출력 연동 가동
   loadAiAnalysis(item);
 }
 
@@ -686,20 +696,19 @@ async function runAiAnalysis(item) {
 }
 
 // ==========================================
-// ⭐ 신규 구현: 제목 입력 기반 자동 리서치 핸들러
+// ⭐ 제목 입력 기반 자동 기획 생성 핸들러 
 // ==========================================
 async function handleAiAutoGen() {
   if (!els.autoGenTitle || !els.autoGenBtn || !els.autoGenStatus) return;
   
   const title = els.autoGenTitle.value.trim();
-  console.log("자동 생성 트리거 가동 — 원작 명칭:", title); // 이제 콘솔 탭에 로그가 기록됩니다.
+  console.log("자동 생성 트리거 가동 — 원작 명칭:", title);
 
   if (!title) {
     alert("분석하고자 하는 원작 작품의 제목을 입력해 주세요.");
     return;
   }
 
-  // UI 상태 변경 및 더블 탭 락
   els.autoGenBtn.disabled = true;
   els.autoGenStatus.style.display = "block";
 
@@ -715,10 +724,8 @@ async function handleAiAutoGen() {
       throw new Error(data.error || "Gemini 파싱 엔진 내부 오류");
     }
 
-    // 신규 아이템 세팅 및 인서트
     const newDashboardItem = await upsertItem(data.payload);
     
-    // 성공 피드백 인터랙션
     els.autoGenTitle.value = "";
     selectedId = newDashboardItem.id;
     if (els.detailViewTitle) els.detailViewTitle.textContent = newDashboardItem.title;
@@ -802,7 +809,7 @@ function switchView(viewName = "dashboard") {
 }
 
 // ==========================================
-// 8. 이벤트 바인딩 하단부
+// 8. 이벤트 바인딩 바디부
 // ==========================================
 els.navButtons.forEach((button) => {
   button.addEventListener("click", () => switchView(button.dataset.view));
@@ -888,7 +895,7 @@ if (els.reanalyzeBtn) {
   });
 }
 
-// ⭐ [수정 핵심 2] 버튼 클릭 시 동작을 수행하는 이벤트 핸들러 바인딩 실행 코드 추가
+// [바인딩 실행] 자동 생성 버튼 리스너 세팅
 if (els.autoGenBtn) {
   els.autoGenBtn.addEventListener("click", handleAiAutoGen);
 }
