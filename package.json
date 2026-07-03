@@ -1,13 +1,12 @@
 {
   "name": "ip-dashboard",
-  "version": "1.0.0",
-  "description": "K-Drama IP Dashboard",
-  "main": "app.js",
+  "version": "2.0.0",
+  "description": "K-Drama IP Dashboard with Google Search Grounding",
+  "main": "index.html",
   "scripts": {
     "start": "echo 'No build step required'"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
-    "node-fetch": "^2.6.7"
+    "@google/genai": "^1.9.0"
   }
 }
