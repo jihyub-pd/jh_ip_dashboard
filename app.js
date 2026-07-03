@@ -663,11 +663,10 @@ function renderDetail() {
   els.detailPanel.innerHTML = "";
   els.detailPanel.append(node);
 
-  loadAiAnalysis(item);
 }
 
 // ==========================================
-// 7. Gemini API 연동 — 자동 생성 & 기획 리포트
+// 7. Gemini API 연동 — 원작 자동 분석 (기획 리포트 기능은 제거됨)
 // ==========================================
 
 // 공통: /api/analyze 호출 + 서버의 실제 에러 메시지 표출
@@ -692,51 +691,7 @@ async function callAnalyzeApi(body) {
   return data;
 }
 
-// 상세화면 하단 — Gemini 드라마화 기획 리포트 로드 (캐시 우선)
-async function loadAiAnalysis(item) {
-  if (!els.aiAnalysisSection) return;
-  els.aiAnalysisSection.style.display = "block";
 
-  // 이미 생성된 리포트가 있으면 재호출 없이 즉시 표시
-  if (item.aiReport) {
-    els.analysisLoading.style.display = "none";
-    els.analysisResult.style.display = "block";
-    els.analysisResult.innerHTML = item.aiReport;
-    return;
-  }
-
-  await runAiAnalysis(item);
-}
-
-// 상세화면 하단 — Gemini 기획 리포트 신규/재생성
-async function runAiAnalysis(item) {
-  if (!els.analysisLoading || !els.analysisResult) return;
-
-  els.analysisLoading.style.display = "block";
-  els.analysisResult.style.display = "none";
-  if (els.reanalyzeBtn) els.reanalyzeBtn.disabled = true;
-
-  try {
-    const data = await callAnalyzeApi({ mode: "report", item });
-    const reportHtml = data.result || "<p>리포트를 생성할 수 없습니다.</p>";
-
-    item.aiReport = reportHtml;
-    item.updatedAt = new Date().toISOString();
-    els.analysisResult.innerHTML = reportHtml;
-
-    // 생성된 리포트를 DB에 캐싱 (다음 조회 시 재호출 방지)
-    const result = await syncSaveItem(item, { silent: true });
-    if (!result.ok) console.warn("리포트 클라우드 저장 실패:", result.error);
-
-  } catch (error) {
-    console.error("기획 리포트 생성 오류:", error);
-    els.analysisResult.innerHTML = `<p style="color:var(--accent-2);">리포트 생성 실패: ${escapeHtml(error.message)}</p>`;
-  } finally {
-    els.analysisLoading.style.display = "none";
-    els.analysisResult.style.display = "block";
-    if (els.reanalyzeBtn) els.reanalyzeBtn.disabled = false;
-  }
-}
 
 // 대시보드 메인 — 원작 제목 기반 Gemini 자동 분석/등록
 async function handleAiAutoGen() {
@@ -920,13 +875,6 @@ if (els.saveBtn) {
     } finally {
       els.saveBtn.disabled = false;
     }
-  });
-}
-
-if (els.reanalyzeBtn) {
-  els.reanalyzeBtn.addEventListener("click", () => {
-    const item = items.find((c) => c.id === selectedId);
-    if (item) runAiAnalysis(item);
   });
 }
 
