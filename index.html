@@ -66,9 +66,14 @@
           </header>
 
           <div class="list-panel">
+            <!-- ✦ 수정: 선택 모드 버튼 추가 -->
             <div class="panel-head">
               <h3>IP 목록</h3>
-              <button id="addSampleBtn" class="ghost-btn">샘플 추가</button>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button id="toggleSelectBtn" class="ghost-btn">선택 모드</button>
+                <button id="deleteSelectedBtn" class="danger-btn" style="display:none">선택 삭제 (0)</button>
+                <button id="addSampleBtn" class="ghost-btn">샘플 추가</button>
+              </div>
             </div>
             <div id="ipList" class="ip-list"></div>
             <div id="emptyState" class="empty-state">
