@@ -1,9 +1,10 @@
 // api/analyze.js
-// ✨ v2: Google Search 그라운딩 적용 — Gemini가 실제 웹 검색으로 원작 정보를 조사한 뒤 분석
-// ⚠️ 신형 SDK(@google/genai) 필요 — package.json도 함께 교체하세요.
-import { GoogleGenAI } from '@google/genai';
+// ✨ v3: SDK 없이 Gemini REST API 직접 호출 — npm 패키지 의존성 제로
+//        (package.json / package-lock.json / 빌드 캐시 상태와 무관하게 동작)
+// 기능: Google Search 그라운딩 2단계 파이프라인 (① 검색 리서치 → ② JSON 구조화)
 
-const MODEL_NAME = "gemini-2.5-flash"; // 품질 우선이면 "gemini-2.5-pro" (단, 응답 느려짐)
+const MODEL_NAME = "gemini-2.5-flash"; // 품질 우선이면 "gemini-2.5-pro" (응답 느려짐)
+const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 const SYSTEM_PERSONA =
   "당신은 한국 드라마 제작사의 수석 IP 기획 프로듀서이자 콘텐츠 분석 전문가입니다. " +
@@ -11,6 +12,51 @@ const SYSTEM_PERSONA =
   "반드시 제공된 리서치 자료와 검색으로 확인된 사실에만 근거해 분석하며, " +
   "확인되지 않은 등장인물 이름, 설정, 줄거리를 절대 지어내지 않습니다. " +
   "칭찬 일변도가 아니라 약점과 제작·시장·법적 리스크를 균형 있게 반영합니다.";
+
+// Gemini REST 호출 공통 함수
+async function callGemini(apiKey, { prompt, useSearch = false, jsonMode = false, temperature = 0.7 }) {
+  const body = {
+    system_instruction: { parts: [{ text: SYSTEM_PERSONA }] },
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature,
+      maxOutputTokens: 8192
+    }
+  };
+
+  if (useSearch) {
+    body.tools = [{ google_search: {} }];
+  }
+  if (jsonMode) {
+    body.generationConfig.responseMimeType = "application/json";
+  }
+
+  const response = await fetch(`${API_BASE}/${MODEL_NAME}:generateContent`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": apiKey
+    },
+    body: JSON.stringify(body)
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const googleMsg = data?.error?.message || `HTTP ${response.status}`;
+    throw new Error(`Gemini API 오류: ${googleMsg}`);
+  }
+
+  // 응답의 텍스트 파트를 전부 이어붙임 (그라운딩 시 파트가 여러 개일 수 있음)
+  const parts = data?.candidates?.[0]?.content?.parts || [];
+  const text = parts.map(p => p.text || "").join("").trim();
+
+  if (!text) {
+    const finishReason = data?.candidates?.[0]?.finishReason || "UNKNOWN";
+    throw new Error(`Gemini 응답이 비어 있습니다. (finishReason: ${finishReason})`);
+  }
+  return text;
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -26,8 +72,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey });
-
     // =============================================================
     // Case 1: 상세화면 하단 — 드라마화 연출/각색 기획 리포트 생성 (HTML 리턴)
     // =============================================================
@@ -49,17 +93,7 @@ export default async function handler(req, res) {
 [원작 정보]
 ${JSON.stringify(item, null, 2)}`;
 
-      const result = await ai.models.generateContent({
-        model: MODEL_NAME,
-        contents: prompt,
-        config: {
-          systemInstruction: SYSTEM_PERSONA,
-          temperature: 0.7,
-          maxOutputTokens: 8192
-        }
-      });
-
-      const responseText = result.text || "<p>리포트를 생성할 수 없습니다.</p>";
+      const responseText = await callGemini(apiKey, { prompt, temperature: 0.7 });
       return res.status(200).json({ result: responseText });
     }
 
@@ -70,7 +104,6 @@ ${JSON.stringify(item, null, 2)}`;
 
     // -------------------------------------------------------------
     // [1단계] Google Search 그라운딩으로 원작 사실 정보 리서치
-    //   ※ 그라운딩과 JSON 강제 출력은 동시 사용이 불가하므로 단계를 분리
     // -------------------------------------------------------------
     const researchPrompt = `원작 작품 [${title}]에 대해 웹 검색을 수행하여 아래 항목의 "사실 정보"를 한국어로 정리해줘.
 
@@ -87,22 +120,15 @@ ${JSON.stringify(item, null, 2)}`;
 - 등장인물 이름은 절대 추측하지 말고 검색 결과에서 확인된 이름만 써.
 - 검색 결과가 거의 없거나 동명의 다른 작품과 혼동될 여지가 있으면 그 사실을 반드시 첫 줄에 명시해.`;
 
-    const researchResult = await ai.models.generateContent({
-      model: MODEL_NAME,
-      contents: researchPrompt,
-      config: {
-        tools: [{ googleSearch: {} }],
-        temperature: 0.2 // 리서치 단계는 사실성 우선 → 낮은 온도
-      }
+    const researchText = await callGemini(apiKey, {
+      prompt: researchPrompt,
+      useSearch: true,
+      temperature: 0.2 // 리서치 단계는 사실성 우선 → 낮은 온도
     });
-
-    const researchText = researchResult.text || "";
-    if (!researchText.trim()) {
-      throw new Error("원작 리서치 단계에서 응답을 받지 못했습니다.");
-    }
 
     // -------------------------------------------------------------
     // [2단계] 리서치 결과를 근거로 분석 JSON 구조화
+    //   ※ 그라운딩과 JSON 강제 출력은 동시 사용 불가 → 단계 분리
     // -------------------------------------------------------------
     const promptJson = `다음 원작 IP를 한국 드라마로 제작할 가능성 관점에서 심층 분석해줘.
 아래 [리서치 자료]는 웹 검색으로 확인된 사실 정보야. 반드시 이 자료에 근거해서 분석하고,
@@ -179,18 +205,12 @@ ${researchText}
   "notes": "검토 메모 (정보 제한 시 '정보 제한적, 추가 리서치 권장' 명시)"
 }`;
 
-    const resultJson = await ai.models.generateContent({
-      model: MODEL_NAME,
-      contents: promptJson,
-      config: {
-        systemInstruction: SYSTEM_PERSONA,
-        responseMimeType: "application/json",
-        temperature: 0.6,
-        maxOutputTokens: 8192
-      }
+    let responseText = await callGemini(apiKey, {
+      prompt: promptJson,
+      jsonMode: true,
+      temperature: 0.6
     });
 
-    let responseText = (resultJson.text || "").trim();
     if (responseText.startsWith("```")) {
       responseText = responseText.replace(/^```json/, "").replace(/^```/, "").replace(/```$/, "").trim();
     }
