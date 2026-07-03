@@ -50,7 +50,7 @@ const requiredShape = {
       improvements: "드라마화 시 개선/각색 포인트"
     }
   ],
-  strengths: ["강점1 — 서로 다른 관점", "강점2 — 서로 다른 관점", "강점3 — 서로 다른 관점"],
+  strengths: ["강점1", "강점2", "강점3"],
   risks: ["리스크1", "리스크2", "리스크3"],
   targetAudience: "연령대/성별/취향 등 3가지 측면을 포함한 타깃층",
   productionDifficulty: "낮음 | 보통 | 높음",
@@ -67,13 +67,13 @@ const requiredShape = {
     characterAppeal: 0.0,
   },
   scoreRationales: {
-    dramaFit: "드라마 적합 점수를 이렇게 준 이유",
-    marketPotential: "흥행성 점수를 이렇게 준 이유",
-    productionFeasibility: "제작성 점수를 이렇게 준 이유",
-    originality: "차별성 점수를 이렇게 준 이유",
-    scalability: "확장성 점수를 이렇게 준 이유",
-    globalPotential: "글로벌 점수를 이렇게 준 이유",
-    characterAppeal: "캐릭터 매력도 점수를 이렇게 준 이유",
+    dramaFit: "이유",
+    marketPotential: "이유",
+    productionFeasibility: "이유",
+    originality: "이유",
+    scalability: "이유",
+    globalPotential: "이유",
+    characterAppeal: "이유",
   },
   notes: "선택 메모",
 };
@@ -125,11 +125,11 @@ const sampleIp = {
     characterAppeal: 9.5
   },
   scoreRationales: {
-    dramaFit: "복수, 가족 권력, 회귀라는 한국 드라마 친화적 장치가 뚜렷하고 회차별 미션 구조로 나누기 쉽다. 다만 후반부 반복감을 줄이는 각색이 필요해 만점보다는 낮게 평가했다.",
-    marketPotential: "재벌가 복수극 및 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮고, 원작형 회귀물 팬덤까지 흡수할 수 있다.",
-    productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간이지만 재벌가 공간, 기업 인수전 묘사를 설득력 있게 구현하려면 세트와 고급 조연 캐스팅 비용이 올라갈 수 있다.",
+    dramaFit: "복수, 가족 권력, 회귀라는 한국 드라마 친화적 장치가 뚜렷하고 회차별 미션 구조로 나누기 쉽다.",
+    marketPotential: "재벌가 복수극 및 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮다.",
+    productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간이지만 기업 인수전 묘사를 설득력 있게 구현하려면 고급 조연 캐스팅 비용이 필요하다.",
     originality: "회귀 재벌 복수물 자체는 익숙하지만 엔터 IP 산업을 전면에 놓는 점이 차별화 포인트다.",
-    scalability: "콘텐츠 기업, 아이돌, 제작사, 플랫폼 전쟁 등으로 에피소드 확장이 쉽고 시즌제나 스핀오프 가능성도 있다.",
+    scalability: "콘텐츠 기업, 아이돌, 제작사, 플랫폼 전쟁 등으로 에피소드 확장이 쉽다.",
     globalPotential: "권력 승계와 복수 정서는 보편적이지만 한국 재벌·엔터 산업의 세부 맥락은 해외 시청자에게 설명이 필요할 수 있습니다.",
     characterAppeal: "미래 정보를 활용하는 전략형 남주와 강단 있는 검사 캐릭터가 팬덤을 만들기 좋다."
   },
@@ -192,7 +192,7 @@ if (els.schemaPreview) {
 }
 
 // ==========================================
-// 2. Supabase 동기화 함수
+// 2. Supabase 및 로컬 저장소 핵심 동기화 함수 (완벽 복구)
 // ==========================================
 function getLocalItems() {
   try {
@@ -286,6 +286,20 @@ async function syncSaveItem(normalizedItem, options = {}) {
   return result;
 }
 
+// 🚨 누락되었던 핵심 데이터 업데이트/인서트 함수 완전 복구
+async function upsertItem(rawInput) {
+  const normalized = normalizeItem(rawInput);
+  const idx = items.findIndex((item) => item.id === normalized.id);
+  if (idx > -1) {
+    items[idx] = normalized;
+  } else {
+    items.unshift(normalized);
+  }
+  await syncSaveItem(normalized);
+  render();
+  return normalized;
+}
+
 async function syncDeleteItem(id) {
   const previousItems = [...items];
   items = items.filter((candidate) => candidate.id !== id);
@@ -301,24 +315,8 @@ async function syncDeleteItem(id) {
   }
 }
 
-async function replaceCloudItems(restoredItems) {
-  if (!supabaseClient) return;
-  const { data, error: loadError } = await supabaseClient.from("kdrama_ips").select("id");
-  if (loadError) throw loadError;
-  const restoredIds = new Set(restoredItems.map((item) => item.id));
-  const idsToDelete = (data || []).map((row) => row.id).filter((id) => !restoredIds.has(id));
-  if (idsToDelete.length > 0) {
-    const { error: deleteError } = await supabaseClient.from("kdrama_ips").delete().in("id", idsToDelete);
-    if (deleteError) throw deleteError;
-  }
-  for (const item of restoredItems) {
-    const result = await saveItemToCloud(item);
-    if (!result.ok) throw new Error(getErrorMessage(result.error));
-  }
-}
-
 // ==========================================
-// 3. 유틸리티 함수
+// 3. 유틸리티 및 규격화 함수
 // ==========================================
 function clampScore(value) {
   const number = Number(value);
@@ -341,9 +339,7 @@ function normalizeScoreRationales(raw) {
 }
 
 function scoreRationaleText(item, key) {
-  const text = item.scoreRationales?.[key];
-  if (text) return text;
-  return "평가 근거가 입력되었습니다.";
+  return item.scoreRationales?.[key] || "평가 근거가 입력되었습니다.";
 }
 
 function normalizeItem(raw, options = {}) {
@@ -388,7 +384,7 @@ function normalizeItem(raw, options = {}) {
       globalPotential: clampScore(raw.scores?.globalPotential),
       characterAppeal: clampScore(raw.scores?.characterAppeal),
     },
-    scoreRationales: normalizeScoreRationales(raw.scoreRationales || raw.scoreReasons || raw.scoreAnalysis || raw.scoreDescriptions),
+    scoreRationales: normalizeScoreRationales(raw.scoreRationales || raw.scoreReasons || raw.scoreAnalysis),
     notes: String(raw.notes || "").trim(),
     aiReport: raw.aiReport || ""
   };
@@ -400,8 +396,21 @@ function toArray(value) {
   return String(value).split(",").map((item) => item.trim()).filter(Boolean);
 }
 
+function parseInput() {
+  if (!els.jsonInput) return { errors: ["인풋창이 없습니다."] };
+  const txt = els.jsonInput.value.trim();
+  if (!txt) return { errors: ["내용이 비어 있습니다."] };
+  try {
+    const raw = JSON.parse(txt);
+    if (!raw.title) return { errors: ["'title' 필드는 필수입니다."], raw };
+    return { errors: [], raw };
+  } catch (e) {
+    return { errors: [`JSON 문법 오류: ${e.message}`] };
+  }
+}
+
 // ==========================================
-// 4. 선택 모드 및 리스트 제어
+// 4. 선택 모드 및 필터 렌더링
 // ==========================================
 function toggleSelectMode() {
   selectMode = !selectMode;
@@ -421,14 +430,7 @@ function filteredItems() {
   const sorted = [...items];
 
   if (sort === "score") {
-    sorted.sort((a, b) => {
-      const avgA = averageScore(a);
-      const avgB = averageScore(b);
-      if (avgA !== avgB) return avgB - avgA;
-      const priorityA = clampScore(a.scores?.dramaFit) + clampScore(a.scores?.productionFeasibility) + clampScore(a.scores?.globalPotential);
-      const priorityB = clampScore(b.scores?.dramaFit) + clampScore(b.scores?.productionFeasibility) + clampScore(b.scores?.globalPotential);
-      return priorityB - priorityA;
-    });
+    sorted.sort((a, b) => averageScore(b) - averageScore(a));
   } else if (sort === "title") {
     sorted.sort((a, b) => a.title.localeCompare(b.title, "ko"));
   } else {
@@ -443,22 +445,10 @@ function filteredItems() {
   });
 }
 
-function updatePrompt() {
-  if (!els.promptText) return;
-  const title = els.promptTitle?.value?.trim() || "{{원작 제목}}";
-  els.promptText.value = `다음 원작 IP를 한국 드라마로 제작할 가능성 관점에서 분석해줘.\n반드시 JSON만 출력하고, JSON 밖에는 어떤 설명도 쓰지 마.\n\n원작 제목: ${title}\n\n주요 분석 가이드라인:\n1. 주인공 4인(핵심 주연급)을 선정하여 심층 분석해줘.\n2. 각 캐릭터의 'traits'란에는 원작에서 보여준 대표적인 대사 스타일, 시그니처 행동 패턴, 혹은 작중 타 인물들의 커뮤니티나 인물의 평가를 녹여내서 작성해줘.\n3. 'appealPoints'에는 독자/시청자들이 열광하는 결정적 입덕 매력 요소를 기술해줘.\n4. 'improvements'에는 웹툰/웹소설의 문법을 드라마 편수로 바꿀 때 반드시 보완해야 하는 단점 및 각색 방향을 짚어줘.\n5. 점수 체계는 10.0점 만점이며, 소수점 첫째 자리(예: 8.5)까지 세부적으로 평가해줘.\n6. ★ strengths는 반드시 서로 다른 관점의 강점 3가지를 배열로 작성해줘.\n7. ★ risks는 반드시 서로 다른 리스크 3가지를 배열로 작성해줘.\n8. ★ comparables는 반드시 유사 성공작 3가지를 배열로 작성해줘.\n9. ★ targetAudience는 연령대/성별/취향 등 3가지 측면을 포함해서 작성하되, 각 측면을 ' / ' 로 구분해줘.\n10. ★ castingDirection은 주연/조연/연출 방향 3가지를 포함해서 작성하되, 각 항목을 ' / ' 로 구분해줘.\n11. ★ premise는 세계관/설정/갈등구조 3가지 특징을 포함해서 작성하되, 각 항목을 ① ② ③ 으로 구분해줘.\n12. ★ scoreRationales는 scores의 7개 항목과 같은 key를 반드시 포함해줘.\n13. ★ scoreRationales의 각 항목은 왜 그 점수를 줬는지 1~2문장으로 설명해줘. 단순 칭찬이 아니라 원작의 장점, 약점, 제작/시장 리스크를 같이 반영해줘.\n14. ★ scoreRationales의 key는 반드시 dramaFit, marketPotential, productionFeasibility, originality, scalability, globalPotential, characterAppeal 순서로 작성해줘.\n\n아래 명시된 스키마 JSON 포맷을 완벽하게 준수해줘:\n${JSON.stringify(requiredShape, null, 2)}`;
-}
-
-function updateBackupText() {
-  if (!els.backupText) return;
-  els.backupText.value = JSON.stringify({ app: "kdrama-ip-dashboard", version: 2, exportedAt: new Date().toISOString(), items }, null, 2);
-}
-
 function render() {
   renderMetrics();
   renderFilters();
   renderList();
-  updatePrompt();       
   updateBackupText();   
 }
 
@@ -510,11 +500,8 @@ function renderList() {
 
     button.addEventListener("click", () => {
       if (selectMode) {
-        if (selectedIds.has(item.id)) {
-          selectedIds.delete(item.id);
-        } else {
-          selectedIds.add(item.id);
-        }
+        if (selectedIds.has(item.id)) selectedIds.delete(item.id);
+        else selectedIds.add(item.id);
         if (els.deleteSelectedBtn) els.deleteSelectedBtn.textContent = `선택 삭제 (${selectedIds.size})`;
         renderList();
       } else {
@@ -524,16 +511,15 @@ function renderList() {
         switchView("detail");
       }
     });
-
     els.ipList.append(button);
   });
 }
 
+// ==========================================
+// 5. 상세 정보 및 심층 분석 카드 UI 구현
+// ==========================================
 let memoTimeout = null;
 
-// ==========================================
-// 6. 상세 화면 렌더링 파트
-// ==========================================
 function renderDetail() {
   if (!els.detailPanel) return;
   const item = items.find((candidate) => candidate.id === selectedId);
@@ -562,7 +548,7 @@ function renderDetail() {
   const charactersHtml = (item.mainCharacters || []).map(char => {
     return '<div class="char-sub-card">' +
       '<h4>' + escapeHtml(char.name) + ' <small>(' + escapeHtml(char.role) + ')</small></h4>' +
-      '<p><strong>특징/대사/행동/평가:</strong> ' + escapeHtml(char.traits) + '</p>' +
+      '<p><strong>특징/대사/행동:</strong> ' + escapeHtml(char.traits) + '</p>' +
       '<p><strong style="color:var(--accent-3);">입덕 포인트:</strong> ' + escapeHtml(char.appealPoints) + '</p>' +
       '<p><strong style="color:var(--accent-2);">개선/각색점:</strong> ' + escapeHtml(char.improvements) + '</p>' +
       '</div>';
@@ -576,9 +562,6 @@ function renderDetail() {
   const targetBlock = node.querySelector(".detail-blocks") || node.querySelector(".detail-info-grid");
   if (targetBlock && targetBlock.parentNode) {
     targetBlock.parentNode.insertBefore(charContainer, targetBlock);
-  } else {
-    const firstChild = node.firstElementChild;
-    if (firstChild) firstChild.appendChild(charContainer);
   }
 
   const memoInput = node.querySelector(".memo-input");
@@ -589,8 +572,7 @@ function renderDetail() {
       item.updatedAt = new Date().toISOString();
       if (memoTimeout) clearTimeout(memoTimeout);
       memoTimeout = setTimeout(async () => {
-        const result = await syncSaveItem(item, { silent: true });
-        if (!result.ok) console.warn("메모 클라우드 저장 실패:", result.error);
+        await syncSaveItem(item, { silent: true });
       }, 600);
     });
   }
@@ -612,14 +594,14 @@ function renderDetail() {
 }
 
 // ==========================================
-// 7. 실시간 할당량 레이어 표출 바인딩 윈도우
+// 6. 실시간 할당량 레이어 표출 바인딩 위젯
 // ==========================================
 function updateQuotaDisplay(remaining, reset) {
   let quotaBox = document.querySelector("#api-quota-widget");
   if (!quotaBox) {
     quotaBox = document.createElement("div");
     quotaBox.id = "api-quota-widget";
-    quotaBox.style.cssText = "margin-top:12px; padding:10px 14px; background:#1e293b; border-radius:6px; color:#94a3b8; font-size:12px; display:flex; justify-content:between; align-items:center; border:1px solid #334155;";
+    quotaBox.style.cssText = "margin-top:12px; padding:10px 14px; background:#1e293b; border-radius:6px; color:#94a3b8; font-size:12px; display:flex; justify-content:space-between; align-items:center; border:1px solid #334155;";
     const targetParent = els.autoGenStatus?.parentNode;
     if (targetParent) targetParent.appendChild(quotaBox);
   }
@@ -630,21 +612,19 @@ function updateQuotaDisplay(remaining, reset) {
       <span style="display:inline-block; width:6px; height:6px; background:#22c55e; border-radius:50%"></span>
       <span>Gemini API 실시간 할당량 리서치</span>
     </div>
-    <div style="margin-left:auto; text-align:right;">
-      <strong>이번 분당 남은 시도: <span style="color:#f8fafc; font-size:13px;">${remaining}회</span></strong> / 초기화까지 약 ${cleanReset}
+    <div style="text-align:right;">
+      <strong>분당 남은 시도: <span style="color:#f8fafc; font-size:13px;">${remaining}회</span></strong> / 초기화까지 약 ${cleanReset}
     </div>
   `;
 }
 
 // ==========================================
-// 8. 🚨 [거짓 정보 원천 차단] 순수 구글 API 데이터 자동 생성기
+// 7. 🚨 [거짓 정보 원천 차단] 구글 API 자동 연동 인터페이스
 // ==========================================
 async function handleAiAutoGen() {
   if (!els.autoGenTitle || !els.autoGenBtn || !els.autoGenStatus) return;
   
   const title = els.autoGenTitle.value.trim();
-  console.log("자동 생성 정밀 분석 가동 — 원작 명칭:", title);
-
   if (!title) {
     alert("분석하고자 하는 원작 작품의 제목을 입력해 주세요.");
     return;
@@ -654,28 +634,26 @@ async function handleAiAutoGen() {
   els.autoGenStatus.style.display = "block";
 
   try {
-    // 🚨 거짓/Mock 임의 빌드를 완전 철폐하고, 백엔드의 정식 구글 AI Studio 패킷만 연동 수신
     const response = await fetch("/api/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title })
     });
 
-    const contentType = response.headers.get("content-type");
-    if (!response.ok || !contentType || !contentType.includes("application/json")) {
+    if (!response.ok) {
       throw new Error(`구글 서버 인증 이슈 혹은 할당량 소진으로 정상 응답을 수신하지 못했습니다. (Status: ${response.status})`);
     }
 
     const data = await response.json();
     if (!data.success || !data.payload) {
-      throw new Error(data.error || "Gemini 분석 데이터 포맷이 맞지 않습니다.");
+      throw new Error(data.error || "Gemini 분석 데이터 형식이 올바르지 않습니다.");
     }
 
-    // 호출 성공 시 수신된 실시간 남은 횟수 레이어 위젯 연동 인서트
     if (data.rateLimit) {
       updateQuotaDisplay(data.rateLimit.remaining, data.rateLimit.reset);
     }
 
+    // 완전 복구된 upsertItem 호출로 데이터 유실 차단
     const newDashboardItem = await upsertItem(data.payload);
     
     els.autoGenTitle.value = "";
@@ -718,7 +696,7 @@ async function runAiAnalysis(item) {
       body: JSON.stringify({ item, mode: 'report' })
     });
     
-    if (!response.ok) throw new Error("리포트 통신 필터가 올바르지 않습니다.");
+    if (!response.ok) throw new Error("리포트 서버 내부 응답 지연");
     
     const data = await response.json();
     if (data.result) {
@@ -731,13 +709,16 @@ async function runAiAnalysis(item) {
       await syncSaveItem(item, { silent: true });
     }
   } catch (error) {
-    els.analysisResult.innerHTML = `<p style="color:red;">⚠️ 리포트 생성에 실패했습니다. (원인: 구글 자격 증명 락 또는 할당량 초과)</p>`;
+    els.analysisResult.innerHTML = `<p style="color:red;">⚠️ 리포트 생성에 실패했습니다. (원인: 할당량 초과 또는 락)</p>`;
   } finally {
     els.analysisLoading.style.display = "none";
     els.analysisResult.style.display = "block";
   }
 }
 
+// ==========================================
+// 8. 서브 뷰 컴포넌트 렌더러 유틸
+// ==========================================
 function renderListInto(list, values) {
   if (!list) return;
   list.innerHTML = "";
@@ -796,6 +777,11 @@ function escapeHtml(value) {
   return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
 
+function updateBackupText() {
+  if (!els.backupText) return;
+  els.backupText.value = JSON.stringify({ app: "kdrama-ip-dashboard", version: 2, exportedAt: new Date().toISOString(), items }, null, 2);
+}
+
 function switchView(viewName = "dashboard") {
   const safeViewName = viewName || "dashboard";
   const targetView = document.querySelector(`#${safeViewName}View`);
@@ -806,7 +792,7 @@ function switchView(viewName = "dashboard") {
 }
 
 // ==========================================
-// 9. 이벤트 바인딩 바디부
+// 9. 글로벌 이벤트 리스너 바인딩
 // ==========================================
 els.navButtons.forEach((button) => {
   button.addEventListener("click", () => switchView(button.dataset.view));
@@ -824,14 +810,12 @@ if (els.deleteSelectedBtn) {
   els.deleteSelectedBtn.addEventListener("click", async () => {
     if (selectedIds.size === 0) { alert("삭제할 IP를 선택해주세요."); return; }
     if (!confirm(`선택한 ${selectedIds.size}개의 IP를 삭제할까요?`)) return;
-    els.deleteSelectedBtn.disabled = true;
-    els.deleteSelectedBtn.textContent = "삭제 중...";
     try {
       for (const id of selectedIds) { await syncDeleteItem(id); }
       selectedIds.clear();
       toggleSelectMode();
       render();
-    } catch (error) { alert(`삭제 실패: ${getErrorMessage(error)}`); } finally { els.deleteSelectedBtn.disabled = false; }
+    } catch (error) { alert(`삭제 실패: ${getErrorMessage(error)}`); }
   });
 }
 
@@ -848,32 +832,21 @@ if (els.addSampleBtn) {
 if (els.pasteSampleBtn) {
   els.pasteSampleBtn.addEventListener("click", () => {
     els.jsonInput.value = JSON.stringify(sampleIp, null, 2);
-    els.formMessage.textContent = "예시 JSON을 넣었습니다.";
   });
 }
 
 if (els.clearFormBtn) {
-  els.clearFormBtn.addEventListener("click", () => { els.jsonInput.value = ""; els.formMessage.textContent = ""; });
-}
-
-if (els.validateBtn) {
-  els.validateBtn.addEventListener("click", () => {
-    const result = parseInput();
-    els.formMessage.textContent = result.errors.length ? result.errors.join(" ") : "저장 가능한 JSON입니다.";
-  });
+  els.clearFormBtn.addEventListener("click", () => { els.jsonInput.value = ""; });
 }
 
 if (els.saveBtn) {
   els.saveBtn.addEventListener("click", async () => {
     const result = parseInput();
-    if (result.errors.length) { els.formMessage.textContent = result.errors.join(" "); return; }
-    els.saveBtn.disabled = true;
-    els.formMessage.textContent = "저장 중입니다...";
+    if (result.errors.length) { alert(result.errors.join("\n")); return; }
     try {
       await upsertItem(result.raw);
-      els.formMessage.textContent = supabaseClient ? "Supabase DB에 저장했습니다." : "로컬에 저장했습니다.";
       switchView("dashboard");
-    } catch (error) { els.formMessage.textContent = `저장 실패: ${getErrorMessage(error)}`; } finally { els.saveBtn.disabled = false; }
+    } catch (error) { alert(`저장 실패: ${getErrorMessage(error)}`); }
   });
 }
 
@@ -889,7 +862,7 @@ if (els.autoGenBtn) {
 }
 
 // ==========================================
-// 10. 초기화
+// 10. 엔트리 포인트 초기화
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   initSupabase();
