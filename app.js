@@ -50,7 +50,7 @@ const requiredShape = {
       improvements: "드라마화 시 개선/각색 포인트"
     }
   ],
-  strengths: ["강점1", "강점2", "강점3"],
+  strengths: ["강점1 — 서로 다른 관점", "강점2 — 서로 다른 관점", "강점3 — 서로 다른 관점"],
   risks: ["리스크1", "리스크2", "리스크3"],
   targetAudience: "연령대/성별/취향 등 3가지 측면을 포함한 타깃층",
   productionDifficulty: "낮음 | 보통 | 높음",
@@ -67,13 +67,13 @@ const requiredShape = {
     characterAppeal: 0.0,
   },
   scoreRationales: {
-    dramaFit: "이유",
-    marketPotential: "이유",
-    productionFeasibility: "이유",
-    originality: "이유",
-    scalability: "이유",
-    globalPotential: "이유",
-    characterAppeal: "이유",
+    dramaFit: "드라마 적합 점수를 이렇게 준 이유",
+    marketPotential: "흥행성 점수를 이렇게 준 이유",
+    productionFeasibility: "제작성 점수를 이렇게 준 이유",
+    originality: "차별성 점수를 이렇게 준 이유",
+    scalability: "확장성 점수를 이렇게 준 이유",
+    globalPotential: "글로벌 점수를 이렇게 준 이유",
+    characterAppeal: "캐릭터 매력도 점수를 이렇게 준 이유",
   },
   notes: "선택 메모",
 };
@@ -126,10 +126,10 @@ const sampleIp = {
   },
   scoreRationales: {
     dramaFit: "복수, 가족 권력, 회귀라는 한국 드라마 친화적 장치가 뚜렷하고 회차별 미션 구조로 나누기 쉽다.",
-    marketPotential: "재벌가 복수극 및 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮다.",
-    productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간이지만 기업 인수전 묘사를 설득력 있게 구현하려면 고급 조연 캐스팅 비용이 필요하다.",
+    marketPotential: "재벌가 복수극 및 직장인 성공 판타지가 결합돼 대중적 진입 장벽이 낮고, 원작형 회귀물 팬덤까지 흡수할 수 있다.",
+    productionFeasibility: "현대극 기반이라 기본 제작 난도는 중간이지만 기업 인수전 묘사를 설득력 있게 구현하려면 세트와 고급 조연 캐스팅 비용이 올라갈 수 있다.",
     originality: "회귀 재벌 복수물 자체는 익숙하지만 엔터 IP 산업을 전면에 놓는 점이 차별화 포인트다.",
-    scalability: "콘텐츠 기업, 아이돌, 제작사, 플랫폼 전쟁 등으로 에피소드 확장이 쉽다.",
+    scalability: "콘텐츠 기업, 아이돌, 제작사, 플랫폼 전쟁 등으로 에피소드 확장이 쉽고 시즌제나 스핀오프 가능성도 있다.",
     globalPotential: "권력 승계와 복수 정서는 보편적이지만 한국 재벌·엔터 산업의 세부 맥락은 해외 시청자에게 설명이 필요할 수 있습니다.",
     characterAppeal: "미래 정보를 활용하는 전략형 남주와 강단 있는 검사 캐릭터가 팬덤을 만들기 좋다."
   },
@@ -192,7 +192,7 @@ if (els.schemaPreview) {
 }
 
 // ==========================================
-// 2. Supabase 및 로컬 저장소 핵심 동기화 함수 (완벽 복구)
+// 2. Supabase 및 로컬 저장소 핵심 동기화 함수
 // ==========================================
 function getLocalItems() {
   try {
@@ -286,11 +286,12 @@ async function syncSaveItem(normalizedItem, options = {}) {
   return result;
 }
 
-// 🚨 누락되었던 핵심 데이터 업데이트/인서트 함수 완전 복구
 async function upsertItem(rawInput) {
   const normalized = normalizeItem(rawInput);
-  const idx = items.findIndex((item) => item.id === normalized.id);
+  const idx = items.findIndex((item) => item.id === normalized.id || item.title === normalized.title);
   if (idx > -1) {
+    normalized.id = items[idx].id;
+    normalized.createdAt = items[idx].createdAt;
     items[idx] = normalized;
   } else {
     items.unshift(normalized);
@@ -316,7 +317,7 @@ async function syncDeleteItem(id) {
 }
 
 // ==========================================
-// 3. 유틸리티 및 규격화 함수
+// 3. 유틸리티 함수
 // ==========================================
 function clampScore(value) {
   const number = Number(value);
@@ -410,7 +411,7 @@ function parseInput() {
 }
 
 // ==========================================
-// 4. 선택 모드 및 필터 렌더링
+// 4. 선택 모드 및 리스트 조회
 // ==========================================
 function toggleSelectMode() {
   selectMode = !selectMode;
@@ -445,10 +446,22 @@ function filteredItems() {
   });
 }
 
+function updatePrompt() {
+  if (!els.promptText) return;
+  const title = els.promptTitle?.value?.trim() || "{{원작 제목}}";
+  els.promptText.value = `다음 원작 IP를 한국 드라마로 제작할 가능성 관점에서 분석해줘.\n반드시 JSON만 출력하고, JSON 밖에는 어떤 설명도 쓰지 마.\n\n원작 제목: ${title}\n\n${JSON.stringify(requiredShape, null, 2)}`;
+}
+
+function updateBackupText() {
+  if (!els.backupText) return;
+  els.backupText.value = JSON.stringify({ app: "kdrama-ip-dashboard", version: 2, exportedAt: new Date().toISOString(), items }, null, 2);
+}
+
 function render() {
   renderMetrics();
   renderFilters();
   renderList();
+  updatePrompt();       
   updateBackupText();   
 }
 
@@ -516,10 +529,8 @@ function renderList() {
 }
 
 // ==========================================
-// 5. 상세 정보 및 심층 분석 카드 UI 구현
+// 5. 상세 화면 렌더러 및 레이아웃 출력
 // ==========================================
-let memoTimeout = null;
-
 function renderDetail() {
   if (!els.detailPanel) return;
   const item = items.find((candidate) => candidate.id === selectedId);
@@ -562,6 +573,9 @@ function renderDetail() {
   const targetBlock = node.querySelector(".detail-blocks") || node.querySelector(".detail-info-grid");
   if (targetBlock && targetBlock.parentNode) {
     targetBlock.parentNode.insertBefore(charContainer, targetBlock);
+  } else {
+    const firstChild = node.firstElementChild;
+    if (firstChild) firstChild.appendChild(charContainer);
   }
 
   const memoInput = node.querySelector(".memo-input");
@@ -653,7 +667,6 @@ async function handleAiAutoGen() {
       updateQuotaDisplay(data.rateLimit.remaining, data.rateLimit.reset);
     }
 
-    // 완전 복구된 upsertItem 호출로 데이터 유실 차단
     const newDashboardItem = await upsertItem(data.payload);
     
     els.autoGenTitle.value = "";
@@ -717,7 +730,7 @@ async function runAiAnalysis(item) {
 }
 
 // ==========================================
-// 8. 서브 뷰 컴포넌트 렌더러 유틸
+// 8. 서브 컴포넌트 유틸 렌더러
 // ==========================================
 function renderListInto(list, values) {
   if (!list) return;
@@ -777,11 +790,6 @@ function escapeHtml(value) {
   return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
 
-function updateBackupText() {
-  if (!els.backupText) return;
-  els.backupText.value = JSON.stringify({ app: "kdrama-ip-dashboard", version: 2, exportedAt: new Date().toISOString(), items }, null, 2);
-}
-
 function switchView(viewName = "dashboard") {
   const safeViewName = viewName || "dashboard";
   const targetView = document.querySelector(`#${safeViewName}View`);
@@ -792,7 +800,7 @@ function switchView(viewName = "dashboard") {
 }
 
 // ==========================================
-// 9. 글로벌 이벤트 리스너 바인딩
+// 9. 글로벌 리스너 바인딩
 // ==========================================
 els.navButtons.forEach((button) => {
   button.addEventListener("click", () => switchView(button.dataset.view));
@@ -862,7 +870,7 @@ if (els.autoGenBtn) {
 }
 
 // ==========================================
-// 10. 엔트리 포인트 초기화
+// 10. 엔트리 초기화 구동
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   initSupabase();
