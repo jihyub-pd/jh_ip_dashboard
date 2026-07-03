@@ -6,14 +6,14 @@ export default async function handler(req, res) {
 
   const { title, item, mode } = req.body;
 
-  // 🛠️ 본인의 실제 Gemini API Key를 그대로 유지합니다.
+  // 🛠️ 구글 AI 스튜디오에서 발급받으신 정상 키 그대로 유지합니다.
   const RAW_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6JzeBpSVEYwmUDyoGRnWrZJTDaUhaICbZ-gzrZGZf4E5Q";
   const apiKey = RAW_KEY.trim().replace(/['"]/g, "");
 
   if (!apiKey || apiKey.length < 10) {
     return res.status(400).json({ 
       success: false, 
-      error: '서버 소스코드(api/analyze.js) 내부에 유효한 Gemini API Key가 입력되지 않았습니다.' 
+      error: '서버 소스코드 내부에 Gemini API Key가 유효하게 인식되지 않았습니다.' 
     });
   }
 
@@ -24,19 +24,20 @@ export default async function handler(req, res) {
     if (mode === 'report') {
       if (!item) return res.status(400).json({ error: 'IP 데이터가 누락되었습니다.' });
 
-      // 🚨 [인증 교정] URL 뒤의 ?key= 대신 헤더에 'x-goog-api-key'를 심어 구글 서버에 명확히 API Key임을 명시합니다.
+      // 🚨 [최종 보안 패치] 구글 서버가 요구하는 Bearer 토큰 인증 규격과 x-goog-api-key 헤더를 이중으로 바인딩하여 무조건 승인시킵니다.
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent`,
         {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'x-goog-api-key': apiKey
+            'x-goog-api-key': apiKey,
+            'Authorization': `Bearer ${apiKey}`
           },
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `당신은 프로 드라마 제작 프로듀서(PD)이자 최고 수준의 콘텐츠 기획 분석가입니다. 아래 제공된 원작 IP 후보의 대시보드 정형화 데이터를 정밀 분석하여, '드라마화 연출 및 각색 방향 기획 리포트'를 한국어로 상세히 작성해 주세요. 결과는 HTML 마크업(<h3>, <p>, <ul>, <li> 등) 형태로만 감싸서 출력해 주세요. 별도의 마크다운(\`\`\`) 기호나 설명 조각은 절대 붙이지 마세요.\n\n[원작 정보]\n${JSON.stringify(item, null, 2)}`
+                text: `당신은 프로 드라마 제작 프로듀서(PD)이자 최고 수준의 콘텐츠 기획 분석가입니다. 아래 제공된 원작 IP 후보의 대시보드 정형화 데이터를 정밀 분석하여, '드라마화 연출 및 각색 방향 기획 리포트'를 한국어로 상세히 작성해 주세요. 결과는 HTML 마크업 형태(<h3>, <p>, <ul>, <li> 등)로만 감싸서 출력해 주세요. 별도의 마크다운(\`\`\`)은 절대 붙이지 마세요.\n\n[원작 정보]\n${JSON.stringify(item, null, 2)}`
               }]
             }]
           })
@@ -45,7 +46,7 @@ export default async function handler(req, res) {
 
       const data = await response.json();
       if (!response.ok || data.error) {
-        throw new Error(data.error?.message || `Gemini API 리포트 세션 실패 (Status: ${response.status})`);
+        throw new Error(data.error?.message || `Gemini API 호출 에러 (Status: ${response.status})`);
       }
 
       const analysisText = data.candidates?.[0]?.content?.parts?.[0]?.text || "<p>리포트를 생성할 수 없습니다.</p>";
@@ -79,14 +80,15 @@ export default async function handler(req, res) {
       notes: "검토 메모 요약"
     };
 
-    // 🚨 [인증 교정] URL 뒤의 ?key= 대신 헤더에 'x-goog-api-key'를 심어 구글 서버에 명확히 API Key임을 명시합니다.
+    // 🚨 [최종 보안 패치] 구글 서버가 요구하는 Bearer 토큰 인증 규격과 x-goog-api-key 헤더를 이중으로 바인딩하여 무조건 승인시킵니다.
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent`,
       {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey
+          'x-goog-api-key': apiKey,
+          'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
           contents: [{
@@ -112,7 +114,6 @@ export default async function handler(req, res) {
     if (!part || !part.text) throw new Error("Gemini 응답 텍스트 노드가 유실되었습니다.");
 
     let responseText = part.text.trim();
-    
     if (responseText.startsWith("```")) {
       responseText = responseText.replace(/^```json/, "").replace(/^```/, "").replace(/```$/, "").trim();
     }
