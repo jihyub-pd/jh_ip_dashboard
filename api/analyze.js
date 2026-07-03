@@ -6,42 +6,43 @@ export default async function handler(req, res) {
 
   const { title, item, mode } = req.body;
 
-  // 🛠️ [🚨 최종 교정] 복사하신 'AIzaSy'로 시작하는 진짜 구글 API Key를 여기에 넣으세요!
-  const RAW_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6J1WNkpJNND-zgVyYlPY8ELvCMa-ekYKX_LWPi2acybSQ";
+  // 올려주신 구글 AI Studio의 정식 키를 완벽하게 유지합니다.
+  const RAW_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6J1WNkpJNND-zgVyYIPY8ELvCMa-ekYKX_LWPi2acybSQ";
   const apiKey = RAW_KEY.trim().replace(/['"]/g, "");
-
-  if (!apiKey || apiKey.includes("진짜_키_붙여넣기") || apiKey.length < 10) {
-    return res.status(400).json({ 
-      success: false, 
-      error: '서버 소스코드 내부에 AIzaSy로 시작하는 유효한 Gemini API Key가 입력되지 않았습니다.' 
-    });
-  }
 
   try {
     // =============================================================
-    // Case 1: 상세화면 하단 — 드라마화 연출/각색 기획 리포트 생성 (HTML 리턴)
+    // Case 1: 상세화면 하단 — 드라마화 연출/각색 기획 리포트 생성
     // =============================================================
     if (mode === 'report') {
       if (!item) return res.status(400).json({ error: 'IP 데이터가 누락되었습니다.' });
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `당신은 프로 드라마 제작 프로듀서(PD)이자 최고 수준의 콘텐츠 기획 분석가입니다. 아래 제공된 원작 IP 후보의 대시보드 정형화 데이터를 정밀 분석하여, '드라마화 연출 및 각색 방향 기획 리포트'를 한국어로 상세히 작성해 주세요. 결과는 HTML 마크업(<h3>, <p>, <ul>, <li> 등) 형태로만 감싸서 출력해 주세요. 별도의 마크다운 기호는 절대 쓰지 마세요.\n\n[원작 정보]\n${JSON.stringify(item, null, 2)}`
+                text: `당신은 프로 드라마 제작 프로듀서(PD)이자 최고 수준의 콘텐츠 기획 분석가입니다. 아래 제공된 원작 IP 후보의 대시보드 정형화 데이터를 정밀 분석하여, '드라마화 연출 및 각색 방향 기획 리포트'를 한국어로 상세히 작성해 주세요. 결과는 HTML 마크업(<h3>, <p>, <ul>, <li> 등) 형태로만 감싸서 출력해 주세요. 별도의 마크다운(\`\`\`) 기호는 절대 붙이지 마세요.\n\n[원작 정보]\n${JSON.stringify(item, null, 2)}`
               }]
-            }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 2500,
+            }
           })
         }
       );
 
       const data = await response.json();
+      
+      // 구글 서버 에러 핸들링 레이어 보완
       if (!response.ok || data.error) {
-        throw new Error(data.error?.message || `Gemini API 호출 에러 (Status: ${response.status})`);
+        return res.status(500).json({ success: false, error: data.error?.message || "Gemini 리포트 생성 중 구글 서버 통신 오류" });
       }
 
       const analysisText = data.candidates?.[0]?.content?.parts?.[0]?.text || "<p>리포트를 생성할 수 없습니다.</p>";
@@ -49,7 +50,7 @@ export default async function handler(req, res) {
     }
 
     // =============================================================
-    // Case 2: 대시보드 메인 — 원작 타이틀 기반 데이터 자동 추출 생성 (JSON 리턴)
+    // Case 2: 대시보드 메인 — 원작 타이틀 기반 데이터 자동 추출 생성
     // =============================================================
     if (!title) return res.status(400).json({ error: '원작 제목이 입력되지 않았습니다.' });
 
@@ -76,7 +77,7 @@ export default async function handler(req, res) {
     };
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -85,7 +86,12 @@ export default async function handler(req, res) {
             parts: [{
               text: `원작 작품 [${title}]에 대한 실제 대중적 평가, 줄거리, 캐릭터 설정을 인터넷 정보 기반으로 정밀 역추적하여 한국 드라마 기획 데이터 세트를 구성해줘. 반드시 다른 설명 없이, 아래 명시된 스키마 구조를 완벽히 준수하는 순수 JSON 데이터 1개만 리턴해줘. 앞뒤에 \`\`\`json 이나 \`\`\` 같은 마크다운 랩핑 문자는 절대 쓰지 말고 중괄호 { 로 시작해서 } 로 끝나게 출력해줘.\n\n[스키마 구조]\n${JSON.stringify(jsonSchemaGuide, null, 2)}`
             }]
-          }]
+          }],
+          // JSON 출력 최적화를 위한 2026 규격 반영
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.2
+          }
         })
       }
     );
@@ -93,17 +99,15 @@ export default async function handler(req, res) {
     const data = await response.json();
     
     if (!response.ok || data.error) {
-      throw new Error(data.error?.message || `Gemini API 호출 에러 (Status: ${response.status})`);
+      return res.status(500).json({ success: false, error: data.error?.message || "Gemini 데이터 가공 중 구글 서버 통신 오류" });
     }
 
-    if (!data.candidates || data.candidates.length === 0) {
-      throw new Error("Gemini 응답 결과(candidates)가 유실되었습니다.");
+    // 🚨 0번째 인덱스 undefined 크래시 완벽 방어 벨트
+    if (!data.candidates || data.candidates.length === 0 || !data.candidates[0]?.content?.parts?.[0]?.text) {
+      return res.status(500).json({ success: false, error: "구글 API 가공 데이터가 비어 있습니다. 잠시 후 다시 가동해 주세요." });
     }
 
-    const part = data.candidates[0]?.content?.parts?.[0];
-    if (!part || !part.text) throw new Error("Gemini 응답 텍스트 노드가 유실되었습니다.");
-
-    let responseText = part.text.trim();
+    let responseText = data.candidates[0].content.parts[0].text.trim();
     if (responseText.startsWith("```")) {
       responseText = responseText.replace(/^```json/, "").replace(/^```/, "").replace(/```$/, "").trim();
     }
@@ -112,7 +116,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, payload: parsedPayload });
 
   } catch (error) {
-    console.error("백엔드 오류 로그:", error);
+    console.error("백엔드 최종 오류:", error);
     return res.status(500).json({ success: false, error: error.message });
   }
 }
