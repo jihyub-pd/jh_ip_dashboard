@@ -8,13 +8,23 @@ export default async function handler(req, res) {
 
   const { title, item, mode } = req.body;
 
-  // 🛠️ 확인해주신 구글 AI Studio의 정식 키를 그대로 셋팅합니다.
+  // 🛠️ 구글 AI Studio의 정식 키를 그대로 유지합니다.
   const RAW_KEY = process.env.GEMINI_API_KEY || "AQ.Ab8RN6J1WNkpJNND-zgVyYIPY8ELvCMa-ekYKX_LWPi2acybSQ";
   const apiKey = RAW_KEY.trim().replace(/['"]/g, "");
 
   try {
-    // 🚨 [핵심 변경점] 구글 공식 SDK를 통해 주소 파싱 오류 및 OAuth 2 오인 락을 원천 우회합니다.
-    const ai = new GoogleGenAI({ apiKey });
+    // 🚨 [🚨 문법 오정정] 네임스페이스나 export 구조에 구애받지 않도록 인스턴스를 확실하게 생성합니다.
+    let ai;
+    if (typeof GoogleGenAI === 'function') {
+      ai = new GoogleGenAI({ apiKey });
+    } else if (GoogleGenAI && typeof GoogleGenAI.GoogleGenAI === 'function') {
+      ai = new GoogleGenAI.GoogleGenAI({ apiKey });
+    } else {
+      // 위 방식이 모두 안 맞을 때를 대비한 최신 팩토리 메서드 우회형
+      const { GoogleGenAI: GAILib } = require('@google/generative-ai');
+      ai = new GAILib({ apiKey });
+    }
+
     const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // =============================================================
@@ -60,7 +70,6 @@ export default async function handler(req, res) {
 
     const promptJson = `원작 작품 [${title}]에 대한 실제 대중적 평가, 줄거리, 캐릭터 설정을 인터넷 정보 기반으로 정밀 역추적하여 한국 드라마 기획 데이터 세트를 구성해줘. 반드시 다른 설명 없이, 아래 명시된 스키마 구조를 완벽히 준수하는 순수 JSON 데이터 1개만 리턴해줘. 앞뒤에 \`\`\`json 이나 \`\`\` 같은 마크다운 랩핑 문자는 절대 쓰지 말고 중괄호 { 로 시작해서 } 로 끝나게 출력해줘.\n\n[스키마 구조]\n${JSON.stringify(jsonSchemaGuide, null, 2)}`;
 
-    // SDK 공식 옵션을 활용한 안정적인 JSON 출력 설정
     const resultJson = await model.generateContent({
       contents: [{ parts: [{ text: promptJson }] }],
       generationConfig: { responseMimeType: "application/json" }
@@ -75,7 +84,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, payload: parsedPayload });
 
   } catch (error) {
-    console.error("SDK 백엔드 연동 최종 에러:", error);
+    console.error("SDK 백엔드 내부 예외 처리오류:", error);
     return res.status(500).json({ success: false, error: error.message });
   }
 }
