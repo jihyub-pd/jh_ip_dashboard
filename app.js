@@ -153,6 +153,9 @@ const els = {
   totalCount: document.querySelector("#totalCount"),
   recommendedCount: document.querySelector("#recommendedCount"),
   averageScore: document.querySelector("#averageScore"),
+  researchCount: document.querySelector("#researchCount"),
+  heldCount: document.querySelector("#heldCount"),
+  statusTabs: document.querySelector("#statusTabs"),
   searchInput: document.querySelector("#searchInput"),
   typeFilter: document.querySelector("#typeFilter"),
   sortSelect: document.querySelector("#sortSelect"),
@@ -197,6 +200,7 @@ let items = [];
 let selectedId = null;
 let selectMode = false;
 let selectedIds = new Set();
+let statusFilter = "all";
 
 if (els.schemaPreview) {
   els.schemaPreview.textContent = JSON.stringify(requiredShape, null, 2);
@@ -341,6 +345,32 @@ function averageScore(item) {
   const values = totalScoreKeys.map((key) => clampScore(item.scores?.[key]));
   const sum = values.reduce((acc, val) => acc + val, 0);
   return Math.round((sum / values.length) * 10) / 10;
+}
+
+// 추천 상태 분류 — 탭 필터·배지에 공통 사용
+const STATUS_TABS = [
+  { key: "all", label: "전체" },
+  { key: "recommend", label: "추천" },
+  { key: "research", label: "리서치 필요" },
+  { key: "hold", label: "보류" },
+];
+
+function statusKey(item) {
+  const rec = String(item.recommendation || "");
+  if (rec.includes("보류")) return "hold";
+  if (rec.includes("리서치")) return "research";
+  if (rec.includes("추천")) return "recommend";
+  return "research";
+}
+
+function statusBadgeHtml(item) {
+  return `<span class="status-badge status-${statusKey(item)}">${escapeHtml(item.recommendation || "리서치 필요")}</span>`;
+}
+
+function scoreTone(value) {
+  if (value >= 7.5) return "high";
+  if (value >= 6.5) return "mid";
+  return "low";
 }
 
 function normalizeScoreRationales(raw) {
@@ -539,7 +569,8 @@ function filteredItems() {
     const haystack = [item.title, item.originalType, item.recommendation, ...item.genre].join(" ").toLowerCase();
     const matchesQuery = !query || haystack.includes(query);
     const matchesType = type === "all" || item.originalType === type;
-    return matchesQuery && matchesType;
+    const matchesStatus = statusFilter === "all" || statusKey(item) === statusFilter;
+    return matchesQuery && matchesType && matchesStatus;
   });
 }
 
@@ -557,6 +588,7 @@ function updateBackupText() {
 function render() {
   renderMetrics();
   renderFilters();
+  renderStatusTabs();
   renderList();
   updatePrompt();       
   updateBackupText();   
@@ -564,9 +596,31 @@ function render() {
 
 function renderMetrics() {
   if (els.totalCount) els.totalCount.textContent = items.length;
-  if (els.recommendedCount) els.recommendedCount.textContent = items.filter((item) => item.recommendation.includes("추천")).length;
+  if (els.recommendedCount) els.recommendedCount.textContent = items.filter((item) => statusKey(item) === "recommend").length;
+  if (els.researchCount) els.researchCount.textContent = items.filter((item) => statusKey(item) === "research").length;
+  if (els.heldCount) els.heldCount.textContent = items.filter((item) => statusKey(item) === "hold").length;
   const rawAvg = items.length ? items.reduce((sum, item) => sum + averageScore(item), 0) / items.length : 0;
   if (els.averageScore) els.averageScore.textContent = rawAvg.toFixed(1);
+}
+
+function renderStatusTabs() {
+  if (!els.statusTabs) return;
+  els.statusTabs.innerHTML = "";
+  STATUS_TABS.forEach((tab) => {
+    const count = tab.key === "all" ? items.length : items.filter((item) => statusKey(item) === tab.key).length;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("aria-selected", statusFilter === tab.key ? "true" : "false");
+    btn.className = `status-tab ${statusFilter === tab.key ? "active" : ""}`;
+    btn.innerHTML = `${tab.label} <span>${count}</span>`;
+    btn.addEventListener("click", () => {
+      statusFilter = tab.key;
+      renderStatusTabs();
+      renderList();
+    });
+    els.statusTabs.append(btn);
+  });
 }
 
 function renderFilters() {
@@ -589,23 +643,49 @@ function renderList() {
   els.ipList.innerHTML = "";
   if (els.emptyState) els.emptyState.style.display = items.length ? "none" : "grid";
 
-  visible.forEach((item) => {
+  if (visible.length) {
+    const head = document.createElement("div");
+    head.className = "ip-row ip-row-head";
+    head.setAttribute("aria-hidden", "true");
+    head.innerHTML = `
+      <span>#</span>
+      <span>작품</span>
+      <span>상태</span>
+      <span>총점</span>
+      <span class="mini-bars-head"><span>드라마</span><span>흥행</span><span>차별</span><span>확장</span><span>캐릭터</span></span>
+      <span>참고 (제작 · 글로벌)</span>
+    `;
+    els.ipList.append(head);
+  } else if (items.length) {
+    const none = document.createElement("div");
+    none.className = "ip-row-empty";
+    none.textContent = "조건에 맞는 IP가 없습니다.";
+    els.ipList.append(none);
+  }
+
+  visible.forEach((item, index) => {
     const isSelected = selectedIds.has(item.id);
     const button = document.createElement("button");
-    button.className = `ip-card ${!selectMode && item.id === selectedId ? "active" : ""} ${selectMode && isSelected ? "selected" : ""}`;
+    const total = averageScore(item);
+    const status = statusKey(item);
+    button.className = `ip-row ${status === "hold" ? "is-held" : ""} ${!selectMode && item.id === selectedId ? "active" : ""} ${selectMode && isSelected ? "selected" : ""}`;
     button.type = "button";
+    const meta = [item.originalType, ...item.genre.slice(0, 2)].filter(Boolean).join(" · ");
+    const bars = totalScoreKeys.map((key) => {
+      const v = clampScore(item.scores?.[key]);
+      return `<span class="mini-bar" title="${escapeHtml(scoreLabels[key])} ${v.toFixed(1)}"><span class="mini-track"><span class="mini-fill tone-${scoreTone(v)}" style="width:${v * 10}%"></span></span><span class="mini-val">${v.toFixed(1)}</span></span>`;
+    }).join("");
+    const ref = `${clampScore(item.scores?.productionFeasibility).toFixed(1)} · ${clampScore(item.scores?.globalPotential).toFixed(1)}`;
     button.innerHTML = `
-      <div class="ip-card-top">
-        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
-          ${selectMode ? `<input type="checkbox" class="ip-checkbox" ${isSelected ? "checked" : ""} onclick="event.stopPropagation()" style="width:16px;height:16px;flex-shrink:0;cursor:pointer;accent-color:var(--accent-1)">` : ""}
-          <div style="flex:1;min-width:0">
-            <h3>${escapeHtml(item.title)}</h3>
-            <p>${escapeHtml(item.logline || "로그라인 없음")}</p>
-          </div>
-        </div>
-        <span class="mini-score">${averageScore(item).toFixed(1)}</span>
-      </div>
-      <div class="tag-row">${[item.originalType, item.recommendation, ...item.genre.slice(0, 3)].map(tagHtml).join("")}</div>
+      <span class="row-rank">${selectMode ? `<input type="checkbox" class="ip-checkbox" ${isSelected ? "checked" : ""} onclick="event.stopPropagation()" aria-label="${escapeHtml(item.title)} 선택">` : index + 1}</span>
+      <span class="row-title">
+        <strong>${escapeHtml(item.title)}</strong>
+        <small>${escapeHtml(meta)}</small>
+      </span>
+      <span>${statusBadgeHtml(item)}</span>
+      <span class="row-total tone-${status === "hold" ? "held" : scoreTone(total)}">${total.toFixed(1)}</span>
+      <span class="mini-bars">${bars}</span>
+      <span class="row-ref">${ref}</span>
     `;
 
     button.addEventListener("click", () => {
@@ -643,14 +723,25 @@ function renderDetail() {
   }
 
   const node = els.detailTemplate.content.cloneNode(true);
-  node.querySelector(".detail-type").textContent = `${item.originalType} · ${item.recommendation} · 제작 난이도 ${item.productionDifficulty}`;
+  node.querySelector(".detail-type").innerHTML = `${statusBadgeHtml(item)}<span>${escapeHtml(`${item.originalType} · 제작 난이도 ${item.productionDifficulty}`)}</span>`;
   node.querySelector(".detail-title").textContent = item.title;
   node.querySelector(".detail-logline").textContent = item.logline;
   node.querySelector(".score-value").textContent = averageScore(item).toFixed(1);
   node.querySelector(".detail-tags").innerHTML = [...item.genre].map(tagHtml).join("");
-  node.querySelector(".score-bars").innerHTML = Object.entries(scoreLabels)
-    .map(([key, label]) => scoreRow(TOTAL_EXCLUDED_KEYS.includes(key) ? `${label} (참고·총점 제외)` : label, clampScore(item.scores[key]), scoreRationaleText(item, key), key === "characterAppeal" ? characterBreakdownHtml(item.characterAnalysis) : ""))
+  const rank = [...items].sort((a, b) => averageScore(b) - averageScore(a)).findIndex((candidate) => candidate.id === item.id) + 1;
+  const rankEl = node.querySelector(".score-rank");
+  if (rankEl) rankEl.textContent = `전체 ${items.length}개 중 ${rank}위`;
+  node.querySelector(".score-bars").innerHTML = totalScoreKeys
+    .map((key) => coreScoreRow(scoreLabels[key], clampScore(item.scores[key]), scoreRationaleText(item, key), key === "characterAppeal" ? characterBreakdownHtml(item.characterAnalysis) : ""))
     .join("");
+  const refBox = node.querySelector(".ref-scores");
+  if (refBox) {
+    refBox.innerHTML = TOTAL_EXCLUDED_KEYS.map((key) => `
+      <div class="ref-item">
+        <div class="ref-line"><span>${escapeHtml(scoreLabels[key])}</span><strong>${clampScore(item.scores[key]).toFixed(1)}</strong></div>
+        <p>${escapeHtml(scoreRationaleText(item, key))}</p>
+      </div>`).join("") + `<div class="ref-item"><div class="ref-line"><span>제작 난이도</span><strong>${escapeHtml(item.productionDifficulty)}</strong></div></div>`;
+  }
 
   renderListInto(node.querySelector(".strengths"), item.strengths);
   renderListInto(node.querySelector(".risks"), item.risks);
@@ -837,6 +928,20 @@ function characterBreakdownHtml(analysis) {
       ${evidence}
       <p class="char-confidence">근거 확신도: ${escapeHtml(analysis.confidence)}</p>
     </div>`;
+}
+
+function coreScoreRow(label, value, rationale, extraHtml = "") {
+  return `
+    <details class="core-score">
+      <summary>
+        <span class="core-label">${escapeHtml(label)}</span>
+        <span class="bar-track"><span class="bar-fill tone-${scoreTone(value)}" style="width:${value * 10}%"></span></span>
+        <span class="core-value">${value.toFixed(1)}</span>
+      </summary>
+      <p class="score-reason">${escapeHtml(rationale)}</p>
+      ${extraHtml}
+    </details>
+  `;
 }
 
 function scoreRow(label, value, rationale, extraHtml = "") {
