@@ -356,7 +356,6 @@ function averageScore(item) {
 // 추천 상태 분류 — 탭 필터·배지에 공통 사용
 const STATUS_TABS = [
   { key: "all", label: "전체" },
-  { key: "recommend", label: "추천" },
   { key: "research", label: "리서치 필요" },
   { key: "hold", label: "보류" },
 ];
@@ -644,6 +643,8 @@ function renderMetrics() {
   if (els.recommendedCount) els.recommendedCount.textContent = items.filter((item) => statusKey(item) === "recommend").length;
   if (els.researchCount) els.researchCount.textContent = items.filter((item) => statusKey(item) === "research").length;
   if (els.heldCount) els.heldCount.textContent = items.filter((item) => statusKey(item) === "hold").length;
+  const favoriteKpi = document.querySelector("#favoriteCount");
+  if (favoriteKpi) favoriteKpi.textContent = items.filter((item) => item.starred).length;
   const rawAvg = items.length ? items.reduce((sum, item) => sum + averageScore(item), 0) / items.length : 0;
   if (els.averageScore) els.averageScore.textContent = rawAvg.toFixed(1);
 }
@@ -876,20 +877,37 @@ function renderDetail() {
   renderThreePoints(node.querySelector(".casting"), item.castingDirection);
   renderListInto(node.querySelector(".comparables-list"), item.comparables);
 
-  // 캐릭터 심층 분석 노드 생성
-  const charactersHtml = (item.mainCharacters || []).map(char => {
-    return '<div class="char-sub-card">' +
-      '<h4>' + escapeHtml(char.name) + ' <small>(' + escapeHtml(char.role) + ')</small></h4>' +
-      '<p><strong>특징/대사/행동/평가:</strong> ' + escapeHtml(char.traits) + '</p>' +
-      '<p><strong style="color:var(--accent-3);">입덕 포인트:</strong> ' + escapeHtml(char.appealPoints) + '</p>' +
-      '<p><strong style="color:var(--accent-2);">개선/각색점:</strong> ' + escapeHtml(char.improvements) + '</p>' +
-      '</div>';
-  }).join("");
-
-  const charContainer = document.createElement("div");
+  // 주요 인물 — 이름 탭으로 한 명씩 보기
+  const chars = (item.mainCharacters || []).filter((char) => char && char.name);
+  const charContainer = document.createElement("section");
   charContainer.className = "character-deep-dive";
-  charContainer.innerHTML = '<h3 class="char-dive-title">주인공 심층 연출 분석</h3>' +
-    '<div class="char-grid">' + charactersHtml + '</div>';
+  const tabsHtml = chars.map((char, i) => `<button type="button" role="tab" class="char-tab ${i === 0 ? "active" : ""}" aria-selected="${i === 0 ? "true" : "false"}" data-char-index="${i}">${escapeHtml(char.name)}</button>`).join("");
+  const panelsHtml = chars.map((char, i) => `
+    <div class="char-panel" role="tabpanel" data-char-panel="${i}" ${i === 0 ? "" : "hidden"}>
+      <p class="char-role">${escapeHtml(char.role)}</p>
+      <div class="char-fields">
+        <div><h4>특징 · 대사 · 평가</h4><p>${escapeHtml(char.traits)}</p></div>
+        <div><h4 class="char-appeal">입덕 포인트</h4><p>${escapeHtml(char.appealPoints)}</p></div>
+        <div><h4 class="char-improve">각색 보완점</h4><p>${escapeHtml(char.improvements)}</p></div>
+      </div>
+    </div>`).join("");
+  charContainer.innerHTML = `
+    <div class="char-head">
+      <h3 class="char-dive-title">주요 인물</h3>
+      <div class="char-tabs" role="tablist" aria-label="인물 선택">${tabsHtml}</div>
+    </div>
+    ${chars.length ? panelsHtml : '<p class="notes-empty">등록된 인물 정보가 없습니다.</p>'}`;
+  charContainer.querySelectorAll(".char-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const idx = tab.dataset.charIndex;
+      charContainer.querySelectorAll(".char-tab").forEach((t) => {
+        const on = t.dataset.charIndex === idx;
+        t.classList.toggle("active", on);
+        t.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      charContainer.querySelectorAll(".char-panel").forEach((panel) => { panel.hidden = panel.dataset.charPanel !== idx; });
+    });
+  });
 
   // 🚨 [크래시 방어] targetBlock 요소를 찾지 못해도 오류 없이 유연하게 결합하도록 예외 처리 보완
   const targetBlock = node.querySelector(".detail-blocks") || node.querySelector(".detail-info-grid");

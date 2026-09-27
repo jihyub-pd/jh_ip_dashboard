@@ -265,19 +265,21 @@ button.ip-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 
 /* ==========================================
    관심 항목(별표) · 메모 영역
    ========================================== */
-.star-btn { display: inline-grid; place-items: center; width: 30px; height: 30px; flex-shrink: 0; padding: 0; border: 0; border-radius: 8px; background: transparent; color: #b9b3a5; cursor: pointer; }
-.star-btn:hover { background: #f4efe2; color: #b7791f; }
+.star-btn { -webkit-appearance: none; appearance: none; display: inline-grid; place-items: center; width: 22px; height: 22px; min-height: 0; flex-shrink: 0; padding: 0; border: 0 !important; border-radius: 6px; background: transparent !important; box-shadow: none; color: #c4bfb2; cursor: pointer; }
+.star-btn svg { width: 15px; height: 15px; }
+.star-btn:hover { color: #b7791f; }
 .star-btn.on { color: #d49a1f; }
 .star-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.row-title-line { display: flex; align-items: center; gap: 4px; min-width: 0; margin-left: -6px; }
+.row-title-line { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.row-title > small { padding-left: 32px; }
 .row-title-line strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 div.ip-row { cursor: pointer; }
 div.ip-row:hover { background: #faf8f3; }
 div.ip-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .ip-row.is-held .star-btn { opacity: 1; }
 .detail-title { display: flex; align-items: center; gap: 8px; }
-.detail-star { width: 40px; height: 40px; }
-.detail-star svg { width: 26px; height: 26px; }
+.detail-star { width: 32px; height: 32px; margin-left: 4px; }
+.detail-star svg { width: 22px; height: 22px; }
 .nav-count-star { background: #3b3218; color: #f3d38a; }
 .view-desc { margin: -8px 0 18px; font-size: 13px; color: var(--muted); }
 
@@ -309,3 +311,22 @@ div.ip-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2p
 @media (max-width: 980px) {
   .notes-panel { grid-template-columns: 1fr; }
 }
+.kpi-favorite { color: #b7791f; }
+
+/* 상세 — 제목 중복 제거 · 인물 탭 */
+#detailView .topbar .eyebrow, #detailView .topbar h2 { display: none; }
+#detailView .topbar { margin-bottom: 16px; }
+.char-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.char-dive-title { margin: 0 !important; padding: 0 !important; }
+.char-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.char-tab { height: 34px; padding: 0 14px; border: 1px solid #cfcbbf; border-radius: 8px; background: #ffffff; color: var(--ink); font-size: 13px; font-weight: 500; cursor: pointer; }
+.char-tab:hover { border-color: var(--accent); }
+.char-tab.active { background: var(--accent); border-color: var(--accent); color: #ffffff; }
+.char-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.char-role { margin: 0 0 12px !important; font-size: 13px; color: var(--muted) !important; }
+.char-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.char-fields h4 { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.char-fields h4.char-appeal { color: var(--green); }
+.char-fields h4.char-improve { color: var(--red); }
+.char-fields p { margin: 0 !important; font-size: 13px !important; line-height: 1.7 !important; color: #3e4742; }
+@media (max-width: 980px) { .char-fields { grid-template-columns: 1fr; } }

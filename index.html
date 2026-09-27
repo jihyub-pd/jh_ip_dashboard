@@ -6,8 +6,8 @@
     <title>드라마 IP 분석 대시보드</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css" />
-    <link rel="stylesheet" href="./redesign.css" />
+    <link rel="stylesheet" href="./styles.css?v=20260927d" />
+    <link rel="stylesheet" href="./redesign.css?v=20260927d" />
   </head>
   <body>
     <div class="app-shell">
@@ -56,7 +56,7 @@
 
           <div class="kpi-row">
             <div class="kpi"><span>등록 IP</span><strong id="totalCount">0</strong></div>
-            <div class="kpi"><span>추천</span><strong id="recommendedCount" class="kpi-recommend">0</strong></div>
+            <div class="kpi"><span>관심 항목</span><strong id="favoriteCount" class="kpi-favorite">0</strong></div>
             <div class="kpi"><span>리서치 필요</span><strong id="researchCount" class="kpi-research">0</strong></div>
             <div class="kpi"><span>보류 (판권 소진 등)</span><strong id="heldCount" class="kpi-hold">0</strong></div>
           </div>
@@ -317,6 +317,6 @@
     </template>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./app.js"></script>
+    <script src="./app.js?v=20260927d"></script>
   </body>
 </html>
