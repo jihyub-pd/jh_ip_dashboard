@@ -1,113 +1,83 @@
-IP
-드라마 IP 보드
-원작 분석 저장소
-대시보드 JSON 입력 분석 프롬프트 백업/복원
-총점 = 드라마 적합 · 흥행성 · 차별성 · 확장성 · 캐릭터 매력도 평균 제작성·글로벌은 참고 지표
-K-Drama Adaptation
-원작 IP 후보
-원작 제목으로 자동 분석 자동 분석
-등록 IP0
-추천0
-리서치 필요0
-보류 (판권 소진 등)0
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>드라마 IP 분석 대시보드</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./redesign.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">IP</span>
+          <div>
+            <h1>드라마 IP 보드</h1>
+            <p>원작 분석 저장소</p>
+          </div>
+        </div>
 
-검색
-                전체 유형
-              
-                총점순
-                최근 수정순
-                제목순
-               선택 모드
-
-아직 저장된 IP가 없습니다. 위 입력창에 원작 제목을 입력해 자동 분석을 시작해 보세요.
-← 목록으로
-상세 분석
--
-IP를 선택하면 상세 분석이 표시됩니다.
-Import
-분석 JSON 저장
-비우기
-JSON
-예시 넣기
-검사 저장
-
-필수 구조
-
-Prompt
-AI 분석 프롬프트
-복사
-원작 제목
-
-Backup
-데이터 백업/복원
-백업 파일 받기
-백업
-현재 데이터베이스에 저장된 전체 데이터를 JSON 파일로 내려받습니다.
-복원
-백업 JSON을 붙여넣거나 파일을 업로드하면 원격 DB에 즉시 대치 동기화됩니다.
-복원
-
+        <nav class="side-nav" aria-label="보기">
+          <button class="nav-btn active" data-view="dashboard">대시보드</button>
           <button class="nav-btn" data-view="import">JSON 입력</button>
           <button class="nav-btn" data-view="prompt">분석 프롬프트</button>
           <button class="nav-btn" data-view="backup">백업/복원</button>
         </nav>
+
+        <p class="side-note">총점 = 드라마 적합 · 흥행성 · 차별성 · 확장성 · 캐릭터 매력도 평균<br />제작성·글로벌은 참고 지표</p>
       </aside>
 
       <main class="main">
 
         <section id="dashboardView" class="view active-view">
-          
-          <section class="list-panel" style="margin-bottom: 24px; border: 2px solid var(--accent); background: var(--soft);">
-            <div class="panel-head" style="margin-bottom: 8px;">
-              <h3 style="color: var(--accent); font-weight: 800;">✨ AI 원작 대시보드 자동 생성</h3>
-              <span style="font-size: 12px; color: var(--muted);">원작 제목만 입력하면 Gemini가 데이터를 자동 분석하여 등록합니다.</span>
-            </div>
-            <div style="display: flex; gap: 10px; align-items: flex-end;">
-              <label class="title-input" style="flex: 1; gap: 4px;">
-                <span style="font-size: 11px; font-weight: bold; color: var(--accent);">원작 작품 제목</span>
-                <input id="autoGenTitle" type="text" placeholder="예: 회귀한 재벌집 기획자, 전지적 독자 시점" style="width: 100%; height: 42px;" />
-              </label>
-              <button id="autoGenBtn" class="primary-btn" style="height: 42px; min-width: 140px;">🚀 자동 생성하기</button>
-            </div>
-            <div id="autoGenStatus" style="display: none; margin-top: 12px; padding: 10px; background: #fff; border: 1px solid var(--line); font-size: 13px;">
-              <span class="status-text" style="font-weight: 700; color: var(--accent-3);">🤖 Gemini가 원작 데이터를 리서치하고 분석 리포트를 빌드 중입니다... (약 10~20초 소요)</span>
-            </div>
-          </section>
 
-          <header class="topbar">
+          <header class="topbar dash-top">
             <div>
               <p class="eyebrow">K-Drama Adaptation</p>
-              <h2>원작 IP 후보 비교</h2>
+              <h2>원작 IP 후보</h2>
             </div>
+            <div class="autogen">
+              <label for="autoGenTitle" class="sr-only">원작 제목으로 자동 분석</label>
+              <input id="autoGenTitle" type="text" placeholder="원작 제목 입력 후 자동 분석" />
+              <button id="autoGenBtn" class="primary-btn">자동 분석</button>
+            </div>
+          </header>
+          <div id="autoGenStatus" class="autogen-status" style="display: none;">Gemini가 원작을 리서치하고 분석 중입니다. 10~20초 정도 걸립니다.</div>
+
+          <div class="kpi-row">
+            <div class="kpi"><span>등록 IP</span><strong id="totalCount">0</strong></div>
+            <div class="kpi"><span>추천</span><strong id="recommendedCount" class="kpi-recommend">0</strong></div>
+            <div class="kpi"><span>리서치 필요</span><strong id="researchCount" class="kpi-research">0</strong></div>
+            <div class="kpi"><span>보류 (판권 소진 등)</span><strong id="heldCount" class="kpi-hold">0</strong></div>
+          </div>
+
+          <div class="filter-bar">
+            <div id="statusTabs" class="status-tabs" role="tablist" aria-label="추천 상태"></div>
             <div class="toolbar">
-              <label class="search-box">
-                <span>검색</span>
-                <input id="searchInput" type="search" placeholder="제목, 장르, 상태" />
-              </label>
+              <label class="sr-only" for="searchInput">검색</label>
+              <input id="searchInput" type="search" placeholder="제목, 장르 검색" />
               <select id="typeFilter" aria-label="원작 유형">
                 <option value="all">전체 유형</option>
               </select>
               <select id="sortSelect" aria-label="정렬">
-                <option value="score">종합 점수순</option>
+                <option value="score">총점순</option>
+                <option value="date">최근 수정순</option>
                 <option value="title">제목순</option>
-                <option value="date">최근 등록순</option>
               </select>
+              <button id="toggleSelectBtn" class="ghost-btn">선택 모드</button>
+              <button id="deleteSelectedBtn" class="danger-btn" style="display:none">선택 삭제 (0)</button>
+              <button id="addSampleBtn" class="ghost-btn" style="display:none">샘플 추가</button>
             </div>
-          </header>
+          </div>
 
-          <div class="list-panel">
-            <div class="panel-head">
-              <h3>IP 목록</h3>
-              <div style="display:flex;gap:8px;align-items:center">
-                <button id="toggleSelectBtn" class="ghost-btn">선택 모드</button>
-                <button id="deleteSelectedBtn" class="danger-btn" style="display:none">선택 삭제 (0)</button>
-                <button id="addSampleBtn" class="ghost-btn">샘플 추가</button>
-              </div>
-            </div>
-            <div id="ipList" class="ip-list"></div>
+          <div class="list-panel table-panel">
+            <div id="ipList" class="ip-list ip-table"></div>
             <div id="emptyState" class="empty-state">
               <strong>아직 저장된 IP가 없습니다.</strong>
-              <span>위 입력창에 원작 제목을 입력해 AI 대시보드를 자동으로 생성해 보세요!</span>
+              <span>위 입력창에 원작 제목을 입력해 자동 분석을 시작해 보세요.</span>
             </div>
           </div>
         </section>
@@ -122,18 +92,18 @@ Backup
               </div>
             </div>
           </header>
-          
+
           <section class="detail-panel" id="detailPanel">
             <div class="detail-empty">IP를 선택하면 상세 분석이 표시됩니다.</div>
           </section>
 
           <section id="ai-analysis-section" class="analysis-container" style="margin-top: 24px; display: none;">
             <div class="analysis-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 16px;">
-              <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--accent);">✨ Gemini AI 드라마화 기획 리포트</h3>
-              <button id="reanalyze-btn" class="ghost-btn">🔄 다시 분석하기</button>
+              <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--accent);">Gemini AI 드라마화 기획 리포트</h3>
+              <button id="reanalyze-btn" class="ghost-btn">다시 분석하기</button>
             </div>
             <div id="analysis-loading" class="loading-spinner" style="display: none; text-align: center; padding: 20px 0;">
-              <p style="color: var(--muted); font-style: italic;">Gemini가 원작 데이터를 기반으로 드라마화 연출 포인트 및 빌드업 방향을 분석 중입니다...</p>
+              <p style="color: var(--muted); font-style: italic;">Gemini가 분석 중입니다...</p>
             </div>
             <div id="analysis-result" class="analysis-content" style="line-height: 1.6;">
               <p class="placeholder-text" style="color: var(--muted); font-style: italic;">원작 데이터 분석 중...</p>
@@ -224,28 +194,45 @@ Backup
 
     <template id="detailTemplate">
       <article class="detail-card">
-        <div class="detail-header">
-          <div>
-            <p class="eyebrow detail-type"></p>
+        <div class="detail-hero">
+          <div class="detail-hero-text">
+            <p class="detail-type"></p>
             <h2 class="detail-title"></h2>
             <p class="detail-logline"></p>
+            <div class="tag-row detail-tags"></div>
           </div>
-          <div class="score-ring">
+          <div class="score-box">
+            <small>총점 (5개 항목)</small>
             <span class="score-value"></span>
-            <small>종합</small>
+            <small class="score-rank"></small>
           </div>
         </div>
 
-        <div class="tag-row detail-tags"></div>
-
-        <div class="score-bars"></div>
+        <div class="score-grid">
+          <section class="core-panel">
+            <div class="section-head">
+              <h3>핵심 점수</h3>
+              <span>항목을 누르면 근거가 펼쳐집니다</span>
+            </div>
+            <div class="score-bars"></div>
+          </section>
+          <section class="ref-panel">
+            <h3>참고 지표</h3>
+            <p class="ref-sub">총점에 들어가지 않음</p>
+            <div class="ref-scores"></div>
+            <div class="ref-comparables">
+              <p class="ref-sub">유사 성공작</p>
+              <ul class="comparables-list"></ul>
+            </div>
+          </section>
+        </div>
 
         <div class="analysis-columns">
-          <section>
-            <h3>드라마화 강점</h3>
+          <section class="strength-box">
+            <h3>강점</h3>
             <ul class="strengths"></ul>
           </section>
-          <section>
+          <section class="risk-box">
             <h3>리스크</h3>
             <ul class="risks"></ul>
           </section>
@@ -263,10 +250,6 @@ Backup
           <div>
             <h3>캐스팅 방향</h3>
             <p class="casting"></p>
-          </div>
-          <div>
-            <h3>유사 성공작</h3>
-            <ul class="comparables-list"></ul>
           </div>
         </div>
 
