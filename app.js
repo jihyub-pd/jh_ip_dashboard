@@ -356,6 +356,7 @@ function averageScore(item) {
 // 추천 상태 분류 — 탭 필터·배지에 공통 사용
 const STATUS_TABS = [
   { key: "all", label: "전체" },
+  { key: "recommend", label: "검토 후보" },
   { key: "research", label: "리서치 필요" },
   { key: "hold", label: "보류" },
 ];
