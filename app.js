@@ -75,6 +75,13 @@ const requiredShape = {
     globalPotential: "글로벌 점수를 이렇게 준 이유",
     characterAppeal: "캐릭터 매력도 점수를 이렇게 준 이유",
   },
+  characterAnalysis: {
+    kr: { personality: 0.0, conflict: 0.0, occupation: 0.0 },
+    na: { personality: 0.0, conflict: 0.0, occupation: 0.0 },
+    reason: "가장 큰 매력 요소 / 가장 큰 약점 / 북미 각색 시 보완점",
+    evidence: ["근거가 된 반응 또는 출처"],
+    confidence: "높음 | 중간 | 낮음"
+  },
   notes: "선택 메모",
 };
 
@@ -346,7 +353,46 @@ function scoreRationaleText(item, key) {
   return "평가 근거가 입력되었습니다.";
 }
 
+// 캐릭터 매력도: 성격 40% · 갈등 35% · 직업 25%, 한국 60% + 북미 40%
+const CHAR_WEIGHTS = { personality: 0.4, conflict: 0.35, occupation: 0.25 };
+const CHAR_PART_LABELS = { personality: "성격", conflict: "갈등", occupation: "직업" };
+const CHAR_REGION_WEIGHTS = { kr: 0.6, na: 0.4 };
+const CHARACTER_RUBRIC_TEXT = `[캐릭터 매력도 기준] 주연급 인물이 한국(KR)·북미(NA) 대중에게 매력적인 성격·갈등·직업을 가졌는지 KR/NA 각각 personality·conflict·occupation을 10점 만점으로 채점. 성격=욕망 선명·결핍·주체성(수동적/고구마 감점, NA는 강압적 로맨스·권력차 미화 감점), 갈등=보편적 판돈(한국 특유 맥락은 NA만 감점), 직업=매회 사건을 공급하는 엔진인가. 9=캐릭터만으로 기획안이 팔림, 7=세 요소 중 둘이 강함, 5=기능적·무난, 3=대폭 재설계 필요. NA 근거(영문판 반응 등)가 없으면 confidence "낮음", NA 점수 7.0 이하.`;
+
+function normalizeCharacterAnalysis(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const lowConfidence = String(raw.confidence || "").includes("낮");
+  const region = (r, cap) => {
+    if (!r || typeof r !== "object") return null;
+    const out = {};
+    let total = 0;
+    for (const [key, weight] of Object.entries(CHAR_WEIGHTS)) {
+      if (r[key] === undefined || Number.isNaN(Number(r[key]))) return null;
+      let v = clampScore(r[key]);
+      if (cap !== null) v = Math.min(v, cap);
+      out[key] = v;
+      total += v * weight;
+    }
+    out.total = clampScore(total);
+    return out;
+  };
+  const kr = region(raw.kr, null);
+  const na = region(raw.na, lowConfidence ? 7.0 : null);
+  if (!kr || !na) return null;
+  return {
+    kr, na,
+    reason: String(raw.reason || "").trim(),
+    evidence: toArray(raw.evidence),
+    confidence: String(raw.confidence || "").trim() || "중간",
+  };
+}
+
+function characterAppealFrom(analysis) {
+  return clampScore(analysis.kr.total * CHAR_REGION_WEIGHTS.kr + analysis.na.total * CHAR_REGION_WEIGHTS.na);
+}
+
 function normalizeItem(raw, options = {}) {
+  const characterAnalysis = normalizeCharacterAnalysis(raw.characterAnalysis);
   const now = new Date().toISOString();
   const rawChars = raw.mainCharacters || raw.characters || [];
   const normalizedChars = Array.isArray(rawChars) ? rawChars.map(c => {
@@ -386,8 +432,9 @@ function normalizeItem(raw, options = {}) {
       originality: clampScore(raw.scores?.originality),
       scalability: clampScore(raw.scores?.scalability),
       globalPotential: clampScore(raw.scores?.globalPotential),
-      characterAppeal: clampScore(raw.scores?.characterAppeal),
+      characterAppeal: characterAnalysis ? characterAppealFrom(characterAnalysis) : clampScore(raw.scores?.characterAppeal),
     },
+    characterAnalysis,
     scoreRationales: normalizeScoreRationales(raw.scoreRationales || raw.scoreReasons || raw.scoreAnalysis || raw.scoreDescriptions),
     notes: String(raw.notes || "").trim(),
     aiReport: raw.aiReport || ""
@@ -495,7 +542,7 @@ function filteredItems() {
 function updatePrompt() {
   if (!els.promptText) return;
   const title = els.promptTitle?.value?.trim() || "{{원작 제목}}";
-  els.promptText.value = `다음 원작 IP를 한국 드라마로 제작할 가능성 관점에서 분석해줘.\n반드시 JSON만 출력하고, JSON 밖에는 어떤 설명도 쓰지 마.\n\n원작 제목: ${title}\n\n${JSON.stringify(requiredShape, null, 2)}`;
+  els.promptText.value = `다음 원작 IP를 한국 드라마로 제작할 가능성 관점에서 분석해줘.\n반드시 JSON만 출력하고, JSON 밖에는 어떤 설명도 쓰지 마.\n\n원작 제목: ${title}\n\n${CHARACTER_RUBRIC_TEXT}\n\n${JSON.stringify(requiredShape, null, 2)}`;
 }
 
 function updateBackupText() {
@@ -598,7 +645,7 @@ function renderDetail() {
   node.querySelector(".score-value").textContent = averageScore(item).toFixed(1);
   node.querySelector(".detail-tags").innerHTML = [...item.genre].map(tagHtml).join("");
   node.querySelector(".score-bars").innerHTML = Object.entries(scoreLabels)
-    .map(([key, label]) => scoreRow(label, clampScore(item.scores[key]), scoreRationaleText(item, key)))
+    .map(([key, label]) => scoreRow(label, clampScore(item.scores[key]), scoreRationaleText(item, key), key === "characterAppeal" ? characterBreakdownHtml(item.characterAnalysis) : ""))
     .join("");
 
   renderListInto(node.querySelector(".strengths"), item.strengths);
@@ -770,7 +817,25 @@ function renderThreePoints(el, text) {
   el.append(ul);
 }
 
-function scoreRow(label, value, rationale) {
+function characterBreakdownHtml(analysis) {
+  if (!analysis) return "";
+  const cell = (v) => `<td>${Number(v).toFixed(1)}</td>`;
+  const row = (name, r) => `<tr><th>${name}</th>${Object.keys(CHAR_WEIGHTS).map((k) => cell(r[k])).join("")}<td class="char-total">${r.total.toFixed(1)}</td></tr>`;
+  const evidence = analysis.evidence.length
+    ? `<ul class="char-evidence">${analysis.evidence.map((e) => `<li>${escapeHtml(e)}</li>`).join("")}</ul>` : "";
+  return `
+    <div class="char-breakdown">
+      <table>
+        <thead><tr><th></th>${Object.values(CHAR_PART_LABELS).map((l) => `<th>${l}</th>`).join("")}<th>합계</th></tr></thead>
+        <tbody>${row("한국 (60%)", analysis.kr)}${row("북미 (40%)", analysis.na)}</tbody>
+      </table>
+      ${analysis.reason ? `<p class="score-reason"><strong>캐릭터 판단</strong> ${escapeHtml(analysis.reason)}</p>` : ""}
+      ${evidence}
+      <p class="char-confidence">근거 확신도: ${escapeHtml(analysis.confidence)}</p>
+    </div>`;
+}
+
+function scoreRow(label, value, rationale, extraHtml = "") {
   const percentage = value * 10;
   return `
     <div class="score-card">
@@ -780,6 +845,7 @@ function scoreRow(label, value, rationale) {
         <span>${value.toFixed(1)}</span>
       </div>
       <p class="score-reason"><strong>평가 근거</strong> ${escapeHtml(rationale)}</p>
+      ${extraHtml}
     </div>
   `;
 }

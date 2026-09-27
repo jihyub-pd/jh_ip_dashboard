@@ -608,3 +608,13 @@ button:disabled {
   color: var(--accent);
   font-size: 12px;
 }
+
+
+/* 캐릭터 매력도 KR·NA 세부 */
+.char-breakdown { margin-top: 8px; }
+.char-breakdown table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.char-breakdown th, .char-breakdown td { padding: 4px 6px; text-align: center; border-bottom: 1px solid #e7dfd2; }
+.char-breakdown tbody th { text-align: left; font-weight: 600; white-space: nowrap; }
+.char-breakdown .char-total { font-weight: 700; color: var(--accent-3); }
+.char-evidence { margin: 6px 0 0; padding-left: 18px; font-size: 12px; opacity: 0.85; }
+.char-confidence { margin: 4px 0 0; font-size: 12px; opacity: 0.7; }

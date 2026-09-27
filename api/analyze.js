@@ -1,5 +1,5 @@
 // api/analyze.js
-// ✨ v5: 빈 응답(finishReason: STOP) 안정화 버전
+// ✨ v6: 캐릭터 매력도 KR·NA 세부 평가 추가 (v5: 빈 응답 안정화)
 //   - 3단계 파이프라인: ①작품 개요 검색 → ②인물 심층 검색 → ③분석 JSON 구조화
 //   - 빈 응답 발생 시 자동 재시도 (최대 3회)
 //   - 검색 리서치 단계는 thinking 비활성화 → 빈 응답 현상 차단 + 속도 개선
@@ -19,6 +19,76 @@ const SYSTEM_PERSONA =
   "점수는 항목 간 차이를 두어 냉정하게 평가합니다.";
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+// =============================================================
+// 캐릭터 매력도(characterAppeal) 평가 기준
+//   한국·북미 대중에게 매력적인 "성격 · 갈등 · 직업"을 가졌는가
+//   세부 점수: 성격 40% · 갈등 35% · 직업 25% → 지역 합계
+//   최종: 한국 60% + 북미 40% (서버에서 계산해 모델 임의값을 덮어씀)
+// =============================================================
+const CHARACTER_RUBRIC = `[캐릭터 매력도 평가 기준 — characterAppeal]
+질문: 주연급 인물들이 한국(KR)과 북미(NA) 대중에게 매력적으로 비치는 성격·갈등·직업을 가졌는가?
+KR과 NA를 각각 따로 채점한다. 세부 항목은 personality(성격) / conflict(갈등) / occupation(직업).
+
+1) 성격 — 욕망이 선명하고, 결핍이 있으며, 스스로 움직이는가
+ - KR 가점: 참지 않는 사이다형, 결핍 있는 유능함, 직진형 로맨스 주인공, 무심한 듯 다정한 반전, 성장하는 언더독, 인간적인 코믹함
+ - NA 가점: 스스로 선택하고 행동하는 주체성, 도덕적 회색지대(안티히어로), 재치 있는 대사, 결함 있지만 유능함
+ - 공통 감점: 끝까지 수동적인 주인공, 답답함이 반복되는 '고구마' 전개, 조연보다 약한 주인공
+ - NA 추가 감점: 강압적 스킨십을 로맨스로 포장, 권력·나이 차이를 미화하는 관계, 폭력을 사랑으로 정당화
+
+2) 갈등 — 누구나 공감할 판돈이 걸려 있는가
+ - KR 가점: 계급·갑을 구도의 복수, 가족의 비밀, 운명적 로맨스 장애물, 회귀·두 번째 기회
+ - NA 가점: 생존·계급처럼 설명 없이 통하는 보편적 판돈, 개인의 도덕적 딜레마, 한 줄로 요약되는 하이 콘셉트
+ - 감점: 한국 특유의 맥락(입시·군대·재벌 문화·시댁)을 설명 없이는 이해하기 어려운 갈등 → NA 점수만 감점, reason에 각색 보완점 명시
+
+3) 직업 — 직업이 매회 사건을 공급하는 엔진인가
+ - 가점: 매회 새 사건이 생기는 직업(법조·의료·수사·요리 등 '케이스 공급형'), 처음 보는 신선한 직업 세계, 직업과 인물의 결핍이 맞물리는 구조
+ - NA 가점: 법정물·의학물·수사물처럼 장르 문법이 이미 통하는 직업
+ - 감점: 직업이 배경 설정에 그침, 한국에만 있는 직업 체계를 설명 없이 사용
+
+기준점 (KR·NA 각각, 세부 항목에도 동일 적용)
+ 9 = 캐릭터만으로 기획안이 팔릴 수준. 한 줄 소개만 들어도 배우가 탐낼 역할, 반응 근거가 뚜렷함
+ 7 = 성격·갈등·직업 중 두 가지가 강하고 하나는 각색으로 보완 가능
+ 5 = 기능적인 캐릭터. 장르 관습 안에서 무난하지만 기억에 남는 개성이 없음
+ 3 = 수동적이거나 비호감 요소가 강해 주연으로 세우려면 대폭 재설계 필요
+
+근거 규칙
+ - KR 점수는 원작 반응(베스트 댓글·별점·커뮤니티)을 근거로 쓴다.
+ - NA 점수는 영문판 반응(WEBTOON·Tapas·Reddit·Goodreads)이나 유사 한국 드라마의 북미 성과(예: 이상한 변호사 우영우, 더 글로리, 오징어 게임)를 근거로 쓴다.
+ - NA 근거가 없으면 confidence를 "낮음"으로 두고 NA 세부 점수는 7.0을 넘기지 않는다.`;
+
+const CHAR_WEIGHTS = { personality: 0.4, conflict: 0.35, occupation: 0.25 };
+const REGION_WEIGHTS = { kr: 0.6, na: 0.4 };
+const round1 = (n) => Math.round(n * 10) / 10;
+const clamp10 = (v) => { const n = Number(v); return Number.isFinite(n) ? Math.max(0, Math.min(10, n)) : null; };
+
+// 모델이 낸 세부 점수로 characterAppeal을 결정론적으로 재계산
+function applyCharacterScoring(payload) {
+  const ca = payload?.characterAnalysis;
+  if (!ca || typeof ca !== "object") return payload;
+  const lowConfidence = String(ca.confidence || "").includes("낮");
+  const regionTotal = (region, cap) => {
+    const r = ca[region];
+    if (!r || typeof r !== "object") return null;
+    let sum = 0;
+    for (const [k, w] of Object.entries(CHAR_WEIGHTS)) {
+      let v = clamp10(r[k]);
+      if (v === null) return null;
+      if (cap !== null) v = Math.min(v, cap);
+      r[k] = round1(v);
+      sum += v * w;
+    }
+    r.total = round1(sum);
+    return r.total;
+  };
+  const kr = regionTotal("kr", null);
+  const na = regionTotal("na", lowConfidence ? 7.0 : null);
+  if (kr !== null && na !== null) {
+    payload.scores = payload.scores || {};
+    payload.scores.characterAppeal = round1(kr * REGION_WEIGHTS.kr + na * REGION_WEIGHTS.na);
+  }
+  return payload;
+}
 
 // Gemini REST 호출 공통 함수 — 빈 응답 시 자동 재시도 (최대 3회)
 async function callGemini(apiKey, { model, prompt, label = "", useSearch = false, jsonMode = false, temperature = 0.7, thinkingBudget = null }) {
@@ -143,6 +213,13 @@ ${overviewText.slice(0, 1500)}
 4. 다른 등장인물들이 그 인물을 어떻게 평가하는지
 5. 독자/시청자 커뮤니티에서의 인기와 반응 (입덕 포인트, 밈, 논쟁 등)
 6. 인물 간 관계성 (러브라인, 대립 구도, 서사적 연결)
+7. 직업과 사회적 위치 (직업이 이야기에서 사건을 만들어내는 방식 포함)
+8. 핵심 욕망과 갈등 (무엇을 원하고, 무엇이 가로막는지, 판돈이 무엇인지)
+
+[해외 반응 조사 — 반드시 별도로 검색]
+9. 영문판 존재 여부와 제목 (WEBTOON·Tapas·Tappytoon·Amazon 등)
+10. 영어권 독자 반응: 영문판 댓글·별점, Reddit, Goodreads, 영문 리뷰에서 인물에 대한 호불호 (특히 남주 행동에 대한 비판, 여주의 주체성 평가 등)
+   - 영문판·영어권 반응이 없으면 "북미 반응 데이터 없음"이라고 명시해.
 
 중요 규칙:
 - 인물 이름은 절대 추측하거나 창작하지 말고, 검색 결과에서 확인된 이름만 써.
@@ -191,6 +268,7 @@ ${characterText}
 13. scoreRationales의 각 항목은 왜 그 점수를 줬는지 1~2문장으로 설명해줘. 단순 칭찬이 아니라 원작의 장점, 약점, 제작/시장 리스크를 같이 반영해줘.
 14. scoreRationales의 key는 반드시 dramaFit, marketPotential, productionFeasibility, originality, scalability, globalPotential, characterAppeal 순서로 작성해줘.
 15. 리서치 자료에 "확인 불가" 항목이 많거나 정보가 부족하면 notes에 "정보 제한적, 추가 리서치 권장"을 명시하고 recommendation을 "리서치 필요"로 설정해. 동명의 다른 작품과 혼동 여지가 있다면 notes에 그 사실도 명시해. 이미 영상화가 진행된 작품이면 notes에 그 이력을 명시해.
+16. characterAnalysis는 [캐릭터 매력도 평가 기준]에 따라 KR·NA 각각 personality/conflict/occupation 점수(소수점 첫째 자리)를 매기고, reason에 "가장 큰 매력 요소 / 가장 큰 약점 / 북미 각색 시 보완점"을 ' / '로 구분해 써. evidence에는 근거가 된 반응·출처를 2~4개 적어. scores.characterAppeal은 서버가 세부 점수로 다시 계산하므로 대략값만 넣어도 돼.
 
 점수 항목 정의:
 - dramaFit: 한국 드라마 문법, 회차별 사건 구성, 감정선 지속 가능성
@@ -199,7 +277,9 @@ ${characterText}
 - originality: 설정과 장르 변주의 신선도, 기존 작품과의 차별성
 - scalability: 시즌제, 스핀오프, 부가 IP 확장 가능성
 - globalPotential: 해외 시청자 이해도, 보편 정서, 글로벌 플랫폼 적합성
-- characterAppeal: 주연급 인물의 매력, 관계성, 팬덤 형성 가능성
+- characterAppeal: 아래 [캐릭터 매력도 평가 기준]으로 산출 (한국·북미 대중에게 매력적인 성격·갈등·직업)
+
+${CHARACTER_RUBRIC}
 
 아래 명시된 스키마 JSON 포맷을 완벽하게 준수해줘:
 
@@ -237,6 +317,13 @@ ${characterText}
     "globalPotential": "근거 1~2문장",
     "characterAppeal": "근거 1~2문장"
   },
+  "characterAnalysis": {
+    "kr": { "personality": 0.0, "conflict": 0.0, "occupation": 0.0 },
+    "na": { "personality": 0.0, "conflict": 0.0, "occupation": 0.0 },
+    "reason": "가장 큰 매력 요소 / 가장 큰 약점 / 북미 각색 시 보완점",
+    "evidence": ["근거가 된 반응 또는 출처"],
+    "confidence": "높음 | 중간 | 낮음 중 택1"
+  },
   "notes": "검토 메모 (정보 제한 시 '정보 제한적, 추가 리서치 권장' 명시)"
 }`;
 
@@ -253,7 +340,7 @@ ${characterText}
       responseText = responseText.replace(/^```json/, "").replace(/^```/, "").replace(/```$/, "").trim();
     }
 
-    const parsedPayload = JSON.parse(responseText);
+    const parsedPayload = applyCharacterScoring(JSON.parse(responseText));
     return res.status(200).json({ success: true, payload: parsedPayload });
 
   } catch (error) {
