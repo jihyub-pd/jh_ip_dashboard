@@ -61,6 +61,7 @@ const requiredShape = {
   castingDirection: "주연/조연/연출 방향 3가지를 포함한 캐스팅 방향",
   comparables: ["유사 성공작1", "유사 성공작2", "유사 성공작3"],
   recommendation: "추천 | 보류 | 리서치 필요",
+  recommendationReason: "보류·리서치 필요일 때 그 사유 한 줄",
   scores: {
     dramaFit: 0.0,
     marketPotential: 0.0,
@@ -156,6 +157,11 @@ const els = {
   researchCount: document.querySelector("#researchCount"),
   heldCount: document.querySelector("#heldCount"),
   statusTabs: document.querySelector("#statusTabs"),
+  researchList: document.querySelector("#researchList"),
+  holdList: document.querySelector("#holdList"),
+  researchNavCount: document.querySelector("#researchNavCount"),
+  favoriteList: document.querySelector("#favoriteList"),
+  favoriteNavCount: document.querySelector("#favoriteNavCount"),
   searchInput: document.querySelector("#searchInput"),
   typeFilter: document.querySelector("#typeFilter"),
   sortSelect: document.querySelector("#sortSelect"),
@@ -364,7 +370,41 @@ function statusKey(item) {
 }
 
 function statusBadgeHtml(item) {
-  return `<span class="status-badge status-${statusKey(item)}">${escapeHtml(item.recommendation || "리서치 필요")}</span>`;
+  if (statusKey(item) === "recommend") return ""; // 추천은 배지 없이 표시 (리서치 필요·보류만 표시)
+  const reason = item.recommendationReason ? ` title="${escapeHtml(item.recommendationReason)}"` : "";
+  return `<span class="status-badge status-${statusKey(item)}"${reason}>${escapeHtml(item.recommendation || "리서치 필요")}</span>`;
+}
+
+function starButtonHtml(item, extraClass = "") {
+  const on = Boolean(item.starred);
+  return `<button type="button" class="star-btn ${on ? "on" : ""} ${extraClass}" data-star-id="${escapeHtml(item.id)}" aria-pressed="${on ? "true" : "false"}" aria-label="${escapeHtml(item.title)} 관심 ${on ? "해제" : "표시"}" title="관심 ${on ? "해제" : "표시"}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" fill="${on ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>`;
+}
+
+async function toggleStar(id) {
+  const item = items.find((candidate) => candidate.id === id);
+  if (!item) return;
+  item.starred = !item.starred;
+  render();
+  const detailOpen = document.querySelector("#detailView")?.classList.contains("active-view");
+  if (detailOpen && selectedId === id) renderDetail();
+  const result = await syncSaveItem(item, { silent: true });
+  if (!result.ok) console.warn("관심 표시 저장 실패:", result.error);
+}
+
+function bindStarButtons(root) {
+  root.querySelectorAll("[data-star-id]").forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleStar(btn.dataset.starId);
+    });
+  });
+}
+
+function openDetail(item) {
+  selectedId = item.id;
+  if (els.detailViewTitle) els.detailViewTitle.textContent = item.title;
+  renderDetail();
+  switchView("detail");
 }
 
 function scoreTone(value) {
@@ -459,6 +499,9 @@ function normalizeItem(raw, options = {}) {
     castingDirection: String(raw.castingDirection || "").trim(),
     comparables: toArray(raw.comparables),
     recommendation: String(raw.recommendation || "리서치 필요").trim(),
+    recommendationReason: String(raw.recommendationReason || "").trim(),
+    starred: Boolean(raw.starred),
+    userMemo: String(raw.userMemo || ""),
     scores: {
       dramaFit: clampScore(raw.scores?.dramaFit),
       marketPotential: clampScore(raw.scores?.marketPotential),
@@ -590,6 +633,8 @@ function render() {
   renderFilters();
   renderStatusTabs();
   renderList();
+  renderResearch();
+  renderFavorites();
   updatePrompt();       
   updateBackupText();   
 }
@@ -621,6 +666,72 @@ function renderStatusTabs() {
     });
     els.statusTabs.append(btn);
   });
+}
+
+// 확인 필요 목록 — 리서치 필요·보류 사유 모아보기
+function reasonCardsInto(container, list) {
+  if (!container) return;
+  container.innerHTML = "";
+  if (!list.length) {
+    container.innerHTML = '<p class="reason-empty">해당 IP가 없습니다.</p>';
+    return;
+  }
+  list.forEach((item) => {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "reason-card";
+    card.innerHTML = `
+      <span class="reason-card-top">
+        <strong>${escapeHtml(item.title)}</strong>
+        <span class="reason-card-score">${averageScore(item).toFixed(1)}</span>
+      </span>
+      <span class="reason-card-meta">${escapeHtml([item.originalType, ...item.genre.slice(0, 2)].filter(Boolean).join(" · "))}</span>
+      <span class="reason-card-text">${escapeHtml(item.recommendationReason || "사유가 아직 기록되지 않았습니다.")}</span>
+    `;
+    card.addEventListener("click", () => openDetail(item));
+    container.append(card);
+  });
+}
+
+function renderFavorites() {
+  const favorites = items.filter((item) => item.starred).sort((a, b) => averageScore(b) - averageScore(a));
+  if (els.favoriteNavCount) els.favoriteNavCount.textContent = favorites.length;
+  if (!els.favoriteList) return;
+  els.favoriteList.innerHTML = "";
+  if (!favorites.length) {
+    els.favoriteList.innerHTML = '<p class="reason-empty">아직 관심 표시한 IP가 없습니다. 목록이나 상세 화면에서 별표를 눌러 추가하세요.</p>';
+    return;
+  }
+  favorites.forEach((item) => {
+    const card = document.createElement("div");
+    card.className = "fav-card";
+    const reason = statusKey(item) !== "recommend" && item.recommendationReason ? `<span class="reason-card-text">${escapeHtml(item.recommendationReason)}</span>` : "";
+    card.innerHTML = `
+      ${starButtonHtml(item, "fav-star")}
+      <button type="button" class="fav-open">
+        <span class="reason-card-top">
+          <strong>${escapeHtml(item.title)}</strong>
+          <span class="reason-card-score">${averageScore(item).toFixed(1)}</span>
+        </span>
+        <span class="fav-meta">${statusBadgeHtml(item)}<span class="reason-card-meta">${escapeHtml([item.originalType, ...item.genre.slice(0, 2)].filter(Boolean).join(" · "))}</span></span>
+        <span class="fav-logline">${escapeHtml(item.logline || "")}</span>
+        ${reason}
+        ${item.userMemo ? `<span class="fav-memo"><strong>내 메모</strong> ${escapeHtml(item.userMemo)}</span>` : ""}
+      </button>
+    `;
+    card.querySelector(".fav-open").addEventListener("click", () => openDetail(item));
+    bindStarButtons(card);
+    els.favoriteList.append(card);
+  });
+}
+
+function renderResearch() {
+  const byScore = (a, b) => averageScore(b) - averageScore(a);
+  const research = items.filter((item) => statusKey(item) === "research").sort(byScore);
+  const hold = items.filter((item) => statusKey(item) === "hold").sort(byScore);
+  if (els.researchNavCount) els.researchNavCount.textContent = research.length;
+  reasonCardsInto(els.researchList, research);
+  reasonCardsInto(els.holdList, hold);
 }
 
 function renderFilters() {
@@ -665,11 +776,11 @@ function renderList() {
 
   visible.forEach((item, index) => {
     const isSelected = selectedIds.has(item.id);
-    const button = document.createElement("button");
+    const button = document.createElement("div");
+    button.tabIndex = 0;
     const total = averageScore(item);
     const status = statusKey(item);
     button.className = `ip-row ${status === "hold" ? "is-held" : ""} ${!selectMode && item.id === selectedId ? "active" : ""} ${selectMode && isSelected ? "selected" : ""}`;
-    button.type = "button";
     const meta = [item.originalType, ...item.genre.slice(0, 2)].filter(Boolean).join(" · ");
     const bars = totalScoreKeys.map((key) => {
       const v = clampScore(item.scores?.[key]);
@@ -679,8 +790,9 @@ function renderList() {
     button.innerHTML = `
       <span class="row-rank">${selectMode ? `<input type="checkbox" class="ip-checkbox" ${isSelected ? "checked" : ""} onclick="event.stopPropagation()" aria-label="${escapeHtml(item.title)} 선택">` : index + 1}</span>
       <span class="row-title">
-        <strong>${escapeHtml(item.title)}</strong>
+        <span class="row-title-line">${starButtonHtml(item)}<strong>${escapeHtml(item.title)}</strong></span>
         <small>${escapeHtml(meta)}</small>
+        ${status !== "recommend" && item.recommendationReason ? `<small class="row-reason">${escapeHtml(item.recommendationReason)}</small>` : ""}
       </span>
       <span>${statusBadgeHtml(item)}</span>
       <span class="row-total tone-${status === "hold" ? "held" : scoreTone(total)}">${total.toFixed(1)}</span>
@@ -698,12 +810,17 @@ function renderList() {
         if (els.deleteSelectedBtn) els.deleteSelectedBtn.textContent = `선택 삭제 (${selectedIds.size})`;
         renderList();
       } else {
-        selectedId = item.id;
-        if (els.detailViewTitle) els.detailViewTitle.textContent = item.title;
-        renderDetail();
-        switchView("detail");
+        openDetail(item);
       }
     });
+    button.addEventListener("keydown", (event) => {
+      if (event.target !== button) return;
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        button.click();
+      }
+    });
+    bindStarButtons(button);
 
     els.ipList.append(button);
   });
@@ -724,8 +841,17 @@ function renderDetail() {
 
   const node = els.detailTemplate.content.cloneNode(true);
   node.querySelector(".detail-type").innerHTML = `${statusBadgeHtml(item)}<span>${escapeHtml(`${item.originalType} · 제작 난이도 ${item.productionDifficulty}`)}</span>`;
-  node.querySelector(".detail-title").textContent = item.title;
+  node.querySelector(".detail-title").innerHTML = `${escapeHtml(item.title)} ${starButtonHtml(item, "detail-star")}`;
   node.querySelector(".detail-logline").textContent = item.logline;
+  const reasonBox = node.querySelector(".reason-box");
+  if (reasonBox) {
+    if (statusKey(item) !== "recommend" && item.recommendationReason) {
+      reasonBox.className = `reason-box reason-${statusKey(item)}`;
+      reasonBox.innerHTML = `<strong>${escapeHtml(item.recommendation)} 사유</strong><span>${escapeHtml(item.recommendationReason)}</span>`;
+    } else {
+      reasonBox.remove();
+    }
+  }
   node.querySelector(".score-value").textContent = averageScore(item).toFixed(1);
   node.querySelector(".detail-tags").innerHTML = [...item.genre].map(tagHtml).join("");
   const rank = [...items].sort((a, b) => averageScore(b) - averageScore(a)).findIndex((candidate) => candidate.id === item.id) + 1;
@@ -776,16 +902,37 @@ function renderDetail() {
     }
   }
 
+  // 분석 메모(읽기 전용) — 문장 단위로 나눠 표시
+  const notesEl = node.querySelector(".analysis-notes");
+  if (notesEl) {
+    const parts = String(item.notes || "")
+      .replace(/\s*(\[\d{4}-\d{2}-\d{2}[^\]]*\])/g, "\n$1")
+      .replace(/\s*(검증:)/g, "\n$1")
+      .split(/\n|(?<=\.)\s+(?=[^\s\d])/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+    notesEl.innerHTML = parts.length
+      ? `<ul>${parts.map((part) => `<li>${escapeHtml(part)}</li>`).join("")}</ul>`
+      : '<p class="notes-empty">분석 메모가 없습니다.</p>';
+  }
+
+  // 내 메모 — 사용자 전용 필드(userMemo), 자동 저장
   const memoInput = node.querySelector(".memo-input");
+  const memoStatus = node.querySelector(".memo-status");
   if (memoInput) {
-    memoInput.value = item.notes;
+    memoInput.value = item.userMemo || "";
     memoInput.addEventListener("input", () => {
-      item.notes = memoInput.value;
-      item.updatedAt = new Date().toISOString();
+      item.userMemo = memoInput.value;
+      if (memoStatus) memoStatus.textContent = "저장 중...";
       if (memoTimeout) clearTimeout(memoTimeout);
       memoTimeout = setTimeout(async () => {
         const result = await syncSaveItem(item, { silent: true });
+        if (memoStatus) {
+          const time = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+          memoStatus.textContent = result.ok ? `저장됨 · ${time}` : "저장 실패 — 네트워크를 확인하세요";
+        }
         if (!result.ok) console.warn("메모 클라우드 저장 실패:", result.error);
+        renderFavorites();
       }, 600);
     });
   }
@@ -804,6 +951,7 @@ function renderDetail() {
 
   els.detailPanel.innerHTML = "";
   els.detailPanel.append(node);
+  bindStarButtons(els.detailPanel);
 
 }
 
