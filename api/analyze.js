@@ -1,5 +1,10 @@
 // api/analyze.js
-// ✨ v6: 캐릭터 매력도 KR·NA 세부 평가 추가 (v5: 빈 응답 안정화)
+// ✨ v7: 총점 기준 변경 반영 (v6: 캐릭터 매력도 KR·NA 세부 평가 추가, v5: 빈 응답 안정화)
+//   - 총점 = dramaFit·marketPotential·originality·scalability·characterAppeal 5개 평균
+//   - productionFeasibility·globalPotential은 참고 항목(점수·근거는 작성, 총점 제외)
+//   - 완결 여부·해외 화제성·현대극/VFX 여부는 총점 5개 항목 점수에 반영하지 않음
+//   - 점수 보정: 대부분 5.0~7.5, 8점대는 뚜렷한 국내 근거가 있을 때만
+//   - 이미 영상화·판권 계약된 작품은 recommendation "보류" + notes에 "IP 획득 불가"
 //   - 3단계 파이프라인: ①작품 개요 검색 → ②인물 심층 검색 → ③분석 JSON 구조화
 //   - 빈 응답 발생 시 자동 재시도 (최대 3회)
 //   - 검색 리서치 단계는 thinking 비활성화 → 빈 응답 현상 차단 + 속도 개선
@@ -56,6 +61,19 @@ KR과 NA를 각각 따로 채점한다. 세부 항목은 personality(성격) / c
  - KR 점수는 원작 반응(베스트 댓글·별점·커뮤니티)을 근거로 쓴다.
  - NA 점수는 영문판 반응(WEBTOON·Tapas·Reddit·Goodreads)이나 유사 한국 드라마의 북미 성과(예: 이상한 변호사 우영우, 더 글로리, 오징어 게임)를 근거로 쓴다.
  - NA 근거가 없으면 confidence를 "낮음"으로 두고 NA 세부 점수는 7.0을 넘기지 않는다.`;
+
+// =============================================================
+// 총점 산정 기준 (대시보드 app.js의 averageScore와 동일하게 유지)
+// =============================================================
+const SCORING_RULES = `[점수 산정 기준 — 반드시 준수]
+1. 대시보드 총점은 dramaFit · marketPotential · originality · scalability · characterAppeal 5개 항목의 평균이다.
+2. productionFeasibility(제작성)와 globalPotential(글로벌)은 "참고 항목"이다. 점수와 근거는 작성하되 총점에는 들어가지 않는다.
+3. 아래 요소는 총점 5개 항목의 점수를 올리거나 내리는 근거로 쓰지 않는다. (risks·notes에 표기만 한다)
+   - 완결 여부: 연재 중·휴재라는 이유로 dramaFit·scalability를 깎지 않는다. dramaFit은 서사 구조 자체, scalability는 세계관·구조의 확장 여지로만 평가한다.
+   - 해외 화제성: 해외 연재 언어 수, 영문판 조회수, 해외 출간·수상은 marketPotential 근거로 쓰지 않는다. marketPotential은 국내 대중성·국내 원작 팬덤·국내 화제성·편성 매력으로만 평가한다. (해외 반응은 globalPotential과 characterAnalysis NA 근거에만 쓴다)
+   - 현대극/사극·VFX 여부: 제작 난도는 productionFeasibility에만 반영한다.
+4. 점수 보정: 대부분의 IP는 5.0~7.5 구간이다. 8.0~8.9는 해당 항목에 뚜렷한 근거(국내 흥행 수치·수상·실제 영상화 성과 등)가 있을 때만, 9.0 이상은 이미 검증된 타이틀급에만 준다. 총점 5개 항목 중 8.0 이상이 3개를 넘으면 다시 검토해 낮춘다.
+5. scoreRationales의 총점 5개 항목 근거에는 3번의 요소를 이유로 쓰지 않는다.`;
 
 const CHAR_WEIGHTS = { personality: 0.4, conflict: 0.35, occupation: 0.25 };
 const REGION_WEIGHTS = { kr: 0.6, na: 0.4 };
@@ -178,7 +196,7 @@ export default async function handler(req, res) {
 1. 정확한 작품 유형(웹툰/웹소설/소설/영화/게임)과 연재/공개 플랫폼, 작가, 연재 시기, 완결 여부
 2. 실제 줄거리 전개와 세계관/설정 (초반-중반-결말 구조까지 구체적으로)
 3. 장르 및 핵심 소재
-4. 독자/시청자 평가, 흥행 성적 (조회수, 평점, 판매량, 랭킹 등 구체적 수치 위주)
+4. 독자/시청자 평가, 흥행 성적 (조회수, 평점, 판매량, 랭킹 등 구체적 수치 위주 — 국내 지표와 해외 지표를 구분해서)
 5. 이미 드라마화/영상화가 진행되었거나 판권 계약 소식이 있는지 (있다면 제작사, 방영 시기)
 6. 원작자 관련 이슈나 논란, 권리 관계상 특이사항
 7. 유사한 성공 작품과 그 성과
@@ -257,27 +275,30 @@ ${characterText}
 2. 각 캐릭터의 'traits'란에는 원작에서 보여준 대표적인 대사 스타일, 시그니처 행동 패턴, 혹은 작중 타 인물들이나 커뮤니티의 평가를 녹여내서 구체적으로 작성해줘. (최소 2~3문장)
 3. 'appealPoints'에는 독자/시청자들이 열광하는 결정적 입덕 매력 요소를 기술해줘.
 4. 'improvements'에는 원작 매체의 문법을 드라마 편수로 바꿀 때 반드시 보완해야 하는 단점 및 각색 방향을 짚어줘.
-5. 점수 체계는 10.0점 만점이며, 소수점 첫째 자리(예: 8.5)까지 세부적으로 평가해줘. 항목별로 점수 차이를 두고 냉정하게 평가해. 리서치에서 확인된 흥행 수치와 팬덤 규모를 marketPotential에 반영해.
+5. 점수 체계는 10.0점 만점이며, 소수점 첫째 자리(예: 6.8)까지 세부적으로 평가해줘. 항목별로 점수 차이를 두고 냉정하게 평가하고, 아래 [점수 산정 기준]을 반드시 지켜. 리서치에서 확인된 "국내" 흥행 수치와 팬덤 규모만 marketPotential에 반영해.
 6. strengths는 반드시 서로 다른 관점(예: 스토리 구조 / 시장·팬덤 / 제작·연출)의 강점 3가지를 배열로 작성해줘.
-7. risks는 반드시 서로 다른 리스크 3가지를 배열로 작성해줘. 리서치에서 확인된 권리 관계, 기존 영상화 이력, 원작자 이슈, 실존 인물 묘사, 현지 규제 등 법적·제작 리스크가 있다면 반드시 명시해.
+7. risks는 반드시 서로 다른 리스크 3가지를 배열로 작성해줘. 리서치에서 확인된 권리 관계, 기존 영상화 이력, 원작자 이슈, 실존 인물 묘사, 연재 미완·장기 휴재, 현지 규제 등 법적·제작 리스크가 있다면 반드시 명시해.
 8. comparables는 반드시 유사 성공작 3가지를 배열로 작성해줘.
 9. targetAudience는 연령대/성별/취향 등 3가지 측면을 포함해서 작성하되, 각 측면을 ' / '로 구분해줘. 예: "30-40대 직장인 남성 / 복수극 선호 여성층 / 재벌 드라마 팬덤"
 10. castingDirection은 주연/조연/연출 방향 3가지를 포함해서 작성하되, 각 항목을 ' / '로 구분해줘. 예: "주연: 냉철한 30대 남자 배우 / 여주: 강단 있는 커리어우먼 이미지 / 연출: 장르와 감성 균형 잡는 감독"
 11. premise는 세계관/설정/갈등구조 3가지 특징을 포함해서 작성하되, 각 항목을 ① ② ③ 으로 구분해줘.
 12. scoreRationales는 scores의 7개 항목과 같은 key를 반드시 포함해줘.
-13. scoreRationales의 각 항목은 왜 그 점수를 줬는지 1~2문장으로 설명해줘. 단순 칭찬이 아니라 원작의 장점, 약점, 제작/시장 리스크를 같이 반영해줘.
+13. scoreRationales의 각 항목은 왜 그 점수를 줬는지 1~2문장으로 설명해줘. 단순 칭찬이 아니라 원작의 장점, 약점, 시장 리스크를 같이 반영하되, 총점 5개 항목의 근거에는 완결 여부·해외 화제성·현대극/VFX 여부를 이유로 쓰지 마.
 14. scoreRationales의 key는 반드시 dramaFit, marketPotential, productionFeasibility, originality, scalability, globalPotential, characterAppeal 순서로 작성해줘.
-15. 리서치 자료에 "확인 불가" 항목이 많거나 정보가 부족하면 notes에 "정보 제한적, 추가 리서치 권장"을 명시하고 recommendation을 "리서치 필요"로 설정해. 동명의 다른 작품과 혼동 여지가 있다면 notes에 그 사실도 명시해. 이미 영상화가 진행된 작품이면 notes에 그 이력을 명시해.
-16. characterAnalysis는 [캐릭터 매력도 평가 기준]에 따라 KR·NA 각각 personality/conflict/occupation 점수(소수점 첫째 자리)를 매기고, reason에 "가장 큰 매력 요소 / 가장 큰 약점 / 북미 각색 시 보완점"을 ' / '로 구분해 써. evidence에는 근거가 된 반응·출처를 2~4개 적어. scores.characterAppeal은 서버가 세부 점수로 다시 계산하므로 대략값만 넣어도 돼.
+15. 리서치 자료에 "확인 불가" 항목이 많거나 정보가 부족하면 notes에 "정보 제한적, 추가 리서치 권장"을 명시하고 recommendation을 "리서치 필요"로 설정해. 동명의 다른 작품과 혼동 여지가 있다면 notes에 그 사실도 명시해.
+16. 이미 드라마·영화로 영상화됐거나 판권 계약·제작 확정 보도가 있는 작품이면 recommendation을 "보류"로 하고, notes 맨 앞에 "IP 획득 불가: <근거, 시기>"를 적어. 분석은 벤치마킹 참고용으로 작성해.
+17. characterAnalysis는 [캐릭터 매력도 평가 기준]에 따라 KR·NA 각각 personality/conflict/occupation 점수(소수점 첫째 자리)를 매기고, reason에 "가장 큰 매력 요소 / 가장 큰 약점 / 북미 각색 시 보완점"을 ' / '로 구분해 써. evidence에는 근거가 된 반응·출처를 2~4개 적어. scores.characterAppeal은 서버가 세부 점수로 다시 계산하므로 대략값만 넣어도 돼.
 
 점수 항목 정의:
-- dramaFit: 한국 드라마 문법, 회차별 사건 구성, 감정선 지속 가능성
-- marketPotential: 대중성, 원작 팬덤, 화제성, 편성/플랫폼 매력
-- productionFeasibility: 제작비, CG/액션/세트 난도, 캐스팅 부담
-- originality: 설정과 장르 변주의 신선도, 기존 작품과의 차별성
-- scalability: 시즌제, 스핀오프, 부가 IP 확장 가능성
-- globalPotential: 해외 시청자 이해도, 보편 정서, 글로벌 플랫폼 적합성
-- characterAppeal: 아래 [캐릭터 매력도 평가 기준]으로 산출 (한국·북미 대중에게 매력적인 성격·갈등·직업)
+- dramaFit (총점 반영): 한국 드라마 문법, 회차별 사건 구성, 감정선 지속 가능성 — 원작 완결 여부와 무관하게 서사 구조로 평가
+- marketPotential (총점 반영): 국내 대중성, 국내 원작 팬덤, 국내 화제성, 편성/플랫폼 매력 — 해외 연재·해외 반응은 제외
+- productionFeasibility (참고·총점 제외): 제작비, CG/액션/세트 난도, 캐스팅 부담
+- originality (총점 반영): 설정과 장르 변주의 신선도, 기존 작품과의 차별성
+- scalability (총점 반영): 시즌제, 스핀오프, 부가 IP 확장 가능성 — 원작 완결 여부가 아니라 세계관·구조의 확장 여지로 평가
+- globalPotential (참고·총점 제외): 해외 시청자 이해도, 보편 정서, 글로벌 플랫폼 적합성
+- characterAppeal (총점 반영): 아래 [캐릭터 매력도 평가 기준]으로 산출 (한국·북미 대중에게 매력적인 성격·갈등·직업)
+
+${SCORING_RULES}
 
 ${CHARACTER_RUBRIC}
 
@@ -310,11 +331,11 @@ ${CHARACTER_RUBRIC}
   },
   "scoreRationales": {
     "dramaFit": "장단점과 리스크를 반영한 근거 1~2문장",
-    "marketPotential": "근거 1~2문장",
-    "productionFeasibility": "근거 1~2문장",
+    "marketPotential": "국내 기준 근거 1~2문장",
+    "productionFeasibility": "참고 항목 근거 1~2문장",
     "originality": "근거 1~2문장",
     "scalability": "근거 1~2문장",
-    "globalPotential": "근거 1~2문장",
+    "globalPotential": "참고 항목 근거 1~2문장",
     "characterAppeal": "근거 1~2문장"
   },
   "characterAnalysis": {
@@ -324,7 +345,7 @@ ${CHARACTER_RUBRIC}
     "evidence": ["근거가 된 반응 또는 출처"],
     "confidence": "높음 | 중간 | 낮음 중 택1"
   },
-  "notes": "검토 메모 (정보 제한 시 '정보 제한적, 추가 리서치 권장' 명시)"
+  "notes": "검토 메모 (정보 제한 시 '정보 제한적, 추가 리서치 권장' 명시, 영상화·판권 계약 시 'IP 획득 불가: ...'로 시작)"
 }`;
 
     let responseText = await callGemini(apiKey, {
