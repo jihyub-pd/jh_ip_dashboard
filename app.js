@@ -35,6 +35,10 @@ const scoreLabels = {
   characterAppeal: "캐릭터 매력도",
 };
 
+// 총점(평균) 집계에서 제외하는 참고 항목 — 점수·근거는 표시만 함
+const TOTAL_EXCLUDED_KEYS = ["productionFeasibility", "globalPotential"];
+const totalScoreKeys = Object.keys(scoreLabels).filter((key) => !TOTAL_EXCLUDED_KEYS.includes(key));
+
 const requiredShape = {
   title: "원작 제목",
   originalType: "웹툰 | 웹소설 | 소설 | 영화 | 게임 | 기타",
@@ -334,7 +338,7 @@ function clampScore(value) {
 }
 
 function averageScore(item) {
-  const values = Object.keys(scoreLabels).map((key) => clampScore(item.scores?.[key]));
+  const values = totalScoreKeys.map((key) => clampScore(item.scores?.[key]));
   const sum = values.reduce((acc, val) => acc + val, 0);
   return Math.round((sum / values.length) * 10) / 10;
 }
@@ -521,8 +525,8 @@ function filteredItems() {
       const avgA = averageScore(a);
       const avgB = averageScore(b);
       if (avgA !== avgB) return avgB - avgA;
-      const priorityA = clampScore(a.scores?.dramaFit) + clampScore(a.scores?.productionFeasibility) + clampScore(a.scores?.globalPotential);
-      const priorityB = clampScore(b.scores?.dramaFit) + clampScore(b.scores?.productionFeasibility) + clampScore(b.scores?.globalPotential);
+      const priorityA = clampScore(a.scores?.dramaFit) + clampScore(a.scores?.marketPotential) + clampScore(a.scores?.characterAppeal);
+      const priorityB = clampScore(b.scores?.dramaFit) + clampScore(b.scores?.marketPotential) + clampScore(b.scores?.characterAppeal);
       return priorityB - priorityA;
     });
   } else if (sort === "title") {
@@ -645,7 +649,7 @@ function renderDetail() {
   node.querySelector(".score-value").textContent = averageScore(item).toFixed(1);
   node.querySelector(".detail-tags").innerHTML = [...item.genre].map(tagHtml).join("");
   node.querySelector(".score-bars").innerHTML = Object.entries(scoreLabels)
-    .map(([key, label]) => scoreRow(label, clampScore(item.scores[key]), scoreRationaleText(item, key), key === "characterAppeal" ? characterBreakdownHtml(item.characterAnalysis) : ""))
+    .map(([key, label]) => scoreRow(TOTAL_EXCLUDED_KEYS.includes(key) ? `${label} (참고·총점 제외)` : label, clampScore(item.scores[key]), scoreRationaleText(item, key), key === "characterAppeal" ? characterBreakdownHtml(item.characterAnalysis) : ""))
     .join("");
 
   renderListInto(node.querySelector(".strengths"), item.strengths);
