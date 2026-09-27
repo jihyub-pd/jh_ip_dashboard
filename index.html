@@ -1,39 +1,52 @@
-<!doctype html>
-<html lang="ko">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>드라마 IP 분석 대시보드</title>
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <aside class="sidebar">
-        <div class="brand">
-          <span class="brand-mark">IP</span>
-          <div>
-            <h1>드라마 IP 보드</h1>
-            <p>원작 분석 저장소</p>
-          </div>
-        </div>
+IP
+드라마 IP 보드
+원작 분석 저장소
+대시보드 JSON 입력 분석 프롬프트 백업/복원
+총점 = 드라마 적합 · 흥행성 · 차별성 · 확장성 · 캐릭터 매력도 평균 제작성·글로벌은 참고 지표
+K-Drama Adaptation
+원작 IP 후보
+원작 제목으로 자동 분석 자동 분석
+등록 IP0
+추천0
+리서치 필요0
+보류 (판권 소진 등)0
 
-        <div class="metric-stack">
-          <div class="metric">
-            <span>등록 IP</span>
-            <strong id="totalCount">0</strong>
-          </div>
-          <div class="metric">
-            <span>추천 후보</span>
-            <strong id="recommendedCount">0</strong>
-          </div>
-          <div class="metric">
-            <span>평균 평점</span>
-            <strong id="averageScore">0</strong>
-          </div>
-        </div>
+검색
+                전체 유형
+              
+                총점순
+                최근 수정순
+                제목순
+               선택 모드
 
-        <nav class="side-nav" aria-label="보기">
-          <button class="nav-btn active" data-view="dashboard">대시보드</button>
+아직 저장된 IP가 없습니다. 위 입력창에 원작 제목을 입력해 자동 분석을 시작해 보세요.
+← 목록으로
+상세 분석
+-
+IP를 선택하면 상세 분석이 표시됩니다.
+Import
+분석 JSON 저장
+비우기
+JSON
+예시 넣기
+검사 저장
+
+필수 구조
+
+Prompt
+AI 분석 프롬프트
+복사
+원작 제목
+
+Backup
+데이터 백업/복원
+백업 파일 받기
+백업
+현재 데이터베이스에 저장된 전체 데이터를 JSON 파일로 내려받습니다.
+복원
+백업 JSON을 붙여넣거나 파일을 업로드하면 원격 DB에 즉시 대치 동기화됩니다.
+복원
+
           <button class="nav-btn" data-view="import">JSON 입력</button>
           <button class="nav-btn" data-view="prompt">분석 프롬프트</button>
           <button class="nav-btn" data-view="backup">백업/복원</button>
