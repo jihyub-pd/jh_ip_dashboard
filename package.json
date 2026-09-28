@@ -1,12 +1,9 @@
 {
   "name": "ip-dashboard",
   "version": "2.0.0",
-  "description": "K-Drama IP Dashboard with Google Search Grounding",
+  "description": "K-Drama IP Dashboard (Supabase)",
   "main": "index.html",
   "scripts": {
     "start": "echo 'No build step required'"
-  },
-  "dependencies": {
-    "@google/genai": "^1.9.0"
   }
 }

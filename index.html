@@ -46,13 +46,7 @@
               <p class="eyebrow">K-Drama Adaptation</p>
               <h2>원작 IP 후보</h2>
             </div>
-            <div class="autogen">
-              <label for="autoGenTitle" class="sr-only">원작 제목으로 자동 분석</label>
-              <input id="autoGenTitle" type="text" placeholder="원작 제목 입력 후 자동 분석" />
-              <button id="autoGenBtn" class="primary-btn">자동 분석</button>
-            </div>
           </header>
-          <div id="autoGenStatus" class="autogen-status" style="display: none;">Gemini가 원작을 리서치하고 분석 중입니다. 10~20초 정도 걸립니다.</div>
 
           <div class="kpi-row">
             <div class="kpi"><span>등록 IP</span><strong id="totalCount">0</strong></div>
@@ -84,7 +78,7 @@
             <div id="ipList" class="ip-list ip-table"></div>
             <div id="emptyState" class="empty-state">
               <strong>아직 저장된 IP가 없습니다.</strong>
-              <span>위 입력창에 원작 제목을 입력해 자동 분석을 시작해 보세요.</span>
+              <span>Claude로 분석한 작품이 Supabase에 올라오면 이곳에 표시됩니다.</span>
             </div>
           </div>
         </section>
@@ -138,18 +132,6 @@
             <div class="detail-empty">IP를 선택하면 상세 분석이 표시됩니다.</div>
           </section>
 
-          <section id="ai-analysis-section" class="analysis-container" style="margin-top: 24px; display: none;">
-            <div class="analysis-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 16px;">
-              <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--accent);">Gemini AI 드라마화 기획 리포트</h3>
-              <button id="reanalyze-btn" class="ghost-btn">다시 분석하기</button>
-            </div>
-            <div id="analysis-loading" class="loading-spinner" style="display: none; text-align: center; padding: 20px 0;">
-              <p style="color: var(--muted); font-style: italic;">Gemini가 분석 중입니다...</p>
-            </div>
-            <div id="analysis-result" class="analysis-content" style="line-height: 1.6;">
-              <p class="placeholder-text" style="color: var(--muted); font-style: italic;">원작 데이터 분석 중...</p>
-            </div>
-          </section>
         </section>
 
         <section id="importView" class="view">
