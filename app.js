@@ -190,16 +190,7 @@ const els = {
   backupFileInput: document.querySelector("#backupFileInput"),
   restoreInput: document.querySelector("#restoreInput"),
   restoreBtn: document.querySelector("#restoreBtn"),
-  backupMessage: document.querySelector("#backupMessage"),
-  
-  aiAnalysisSection: document.querySelector("#ai-analysis-section"),
-  reanalyzeBtn: document.querySelector("#reanalyze-btn"),
-  analysisLoading: document.querySelector("#analysis-loading"),
-  analysisResult: document.querySelector("#analysis-result"),
-
-  autoGenTitle: document.querySelector("#autoGenTitle"),
-  autoGenBtn: document.querySelector("#autoGenBtn"),
-  autoGenStatus: document.querySelector("#autoGenStatus")
+  backupMessage: document.querySelector("#backupMessage")
 };
 
 let items = [];
@@ -974,72 +965,6 @@ function renderDetail() {
 
 }
 
-// ==========================================
-// 7. Gemini API 연동 — 원작 자동 분석 (기획 리포트 기능은 제거됨)
-// ==========================================
-
-// 공통: /api/analyze 호출 + 서버의 실제 에러 메시지 표출
-async function callAnalyzeApi(body) {
-  const response = await fetch("/api/analyze", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-
-  let data = null;
-  try {
-    data = await response.json();
-  } catch (_) {
-    // JSON 파싱 실패 (예: Vercel 타임아웃 HTML 응답 등)
-  }
-
-  if (!response.ok || !data || data.success === false) {
-    const serverMsg = data?.error || data?.message || "(서버 상세 메시지 없음 — Vercel Logs 탭에서 확인 필요)";
-    throw new Error(`API 오류 (Status: ${response.status})\n서버 메시지: ${serverMsg}`);
-  }
-  return data;
-}
-
-
-
-// 대시보드 메인 — 원작 제목 기반 Gemini 자동 분석/등록
-async function handleAiAutoGen() {
-  if (!els.autoGenTitle || !els.autoGenBtn || !els.autoGenStatus) return;
-
-  const title = els.autoGenTitle.value.trim();
-  if (!title) {
-    alert("분석하고자 하는 원작 작품의 제목을 입력해 주세요.");
-    return;
-  }
-
-  els.autoGenBtn.disabled = true;
-  els.autoGenStatus.style.display = "block";
-
-  try {
-    const data = await callAnalyzeApi({ title });
-
-    const payload = data.payload;
-    if (!payload || !payload.title) {
-      throw new Error("응답은 수신했으나 payload 구조가 올바르지 않습니다.");
-    }
-
-    const newDashboardItem = await upsertItem(payload);
-
-    els.autoGenTitle.value = "";
-    selectedId = newDashboardItem.id;
-    if (els.detailViewTitle) els.detailViewTitle.textContent = newDashboardItem.title;
-    renderDetail();
-    switchView("detail");
-
-  } catch (error) {
-    console.error("자동 대시보드 구축 에러 로그:", error);
-    alert(`자동 생성 실패:\n${error.message}`);
-  } finally {
-    els.autoGenBtn.disabled = false;
-    els.autoGenStatus.style.display = "none";
-  }
-}
-
 function renderListInto(list, values) {
   if (!list) return;
   list.innerHTML = "";
@@ -1218,10 +1143,6 @@ if (els.saveBtn) {
       els.saveBtn.disabled = false;
     }
   });
-}
-
-if (els.autoGenBtn) {
-  els.autoGenBtn.addEventListener("click", handleAiAutoGen);
 }
 
 // ==========================================
