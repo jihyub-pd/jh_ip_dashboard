@@ -337,3 +337,43 @@ div.ip-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2p
 .char-fields h4.char-improve { color: var(--red); }
 .char-fields p { margin: 0 !important; font-size: 13px !important; line-height: 1.7 !important; color: #3e4742; }
 @media (max-width: 980px) { .char-fields { grid-template-columns: 1fr; } }
+
+
+/* ── 상세 페이지 PDF 저장 ── */
+.detail-topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.pdf-btn { flex-shrink: 0; }
+.char-print-name, .print-meta { display: none; }
+
+@media print {
+  @page { size: A4; margin: 12mm 12mm 14mm; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { background: #ffffff !important; }
+  body { font-size: 12px; }
+
+  .sidebar, .view:not(#detailView), #detailView > .topbar, .detail-actions, .memo-col, .star-btn, .char-tabs { display: none !important; }
+  .app-shell { display: block !important; min-height: 0 !important; }
+  .main { padding: 0 !important; margin: 0 !important; max-width: none !important; overflow: visible !important; }
+  #detailView { display: block !important; }
+  .detail-card { gap: 12px !important; }
+
+  .print-meta { display: block; margin: 0 0 8px; font-size: 10px; color: var(--muted); letter-spacing: 0.04em; }
+  .detail-hero { padding: 18px 20px !important; gap: 20px !important; }
+  .score-box { width: 130px !important; padding: 14px !important; }
+  .core-panel, .ref-panel, .adapt-panel, .character-deep-dive, .notes-col { padding: 14px 18px !important; }
+  .analysis-columns section, .detail-blocks > div { padding: 14px 18px !important; }
+
+  .score-grid { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) !important; }
+  .analysis-columns { display: grid !important; grid-template-columns: 1fr 1fr !important; }
+  .detail-blocks { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .adapt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .notes-panel { display: block !important; }
+
+  .core-score summary { cursor: default; }
+  .char-panel[hidden] { display: block !important; }
+  .char-panel { border-top: 1px solid var(--line-soft); padding-top: 10px; margin-top: 10px; }
+  .char-panel:first-of-type { border-top: 0; margin-top: 0; }
+  .char-print-name { display: block; margin: 0 0 2px; font-size: 14px; color: var(--ink); }
+
+  .detail-hero, .core-score, .ref-item, .analysis-columns section, .detail-blocks > div, .adapt-card, .char-panel, .notes-col li { break-inside: avoid; }
+  h3, h4, .section-head { break-after: avoid; }
+}

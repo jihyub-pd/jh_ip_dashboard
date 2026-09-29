@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css?v=20260927e" />
-    <link rel="stylesheet" href="./redesign.css?v=20260929a" />
+    <link rel="stylesheet" href="./redesign.css?v=20260929b" />
   </head>
   <body>
     <div class="app-shell">
@@ -118,7 +118,7 @@
         </section>
 
         <section id="detailView" class="view">
-          <header class="topbar">
+          <header class="topbar detail-topbar">
             <div style="display:flex;align-items:center;gap:12px">
               <button id="backBtn" class="ghost-btn">← 목록으로</button>
               <div>
@@ -126,6 +126,7 @@
                 <h2 id="detailViewTitle">-</h2>
               </div>
             </div>
+            <button id="pdfBtn" class="ghost-btn pdf-btn" type="button">PDF로 저장</button>
           </header>
 
           <section class="detail-panel" id="detailPanel">
@@ -307,6 +308,6 @@
     </template>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./app.js?v=20260929a"></script>
+    <script src="./app.js?v=20260929b"></script>
   </body>
 </html>
