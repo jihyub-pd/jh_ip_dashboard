@@ -46,6 +46,10 @@ const totalScoreKeys = Object.keys(scoreLabels).filter((key) => !TOTAL_EXCLUDED_
 
 const requiredShape = {
   title: "원작 제목",
+  sourceInfo: { platform: "네이버웹툰 | 카카오웹툰 | 레진코믹스 | 카카오페이지 | 출판사명 등", status: "연재 중 | 완결 | 휴재", checkedAt: "YYYY-MM" },
+  rightsInfo: { holder: "판권 보유처(원작사·제작사·출판사)", contact: "공식 문의 창구(회사 대표 메일·IP 사업팀 등, 개인 연락처 금지)", note: "판권 계약·옵션 현황", checkedAt: "YYYY-MM" },
+  reactionMetrics: [{ label: "관심 수 | 별점 | 조회수 | 평균 댓글 수 등", value: "수치", checkedAt: "YYYY-MM", source: "출처" }],
+  formatSuggestion: { format: "미니시리즈 16부 | 미니시리즈 12부 | OTT 8부 | OTT 6부 | 숏폼", reason: "원작 분량·구조 근거 한 줄" },
   originalType: "웹툰 | 웹소설 | 소설 | 영화 | 게임 | 기타",
   genre: ["장르1", "장르2", "장르3"],
   logline: "한 줄 소개",
@@ -207,6 +211,11 @@ let selectedId = null;
 let selectMode = false;
 let selectedIds = new Set();
 let statusFilter = "all";
+let sortKey = "total";      // total | 5축 키 | productionFeasibility | globalPotential | title | date
+let sortDir = "desc";       // desc | asc
+let typeFilterValue = "all";
+let favoritesOnly = false;
+let serialFilterValue = "all";
 
 if (els.schemaPreview) {
   els.schemaPreview.textContent = JSON.stringify(requiredShape, null, 2);
@@ -516,6 +525,12 @@ function normalizeItem(raw, options = {}) {
     adaptableElements: normalizeAdaptableElements(raw.adaptableElements),
     scoreRationales: normalizeScoreRationales(raw.scoreRationales || raw.scoreReasons || raw.scoreAnalysis || raw.scoreDescriptions),
     notes: String(raw.notes || "").trim(),
+    sourceInfo: normalizeFactObject(raw.sourceInfo, ["platform", "status", "checkedAt"]),
+    rightsInfo: normalizeFactObject(raw.rightsInfo, ["holder", "contact", "note", "checkedAt"]),
+    reactionMetrics: (Array.isArray(raw.reactionMetrics) ? raw.reactionMetrics : [])
+      .map((m) => normalizeFactObject(m, ["label", "value", "checkedAt", "source"]))
+      .filter((m) => m.label && m.value),
+    formatSuggestion: normalizeFactObject(raw.formatSuggestion, ["format", "reason"]),
     aiReport: raw.aiReport || ""
   };
 }
@@ -628,31 +643,31 @@ function toggleSelectMode() {
 // ==========================================
 function filteredItems() {
   const query = (els.searchInput?.value || "").trim().toLowerCase();
-  const type = els.typeFilter?.value || "all";
-  const sort = els.sortSelect?.value || "sort";
   const sorted = [...items];
-
-  if (sort === "score") {
-    sorted.sort((a, b) => {
-      const avgA = averageScore(a);
-      const avgB = averageScore(b);
-      if (avgA !== avgB) return avgB - avgA;
-      const priorityA = clampScore(a.scores?.dramaFit) + clampScore(a.scores?.marketPotential) + clampScore(a.scores?.characterAppeal);
-      const priorityB = clampScore(b.scores?.dramaFit) + clampScore(b.scores?.marketPotential) + clampScore(b.scores?.characterAppeal);
-      return priorityB - priorityA;
-    });
-  } else if (sort === "title") {
-    sorted.sort((a, b) => a.title.localeCompare(b.title, "ko"));
+  const dir = sortDir === "asc" ? 1 : -1;
+  const valueOf = (item) => {
+    if (sortKey === "total") return averageScore(item);
+    if (sortKey === "date") return new Date(item.updatedAt).getTime();
+    return clampScore(item.scores?.[sortKey]);
+  };
+  if (sortKey === "title") {
+    sorted.sort((a, b) => dir * a.title.localeCompare(b.title, "ko"));
   } else {
-    sorted.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    sorted.sort((a, b) => {
+      const diff = valueOf(a) - valueOf(b);
+      if (diff !== 0) return dir * diff;
+      return averageScore(b) - averageScore(a);
+    });
   }
 
   return sorted.filter((item) => {
-    const haystack = [item.title, item.originalType, item.recommendation, ...item.genre].join(" ").toLowerCase();
+    const haystack = [item.title, item.originalType, item.recommendation, item.sourceInfo.platform, item.rightsInfo.holder, ...item.genre].join(" ").toLowerCase();
     const matchesQuery = !query || haystack.includes(query);
-    const matchesType = type === "all" || item.originalType === type;
+    const matchesType = typeFilterValue === "all" || item.originalType === typeFilterValue;
     const matchesStatus = statusFilter === "all" || statusKey(item) === statusFilter;
-    return matchesQuery && matchesType && matchesStatus;
+    const matchesFav = !favoritesOnly || item.starred;
+    const matchesSerial = serialFilterValue === "all" || (item.sourceInfo.status || "미입력") === serialFilterValue;
+    return matchesQuery && matchesType && matchesStatus && matchesFav && matchesSerial;
   });
 }
 
@@ -776,17 +791,54 @@ function renderResearch() {
 }
 
 function renderFilters() {
-  if (!els.typeFilter) return;
-  const current = els.typeFilter.value;
   const types = [...new Set(items.map((item) => item.originalType).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ko"));
-  els.typeFilter.innerHTML = '<option value="all">전체 유형</option>';
-  types.forEach((type) => {
-    const option = document.createElement("option");
-    option.value = type;
-    option.textContent = type;
-    els.typeFilter.append(option);
+  if (!types.includes(typeFilterValue)) typeFilterValue = "all";
+  if (els.typeFilter) {
+    els.typeFilter.innerHTML = '<option value="all">전체 유형</option>' + types.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("");
+    els.typeFilter.value = typeFilterValue;
+  }
+  let chipBar = document.querySelector("#typeChips");
+  if (!chipBar) {
+    chipBar = document.createElement("div");
+    chipBar.id = "typeChips";
+    chipBar.className = "type-chips";
+    const filterBar = document.querySelector(".filter-bar");
+    if (filterBar) filterBar.insertAdjacentElement("afterend", chipBar);
+  }
+  const count = (t) => items.filter((i) => t === "all" || i.originalType === t).length;
+  chipBar.innerHTML = `
+    <span class="chip-label">유형</span>
+    ${["all", ...types].map((t) => `<button type="button" class="type-chip ${typeFilterValue === t ? "on" : ""}" data-type="${escapeHtml(t)}">${t === "all" ? "전체" : escapeHtml(t)} <span>${count(t)}</span></button>`).join("")}
+    <span class="chip-sep"></span>
+    <button type="button" class="type-chip fav-chip ${favoritesOnly ? "on" : ""}" data-fav="1">★ 관심만 <span>${items.filter((i) => i.starred).length}</span></button>
+    <span class="chip-sep"></span>
+    <span class="chip-label">연재</span>
+    ${["all", "연재 중", "완결", "휴재", "미입력"].map((v) => {
+      const n = items.filter((i) => v === "all" || (i.sourceInfo.status || "미입력") === v).length;
+      if (v !== "all" && !n) return "";
+      return `<button type="button" class="type-chip ${serialFilterValue === v ? "on" : ""}" data-serial="${v}">${v === "all" ? "전체" : v} <span>${n}</span></button>`;
+    }).join("")}`;
+  chipBar.querySelectorAll("[data-type]").forEach((btn) => btn.addEventListener("click", () => {
+    typeFilterValue = btn.dataset.type;
+    renderFilters();
+    renderList();
+  }));
+  chipBar.querySelectorAll("[data-serial]").forEach((btn) => btn.addEventListener("click", () => {
+    serialFilterValue = btn.dataset.serial;
+    renderFilters();
+    renderList();
+  }));
+  chipBar.querySelector("[data-fav]")?.addEventListener("click", () => {
+    favoritesOnly = !favoritesOnly;
+    renderFilters();
+    renderList();
   });
-  els.typeFilter.value = types.includes(current) ? current : "all";
+}
+
+function syncSortSelect() {
+  if (!els.sortSelect) return;
+  const map = { total: "score", date: "date", title: "title" };
+  els.sortSelect.value = map[sortKey] || "custom";
 }
 
 function renderList() {
@@ -799,14 +851,29 @@ function renderList() {
     const head = document.createElement("div");
     head.className = "ip-row ip-row-head";
     head.setAttribute("aria-hidden", "true");
+    head.removeAttribute("aria-hidden");
+    const sb = (key, label) => {
+      const on = sortKey === key;
+      const arrow = on ? (sortDir === "desc" ? "▼" : "▲") : "";
+      return `<button type="button" class="sort-btn ${on ? "on" : ""}" data-sort="${key}" aria-label="${label} 정렬">${label}<i>${arrow}</i></button>`;
+    };
     head.innerHTML = `
       <span>#</span>
-      <span>작품</span>
+      <span>${sb("title", "작품")}</span>
       <span>상태</span>
-      <span>총점</span>
-      <span class="mini-bars-head"><span>드라마</span><span>흥행</span><span>차별</span><span>확장</span><span>캐릭터</span></span>
-      <span>참고 (제작 · 글로벌)</span>
+      <span>${sb("total", "총점")}</span>
+      <span class="mini-bars-head">${sb("dramaFit", "드라마")}${sb("marketPotential", "흥행")}${sb("originality", "차별")}${sb("scalability", "확장")}${sb("characterAppeal", "캐릭터")}</span>
+      <span class="ref-sort">참고 ${sb("productionFeasibility", "제작")} · ${sb("globalPotential", "글로벌")}</span>
     `;
+    head.querySelectorAll(".sort-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.sort;
+        if (sortKey === key) sortDir = sortDir === "desc" ? "asc" : "desc";
+        else { sortKey = key; sortDir = key === "title" ? "asc" : "desc"; }
+        syncSortSelect();
+        renderList();
+      });
+    });
     els.ipList.append(head);
   } else if (items.length) {
     const none = document.createElement("div");
@@ -822,7 +889,7 @@ function renderList() {
     const total = averageScore(item);
     const status = statusKey(item);
     button.className = `ip-row ${status === "hold" ? "is-held" : ""} ${!selectMode && item.id === selectedId ? "active" : ""} ${selectMode && isSelected ? "selected" : ""}`;
-    const meta = [item.originalType, ...item.genre.slice(0, 2)].filter(Boolean).join(" · ");
+    const meta = [item.sourceInfo.platform || item.originalType, ...item.genre.slice(0, 2)].filter(Boolean).join(" · ");
     const bars = totalScoreKeys.map((key) => {
       const v = clampScore(item.scores?.[key]);
       return `<span class="mini-bar" title="${escapeHtml(scoreLabels[key])} ${v.toFixed(1)}"><span class="mini-track"><span class="mini-fill tone-${scoreTone(v)}" style="width:${v * 10}%"></span></span><span class="mini-val">${v.toFixed(1)}</span></span>`;
@@ -831,7 +898,7 @@ function renderList() {
     button.innerHTML = `
       <span class="row-rank">${selectMode ? `<input type="checkbox" class="ip-checkbox" ${isSelected ? "checked" : ""} onclick="event.stopPropagation()" aria-label="${escapeHtml(item.title)} 선택">` : index + 1}</span>
       <span class="row-title">
-        <span class="row-title-line">${starButtonHtml(item)}<strong>${escapeHtml(item.title)}</strong></span>
+        <span class="row-title-line">${starButtonHtml(item)}<strong>${escapeHtml(item.title)}</strong>${serialTagHtml(item)}</span>
         <small>${escapeHtml(meta)}</small>
         ${status !== "recommend" && item.recommendationReason ? `<small class="row-reason">${escapeHtml(item.recommendationReason)}</small>` : ""}
       </span>
@@ -917,6 +984,7 @@ function renderDetail() {
   renderThreePoints(node.querySelector(".casting"), item.castingDirection);
   renderListInto(node.querySelector(".comparables-list"), item.comparables);
   renderDbComparisons(node.querySelector(".db-compare"), item);
+  renderFactPanel(node.querySelector(".fact-panel"), item);
   renderAdaptableElements(node.querySelector(".adapt-grid"), item.adaptableElements);
 
   // 주요 인물 — 이름 탭으로 한 명씩 보기
@@ -1188,8 +1256,15 @@ if (els.deleteSelectedBtn) {
   });
 }
 
-[els.searchInput, els.typeFilter, els.sortSelect].forEach((control) => {
-  if (control) control.addEventListener("input", render);
+if (els.searchInput) els.searchInput.addEventListener("input", renderList);
+if (els.typeFilter) els.typeFilter.addEventListener("input", () => { typeFilterValue = els.typeFilter.value; renderFilters(); renderList(); });
+if (els.sortSelect) els.sortSelect.addEventListener("input", () => {
+  const map = { score: "total", date: "date", title: "title" };
+  const key = map[els.sortSelect.value];
+  if (!key) return;
+  sortKey = key;
+  sortDir = key === "title" ? "asc" : "desc";
+  renderList();
 });
 
 if (els.addSampleBtn) {
@@ -1314,7 +1389,7 @@ function renderDbComparisons(container, item) {
     <p class="ref-sub">DB 내 유사작 비교</p>
     <div class="cmp-scroll">
       <table class="cmp-table"><colgroup><col class="cmp-col-title">${keys.map(() => "<col>").join("")}<col><col class="cmp-col-judge"></colgroup>
-        <thead><tr><th>작품</th><th>총점</th>${keys.map((k) => `<th>${escapeHtml(String(scoreLabels[k]).replace(/ 매력도| 적합/, ""))}</th>`).join("")}<th>판정</th></tr></thead>
+        <thead><tr><th>작품</th><th>총점</th>${keys.map((k) => `<th>${escapeHtml({ dramaFit: "드라마", marketPotential: "흥행", originality: "차별", scalability: "확장", characterAppeal: "캐릭터" }[k] || scoreLabels[k])}</th>`).join("")}<th>판정</th></tr></thead>
         <tbody>${row(item, true)}${similar.map((s) => row(s, false)).join("")}</tbody>
       </table>
     </div>`;
@@ -1324,4 +1399,39 @@ function renderDbComparisons(container, item) {
       if (target) { openDetail(target); window.scrollTo({ top: 0, behavior: "smooth" }); }
     });
   });
+}
+
+
+// ── 사실 정보(총점 미반영): 연재처·연재 상태, 판권 보유처, 원작 반응 수치, 예상 편성 규격 ──
+function normalizeFactObject(raw, keys) {
+  const out = {};
+  keys.forEach((k) => { out[k] = raw && raw[k] != null ? String(raw[k]).trim() : ""; });
+  return out;
+}
+
+function serialTagHtml(item) {
+  const st = item.sourceInfo.status;
+  if (!st) return "";
+  const cls = st === "완결" ? "done" : st === "휴재" ? "pause" : "live";
+  return `<span class="serial-tag serial-${cls}">${escapeHtml(st)}</span>`;
+}
+
+function renderFactPanel(container, item) {
+  if (!container) return;
+  const dash = '<span class="fact-empty">미입력</span>';
+  const when = (d) => (d ? `<small class="fact-date">${escapeHtml(d)} 확인</small>` : "");
+  const src = item.sourceInfo;
+  const rights = item.rightsInfo;
+  const fmt = item.formatSuggestion;
+  const metrics = item.reactionMetrics.length
+    ? `<ul class="fact-metrics">${item.reactionMetrics.map((m) => `<li><span>${escapeHtml(m.label)}</span><strong>${escapeHtml(m.value)}</strong>${m.checkedAt || m.source ? `<small>${escapeHtml([m.checkedAt, m.source].filter(Boolean).join(" · "))}</small>` : ""}</li>`).join("")}</ul>`
+    : dash;
+  container.innerHTML = `
+    <div class="section-head"><h3>원작 정보</h3><span>사실 정보 · 총점에 들어가지 않음</span></div>
+    <dl class="fact-grid">
+      <div><dt>연재처 · 상태</dt><dd>${src.platform || src.status ? `${escapeHtml(src.platform || "-")} ${serialTagHtml(item)} ${when(src.checkedAt)}` : dash}</dd></div>
+      <div><dt>판권 보유처</dt><dd>${rights.holder ? `${escapeHtml(rights.holder)}${rights.contact ? `<br><small>${escapeHtml(rights.contact)}</small>` : ""}${rights.note ? `<br><small>${escapeHtml(rights.note)}</small>` : ""} ${when(rights.checkedAt)}` : dash}</dd></div>
+      <div><dt>예상 편성 규격</dt><dd>${fmt.format ? `<strong>${escapeHtml(fmt.format)}</strong>${fmt.reason ? `<br><small>${escapeHtml(fmt.reason)}</small>` : ""}` : dash}</dd></div>
+      <div class="fact-wide"><dt>원작 반응 수치</dt><dd>${metrics}</dd></div>
+    </dl>`;
 }
