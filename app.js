@@ -493,6 +493,7 @@ function normalizeItem(raw, options = {}) {
     productionDifficulty: String(raw.productionDifficulty || "보통").trim(),
     castingDirection: String(raw.castingDirection || "").trim(),
     comparables: toArray(raw.comparables),
+    dbComparisons: toArray(raw.dbComparisons),
     recommendation: String(raw.recommendation || "리서치 필요").trim(),
     recommendationReason: String(raw.recommendationReason || "").trim(),
     starred: Boolean(raw.starred),
@@ -910,6 +911,7 @@ function renderDetail() {
   renderThreePoints(node.querySelector(".target"), item.targetAudience);
   renderThreePoints(node.querySelector(".casting"), item.castingDirection);
   renderListInto(node.querySelector(".comparables-list"), item.comparables);
+  renderDbComparisons(node.querySelector(".db-compare"), item);
   renderAdaptableElements(node.querySelector(".adapt-grid"), item.adaptableElements);
 
   // 주요 인물 — 이름 탭으로 한 명씩 보기
@@ -1235,3 +1237,79 @@ document.addEventListener("DOMContentLoaded", () => {
   switchView("dashboard");
   syncLoadItems();
 });
+
+
+// ── DB 내 유사작 비교 ──────────────────────────────
+// dbComparisons(제목 배열)가 있으면 그 작품을, 없으면 장르 키워드가 겹치는 작품을 자동으로 찾는다.
+// 점수는 저장값이 아니라 현재 DB 값을 매번 불러오므로 재평가 후에도 최신으로 유지된다.
+const GENRE_STOPWORDS = new Set(["드라마", "물", "장르", "현대", "코미디 드라마"]);
+
+function genreTokens(item) {
+  const tokens = new Set();
+  (item.genre || []).forEach((g) => {
+    String(g).split(/[\s·,/()]+/).forEach((t) => {
+      const w = t.replace(/물$/, "").trim();
+      if (w.length >= 2 && !GENRE_STOPWORDS.has(w)) tokens.add(w);
+    });
+  });
+  return tokens;
+}
+
+function findSimilarItems(item, limit = 3) {
+  const others = items.filter((c) => c.id !== item.id);
+  if (item.dbComparisons && item.dbComparisons.length) {
+    const picked = item.dbComparisons
+      .map((title) => others.find((c) => c.title.replace(/\s/g, "") === String(title).replace(/\s/g, "")))
+      .filter(Boolean);
+    if (picked.length) return picked.slice(0, limit);
+  }
+  const base = genreTokens(item);
+  if (!base.size) return [];
+  return others
+    .map((c) => {
+      const t = genreTokens(c);
+      let overlap = 0;
+      base.forEach((w) => { if ([...t].some((x) => x.includes(w) || w.includes(x))) overlap += 1; });
+      return { c, overlap };
+    })
+    .filter((x) => x.overlap > 0)
+    .sort((a, b) => b.overlap - a.overlap || averageScore(b.c) - averageScore(a.c))
+    .slice(0, limit)
+    .map((x) => x.c);
+}
+
+function renderDbComparisons(container, item) {
+  if (!container) return;
+  const similar = findSimilarItems(item);
+  if (!similar.length) {
+    container.innerHTML = '<p class="ref-sub">DB 내 유사작 없음</p>';
+    return;
+  }
+  const keys = totalScoreKeys;
+  const cell = (v, base) => {
+    const diff = v - base;
+    const cls = Math.abs(diff) < 0.05 ? "" : diff > 0 ? "cmp-up" : "cmp-down";
+    return `<td class="${cls}">${v.toFixed(1)}</td>`;
+  };
+  const row = (it, isSelf) => `
+    <tr class="${isSelf ? "cmp-self" : ""}">
+      <th scope="row">${isSelf ? escapeHtml(it.title) : `<button type="button" class="cmp-link" data-cmp-id="${escapeHtml(it.id)}">${escapeHtml(it.title)}</button>`}</th>
+      <td><strong>${averageScore(it).toFixed(1)}</strong></td>
+      ${keys.map((k) => isSelf ? `<td>${clampScore(it.scores[k]).toFixed(1)}</td>` : cell(clampScore(it.scores[k]), clampScore(item.scores[k]))).join("")}
+      <td>${escapeHtml(it.recommendation)}</td>
+    </tr>`;
+  container.innerHTML = `
+    <p class="ref-sub">DB 내 유사작 비교</p>
+    <div class="cmp-scroll">
+      <table class="cmp-table">
+        <thead><tr><th>작품</th><th>총점</th>${keys.map((k) => `<th>${escapeHtml(String(scoreLabels[k]).replace(/ 매력도| 적합/, ""))}</th>`).join("")}<th>판정</th></tr></thead>
+        <tbody>${row(item, true)}${similar.map((s) => row(s, false)).join("")}</tbody>
+      </table>
+    </div>`;
+  container.querySelectorAll(".cmp-link").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const target = items.find((c) => c.id === btn.dataset.cmpId);
+      if (target) { openDetail(target); window.scrollTo({ top: 0, behavior: "smooth" }); }
+    });
+  });
+}
