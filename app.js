@@ -5,6 +5,11 @@
 const SUPABASE_URL = "https://ozhdfewlboheqpcvbqgz.supabase.co";
 const SUPABASE_KEY = "sb_publishable_VBrlZgSIDMwO6htQd8fXkQ_HkUxmg3z";
 
+// 운영 주소에서만 운영 테이블을 쓰고, 그 외(미리보기·테스트 주소)는 전부 테스트 테이블을 쓴다.
+const PROD_HOSTS = ["ip-dashboard-kappa.vercel.app"];
+const IS_PROD = PROD_HOSTS.includes(window.location.hostname);
+const TABLE_NAME = IS_PROD ? "kdrama_ips" : "kdrama_ips_test";
+
 let supabaseClient = null;
 
 function initSupabase() {
@@ -22,7 +27,7 @@ function initSupabase() {
   return false;
 }
 
-const STORAGE_KEY = "kdrama-ip-dashboard-v1";
+const STORAGE_KEY = IS_PROD ? "kdrama-ip-dashboard-v1" : "kdrama-ip-dashboard-test-v1";
 const MIGRATION_KEY = `${STORAGE_KEY}-migrated-to-supabase`;
 
 const scoreLabels = {
@@ -250,7 +255,7 @@ async function saveItemToCloud(normalizedItem) {
     updatedAt: normalizedItem.updatedAt,
     content: normalizedItem,
   };
-  const { error } = await supabaseClient.from("kdrama_ips").upsert(dbPayload, { onConflict: "id" });
+  const { error } = await supabaseClient.from(TABLE_NAME).upsert(dbPayload, { onConflict: "id" });
   if (error) return { ok: false, mode: "cloud", error };
   return { ok: true, mode: "cloud" };
 }
@@ -260,7 +265,7 @@ async function syncLoadItems() {
   if (supabaseClient) {
     try {
       const { data, error } = await supabaseClient
-        .from("kdrama_ips")
+        .from(TABLE_NAME)
         .select("id,title,createdAt,updatedAt,content")
         .order("updatedAt", { ascending: false });
       if (error) throw error;
@@ -307,7 +312,7 @@ async function syncDeleteItem(id) {
   items = items.filter((candidate) => candidate.id !== id);
   setLocalItems(items);
   if (supabaseClient) {
-    const { error } = await supabaseClient.from("kdrama_ips").delete().eq("id", id);
+    const { error } = await supabaseClient.from(TABLE_NAME).delete().eq("id", id);
     if (error) {
       items = previousItems;
       setLocalItems(items);
@@ -319,12 +324,12 @@ async function syncDeleteItem(id) {
 
 async function replaceCloudItems(restoredItems) {
   if (!supabaseClient) return;
-  const { data, error: loadError } = await supabaseClient.from("kdrama_ips").select("id");
+  const { data, error: loadError } = await supabaseClient.from(TABLE_NAME).select("id");
   if (loadError) throw loadError;
   const restoredIds = new Set(restoredItems.map((item) => item.id));
   const idsToDelete = (data || []).map((row) => row.id).filter((id) => !restoredIds.has(id));
   if (idsToDelete.length > 0) {
-    const { error: deleteError } = await supabaseClient.from("kdrama_ips").delete().in("id", idsToDelete);
+    const { error: deleteError } = await supabaseClient.from(TABLE_NAME).delete().in("id", idsToDelete);
     if (deleteError) throw deleteError;
   }
   for (const item of restoredItems) {
@@ -1234,6 +1239,13 @@ if (els.saveBtn) {
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   initSupabase();
+  if (!IS_PROD) {
+    const badge = document.createElement("div");
+    badge.textContent = "TEST 서버 · kdrama_ips_test";
+    badge.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:9999;background:#d9480f;color:#fff;text-align:center;font:600 12px/24px sans-serif;";
+    document.body.appendChild(badge);
+    document.body.style.paddingTop = "24px";
+  }
   switchView("dashboard");
   syncLoadItems();
 });
