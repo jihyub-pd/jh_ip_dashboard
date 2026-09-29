@@ -379,12 +379,16 @@ div.ip-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2p
 }
 
 /* DB 내 유사작 비교 */
+.ref-panel, .ref-comparables, .db-compare { min-width: 0; max-width: 100%; }
 .db-compare { margin-top: 16px; }
-.cmp-scroll { overflow-x: auto; }
-.cmp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.cmp-table th, .cmp-table td { padding: 6px 8px; text-align: center; border-bottom: 1px solid rgba(127,127,127,.2); white-space: nowrap; }
-.cmp-table th[scope="row"] { text-align: left; font-weight: 500; }
-.cmp-table thead th { font-weight: 600; opacity: .7; font-size: 12px; }
+.cmp-scroll { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.cmp-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; }
+.cmp-table th, .cmp-table td { padding: 6px 3px; text-align: center; border-bottom: 1px solid rgba(127,127,127,.2); }
+.cmp-table col.cmp-col-title { width: 30%; }
+.cmp-table col.cmp-col-judge { width: 14%; }
+.cmp-table th[scope="row"] { text-align: left; font-weight: 500; word-break: keep-all; overflow-wrap: anywhere; line-height: 1.35; }
+.cmp-table td:last-child { word-break: keep-all; line-height: 1.3; }
+.cmp-table thead th { font-weight: 600; opacity: .7; font-size: 11px; white-space: nowrap; }
 .cmp-self { background: rgba(127,127,127,.08); font-weight: 600; }
 .cmp-up { color: #2f7d4f; }
 .cmp-down { color: #b3452f; }

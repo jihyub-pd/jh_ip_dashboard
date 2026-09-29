@@ -1301,7 +1301,7 @@ function renderDbComparisons(container, item) {
   container.innerHTML = `
     <p class="ref-sub">DB 내 유사작 비교</p>
     <div class="cmp-scroll">
-      <table class="cmp-table">
+      <table class="cmp-table"><colgroup><col class="cmp-col-title">${keys.map(() => "<col>").join("")}<col><col class="cmp-col-judge"></colgroup>
         <thead><tr><th>작품</th><th>총점</th>${keys.map((k) => `<th>${escapeHtml(String(scoreLabels[k]).replace(/ 매력도| 적합/, ""))}</th>`).join("")}<th>판정</th></tr></thead>
         <tbody>${row(item, true)}${similar.map((s) => row(s, false)).join("")}</tbody>
       </table>
