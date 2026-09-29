@@ -174,6 +174,7 @@ const els = {
   detailTemplate: document.querySelector("#detailTemplate"),
   detailViewTitle: document.querySelector("#detailViewTitle"),
   backBtn: document.querySelector("#backBtn"),
+  pdfBtn: document.querySelector("#pdfBtn"),
   addSampleBtn: document.querySelector("#addSampleBtn"),
   toggleSelectBtn: document.querySelector("#toggleSelectBtn"),
   deleteSelectedBtn: document.querySelector("#deleteSelectedBtn"),
@@ -918,6 +919,7 @@ function renderDetail() {
   const tabsHtml = chars.map((char, i) => `<button type="button" role="tab" class="char-tab ${i === 0 ? "active" : ""}" aria-selected="${i === 0 ? "true" : "false"}" data-char-index="${i}">${escapeHtml(char.name)}</button>`).join("");
   const panelsHtml = chars.map((char, i) => `
     <div class="char-panel" role="tabpanel" data-char-panel="${i}" ${i === 0 ? "" : "hidden"}>
+      <h4 class="char-print-name">${escapeHtml(char.name)}</h4>
       <p class="char-role">${escapeHtml(char.role)}</p>
       <div class="char-fields">
         <div><h4>특징 · 대사 · 평가</h4><p>${escapeHtml(char.traits)}</p></div>
@@ -1098,6 +1100,40 @@ function escapeHtml(value) {
   return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
 
+// 상세 페이지 PDF 저장 — 브라우저 인쇄 창에서 'PDF로 저장'을 고르면 됨
+function exportDetailPdf() {
+  const item = items.find((candidate) => candidate.id === selectedId);
+  if (!item || !els.detailPanel) return;
+  const panel = els.detailPanel;
+  const closedDetails = [...panel.querySelectorAll("details")].filter((d) => !d.open);
+  closedDetails.forEach((d) => { d.open = true; });
+
+  const today = new Date();
+  const ymd = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}${String(today.getDate()).padStart(2, "0")}`;
+  const meta = document.createElement("p");
+  meta.className = "print-meta";
+  meta.textContent = `원작 IP 평가 · 출력일 ${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, "0")}.${String(today.getDate()).padStart(2, "0")}`;
+  panel.prepend(meta);
+
+  const previousTitle = document.title;
+  document.title = `${item.title}_IP평가_${ymd}`.replace(/[\\/:*?"<>|]/g, "");
+  document.body.classList.add("printing-detail");
+
+  let restored = false;
+  const restore = () => {
+    if (restored) return;
+    restored = true;
+    closedDetails.forEach((d) => { d.open = false; });
+    meta.remove();
+    document.title = previousTitle;
+    document.body.classList.remove("printing-detail");
+    window.removeEventListener("afterprint", restore);
+  };
+  window.addEventListener("afterprint", restore);
+  window.print();
+  setTimeout(restore, 1000);
+}
+
 function switchView(viewName = "dashboard") {
   const safeViewName = viewName || "dashboard";
   const targetView = document.querySelector(`#${safeViewName}View`);
@@ -1113,6 +1149,10 @@ function switchView(viewName = "dashboard") {
 els.navButtons.forEach((button) => {
   button.addEventListener("click", () => switchView(button.dataset.view));
 });
+
+if (els.pdfBtn) {
+  els.pdfBtn.addEventListener("click", exportDetailPdf);
+}
 
 if (els.backBtn) {
   els.backBtn.addEventListener("click", () => { switchView("dashboard"); render(); });
