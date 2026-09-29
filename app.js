@@ -87,6 +87,9 @@ const requiredShape = {
     evidence: ["근거가 된 반응 또는 출처"],
     confidence: "높음 | 중간 | 낮음"
   },
+  adaptableElements: [
+    { category: "소재 | 설정 | 캐릭터 | 플롯", element: "가져올 요소", whyDrama: "드라마에 좋은 이유", howToUse: "원작 없이 가져다 쓰는 방법·변형 방향" }
+  ],
   notes: "선택 메모",
 };
 
@@ -503,10 +506,48 @@ function normalizeItem(raw, options = {}) {
       characterAppeal: characterAnalysis ? characterAppealFrom(characterAnalysis) : clampScore(raw.scores?.characterAppeal),
     },
     characterAnalysis,
+    adaptableElements: normalizeAdaptableElements(raw.adaptableElements),
     scoreRationales: normalizeScoreRationales(raw.scoreRationales || raw.scoreReasons || raw.scoreAnalysis || raw.scoreDescriptions),
     notes: String(raw.notes || "").trim(),
     aiReport: raw.aiReport || ""
   };
+}
+
+const ADAPT_CATEGORIES = ["소재", "설정", "캐릭터", "플롯"];
+
+function normalizeAdaptableElements(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((entry) => entry && typeof entry === "object" && String(entry.element || "").trim())
+    .map((entry) => ({
+      category: ADAPT_CATEGORIES.includes(String(entry.category || "").trim()) ? String(entry.category).trim() : "소재",
+      element: String(entry.element || "").trim(),
+      whyDrama: String(entry.whyDrama || "").trim(),
+      howToUse: String(entry.howToUse || "").trim(),
+    }))
+    .sort((a, b) => ADAPT_CATEGORIES.indexOf(a.category) - ADAPT_CATEGORIES.indexOf(b.category));
+}
+
+function renderAdaptableElements(el, elements) {
+  if (!el) return;
+  if (!elements || !elements.length) {
+    el.innerHTML = '<p class="notes-empty">아직 분석되지 않았습니다.</p>';
+    return;
+  }
+  el.innerHTML = ADAPT_CATEGORIES.map((category) => {
+    const group = elements.filter((entry) => entry.category === category);
+    if (!group.length) return "";
+    return `
+      <div class="adapt-col">
+        <h4 class="adapt-cat">${escapeHtml(category)}</h4>
+        ${group.map((entry) => `
+          <div class="adapt-card">
+            <p class="adapt-element">${escapeHtml(entry.element)}</p>
+            ${entry.whyDrama ? `<p class="adapt-line"><span>왜 좋은가</span>${escapeHtml(entry.whyDrama)}</p>` : ""}
+            ${entry.howToUse ? `<p class="adapt-line"><span>활용 방법</span>${escapeHtml(entry.howToUse)}</p>` : ""}
+          </div>`).join("")}
+      </div>`;
+  }).join("");
 }
 
 function toArray(value) {
@@ -868,6 +909,7 @@ function renderDetail() {
   renderThreePoints(node.querySelector(".target"), item.targetAudience);
   renderThreePoints(node.querySelector(".casting"), item.castingDirection);
   renderListInto(node.querySelector(".comparables-list"), item.comparables);
+  renderAdaptableElements(node.querySelector(".adapt-grid"), item.adaptableElements);
 
   // 주요 인물 — 이름 탭으로 한 명씩 보기
   const chars = (item.mainCharacters || []).filter((char) => char && char.name);
