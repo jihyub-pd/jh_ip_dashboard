@@ -1430,7 +1430,7 @@ function renderFactPanel(container, item) {
     <div class="section-head"><h3>원작 정보</h3><span>사실 정보 · 총점에 들어가지 않음</span></div>
     <dl class="fact-grid">
       <div><dt>연재처 · 상태</dt><dd>${src.platform || src.status ? `${escapeHtml(src.platform || "-")} ${serialTagHtml(item)} ${when(src.checkedAt)}` : dash}</dd></div>
-      <div><dt>판권 보유처</dt><dd>${rights.holder ? `${escapeHtml(rights.holder)}${rights.contact ? `<br><small>${escapeHtml(rights.contact)}</small>` : ""}${rights.note ? `<br><small>${escapeHtml(rights.note)}</small>` : ""} ${when(rights.checkedAt)}` : dash}</dd></div>
+      <div><dt>판권 보유처</dt><dd>${rights.holder || rights.note ? `${escapeHtml(rights.holder || "보유처 미확인")}${rights.contact ? `<br><small>${escapeHtml(rights.contact)}</small>` : ""}${rights.note ? `<br><small>${escapeHtml(rights.note)}</small>` : ""} ${when(rights.checkedAt)}` : dash}</dd></div>
       <div><dt>예상 편성 규격</dt><dd>${fmt.format ? `<strong>${escapeHtml(fmt.format)}</strong>${fmt.reason ? `<br><small>${escapeHtml(fmt.reason)}</small>` : ""}` : dash}</dd></div>
       <div class="fact-wide"><dt>원작 반응 수치</dt><dd>${metrics}</dd></div>
     </dl>`;
