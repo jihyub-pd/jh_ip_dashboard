@@ -43,6 +43,8 @@ const scoreLabels = {
 // 총점(평균) 집계에서 제외하는 참고 항목 — 점수·근거는 표시만 함
 const TOTAL_EXCLUDED_KEYS = ["productionFeasibility", "globalPotential"];
 const totalScoreKeys = Object.keys(scoreLabels).filter((key) => !TOTAL_EXCLUDED_KEYS.includes(key));
+// 총점 가중치(2026-09-30): 드라마 적합 1.0 · 흥행성 0.8 · 차별성·확장성·캐릭터 매력도 1.2 (가중 평균)
+const TOTAL_WEIGHTS = { dramaFit: 1.0, marketPotential: 0.8, originality: 1.2, scalability: 1.2, characterAppeal: 1.2 };
 
 const requiredShape = {
   title: "원작 제목",
@@ -357,9 +359,15 @@ function clampScore(value) {
 }
 
 function averageScore(item) {
-  const values = totalScoreKeys.map((key) => clampScore(item.scores?.[key]));
-  const sum = values.reduce((acc, val) => acc + val, 0);
-  return Math.round((sum / values.length) * 10) / 10;
+  // 가중 평균: 가중치 합으로 나눠 10점 만점 유지
+  let sum = 0;
+  let weightSum = 0;
+  totalScoreKeys.forEach((key) => {
+    const w = TOTAL_WEIGHTS[key] ?? 1;
+    sum += clampScore(item.scores?.[key]) * w;
+    weightSum += w;
+  });
+  return weightSum ? Math.round((sum / weightSum) * 10) / 10 : 0;
 }
 
 // 추천 상태 분류 — 탭 필터·배지에 공통 사용
@@ -436,11 +444,11 @@ function scoreRationaleText(item, key) {
   return "평가 근거가 입력되었습니다.";
 }
 
-// 캐릭터 매력도: 성격 40% · 갈등 35% · 직업 25%, 한국 60% + 북미 40%
+// 캐릭터 매력도: 성격 40% · 갈등 35% · 직업·능력·역할 25%, 한국 60% + 북미 40%
 const CHAR_WEIGHTS = { personality: 0.4, conflict: 0.35, occupation: 0.25 };
-const CHAR_PART_LABELS = { personality: "성격", conflict: "갈등", occupation: "직업" };
+const CHAR_PART_LABELS = { personality: "성격", conflict: "갈등", occupation: "직업·능력·역할" };
 const CHAR_REGION_WEIGHTS = { kr: 0.6, na: 0.4 };
-const CHARACTER_RUBRIC_TEXT = `[캐릭터 매력도 기준] 주연급 인물이 한국(KR)·북미(NA) 대중에게 매력적인 성격·갈등·직업을 가졌는지 KR/NA 각각 personality·conflict·occupation을 10점 만점으로 채점. 성격=욕망 선명·결핍·주체성(수동적/고구마 감점, NA는 강압적 로맨스·권력차 미화 감점), 갈등=보편적 판돈(한국 특유 맥락은 NA만 감점), 직업=매회 사건을 공급하는 엔진인가. 9=캐릭터만으로 기획안이 팔림, 7=세 요소 중 둘이 강함, 5=기능적·무난, 3=대폭 재설계 필요. NA 근거(영문판 반응 등)가 없으면 confidence "낮음", NA 점수 7.0 이하.`;
+const CHARACTER_RUBRIC_TEXT = `[캐릭터 매력도 기준] 주연급 인물이 한국(KR)·북미(NA) 대중에게 매력적인 성격·갈등·직업(능력·역할)을 가졌는지 KR/NA 각각 personality·conflict·occupation을 10점 만점으로 채점. 성격=욕망 선명·결핍·주체성(수동적/고구마 감점, NA는 강압적 로맨스·권력차 미화 감점), 갈등=보편적 판돈(한국 특유 맥락은 NA만 감점), 직업·능력·역할=직업 또는 고유 능력·서사적 역할이 매회 사건을 공급하는 엔진인가. 9=캐릭터만으로 기획안이 팔림, 7=세 요소 중 둘이 강함, 5=기능적·무난, 3=대폭 재설계 필요. NA 근거(영문판 반응 등)가 없으면 confidence "낮음", NA 점수 7.0 이하.`;
 
 function normalizeCharacterAnalysis(raw) {
   if (!raw || typeof raw !== "object") return null;
