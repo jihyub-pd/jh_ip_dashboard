@@ -727,8 +727,9 @@ function render() {
   renderList();
   renderResearch();
   renderFavorites();
-  updatePrompt();       
-  updateBackupText();   
+  renderProposal();
+  updatePrompt();
+  updateBackupText();
 }
 
 function renderMetrics() {
@@ -1488,4 +1489,290 @@ function renderFactPanel(container, item) {
       <div><dt>예상 편성 규격</dt><dd>${fmt.format ? `<strong>${escapeHtml(fmt.format)}</strong>${fmt.reason ? `<br><small>${escapeHtml(fmt.reason)}</small>` : ""}` : dash}</dd></div>
       <div class="fact-wide"><dt>원작 반응 수치</dt><dd>${metrics}</dd></div>
     </dl>`;
+}
+
+
+// ==========================================
+// 10. 가중치 개편안 — 시뮬레이션 전용 화면 (2026-10-07)
+// 점수를 읽어 화면에서만 다시 계산한다. items·DB에는 아무것도 쓰지 않는다.
+// ==========================================
+const CURRENT_RECOMMEND_CUT = 6.5;
+const PROPOSAL_KEYS = ["dramaFit", "marketPotential", "originality", "scalability", "characterAppeal"];
+const PROPOSAL_PRESETS = [
+  { key: "proposal", label: "보고서 제안값", weights: { dramaFit: 1.0, marketPotential: 0.8, originality: 1.0, scalability: 1.2, characterAppeal: 1.4 } },
+  { key: "noMarket", label: "제안값 · 흥행성 제외", weights: { dramaFit: 1.0, marketPotential: 0, originality: 1.0, scalability: 1.2, characterAppeal: 1.4 } },
+  { key: "current", label: "현행과 같게", weights: { ...TOTAL_WEIGHTS } },
+];
+const PROPOSAL_STORE_KEY = `${STORAGE_KEY}-weight-proposal`;
+const PROPOSAL_VIEWS = [
+  { key: "flip", label: "판정이 바뀌는 작품" },
+  { key: "candidate", label: "후보작" },
+  { key: "comparison", label: "비교용" },
+  { key: "all", label: "전체" },
+];
+
+function loadProposalState() {
+  const fallback = { weights: { ...PROPOSAL_PRESETS[0].weights }, cut: CURRENT_RECOMMEND_CUT };
+  try {
+    const saved = JSON.parse(localStorage.getItem(PROPOSAL_STORE_KEY));
+    if (!saved || typeof saved !== "object") return fallback;
+    const weights = {};
+    for (const key of PROPOSAL_KEYS) {
+      const v = Number(saved.weights?.[key]);
+      weights[key] = Number.isFinite(v) && v >= 0 ? v : fallback.weights[key];
+    }
+    const cut = Number(saved.cut);
+    return { weights, cut: Number.isFinite(cut) ? cut : fallback.cut };
+  } catch {
+    return fallback;
+  }
+}
+
+function saveProposalState() {
+  try { localStorage.setItem(PROPOSAL_STORE_KEY, JSON.stringify({ weights: proposalWeights, cut: proposalCut })); } catch { /* 저장 실패해도 화면 동작에는 영향 없음 */ }
+}
+
+const proposalState = loadProposalState();
+let proposalWeights = proposalState.weights;
+let proposalCut = proposalState.cut;
+let proposalViewKey = "flip";
+let proposalSortKey = "next";
+let proposalSortDir = "desc";
+let proposalControlsBuilt = false;
+
+function weightedTotal(item, weights) {
+  let sum = 0;
+  let weightSum = 0;
+  PROPOSAL_KEYS.forEach((key) => {
+    const w = Number(weights[key]) || 0;
+    sum += clampScore(item.scores?.[key]) * w;
+    weightSum += w;
+  });
+  return weightSum ? Math.round((sum / weightSum) * 10) / 10 : 0;
+}
+
+function comparisonGroup(item) {
+  const notes = String(item.notes || "");
+  if (notes.startsWith("[비교용·흥행 부진")) return "flop";
+  if (notes.startsWith("[비교용")) return "hit";
+  return null;
+}
+
+function verdictLabel(item) {
+  return { recommend: "추천", research: "리서치 필요", hold: "보류" }[statusKey(item)];
+}
+
+function proposedVerdict(item, currentTotal, nextTotal) {
+  const status = statusKey(item);
+  if (status === "research") return "리서치 필요";
+  if (status === "hold" && currentTotal >= CURRENT_RECOMMEND_CUT) return "보류"; // 치명적 리스크 보류는 유지
+  return nextTotal >= proposalCut ? "추천" : "보류";
+}
+
+function separationRate(rows, totalOf) {
+  const hits = rows.filter((r) => r.group === "hit");
+  const flops = rows.filter((r) => r.group === "flop");
+  if (!hits.length || !flops.length) return { rate: null, hits: hits.length, flops: flops.length };
+  let win = 0;
+  hits.forEach((h) => flops.forEach((f) => {
+    const a = totalOf(h), b = totalOf(f);
+    win += a > b ? 1 : a === b ? 0.5 : 0;
+  }));
+  return { rate: win / (hits.length * flops.length), hits: hits.length, flops: flops.length };
+}
+
+function buildProposalRows() {
+  const noMarket = (weights) => ({ ...weights, marketPotential: 0 });
+  return items.map((item) => {
+    const current = averageScore(item);
+    const next = weightedTotal(item, proposalWeights);
+    const before = verdictLabel(item);
+    const after = proposedVerdict(item, current, next);
+    return {
+      item,
+      group: comparisonGroup(item),
+      current,
+      next,
+      delta: Math.round((next - current) * 10) / 10,
+      before,
+      after,
+      flipped: before !== after,
+      currentNoMarket: weightedTotal(item, noMarket(TOTAL_WEIGHTS)),
+      nextNoMarket: weightedTotal(item, noMarket(proposalWeights)),
+    };
+  });
+}
+
+function buildProposalControls() {
+  const presetBox = document.querySelector("#proposalPresets");
+  const weightBox = document.querySelector("#proposalWeights");
+  if (!presetBox || !weightBox) return false;
+
+  const activePreset = PROPOSAL_PRESETS.find((p) => PROPOSAL_KEYS.every((k) => Number(p.weights[k]) === Number(proposalWeights[k])));
+  presetBox.innerHTML = PROPOSAL_PRESETS.map((p) => `<button type="button" class="ghost-btn ${activePreset?.key === p.key ? "on" : ""}" data-preset="${p.key}">${escapeHtml(p.label)}</button>`).join("");
+  presetBox.querySelectorAll("[data-preset]").forEach((btn) => btn.addEventListener("click", () => {
+    const preset = PROPOSAL_PRESETS.find((p) => p.key === btn.dataset.preset);
+    if (!preset) return;
+    proposalWeights = { ...preset.weights };
+    saveProposalState();
+    buildProposalControls();
+    renderProposalResults();
+  }));
+
+  weightBox.innerHTML = PROPOSAL_KEYS.map((key) => {
+    const changed = Number(proposalWeights[key]) !== Number(TOTAL_WEIGHTS[key]);
+    return `
+      <div class="pw ${changed ? "changed" : ""}" data-pw="${key}">
+        <label for="pw-${key}">${escapeHtml(scoreLabels[key])}</label>
+        <div class="pw-row"><span>현행 ${Number(TOTAL_WEIGHTS[key]).toFixed(1)} →</span>
+          <input id="pw-${key}" type="number" inputmode="decimal" step="0.1" min="0" max="3" value="${Number(proposalWeights[key]).toFixed(1)}" data-weight="${key}" />
+        </div>
+      </div>`;
+  }).join("") + `
+      <div class="pw pw-cut ${proposalCut !== CURRENT_RECOMMEND_CUT ? "changed" : ""}">
+        <label for="pw-cut">추천 컷</label>
+        <div class="pw-row"><span>현행 ${CURRENT_RECOMMEND_CUT.toFixed(1)} →</span>
+          <input id="pw-cut" type="number" inputmode="decimal" step="0.1" min="0" max="10" value="${proposalCut.toFixed(1)}" />
+        </div>
+      </div>`;
+
+  weightBox.querySelectorAll("[data-weight]").forEach((input) => input.addEventListener("input", () => {
+    const key = input.dataset.weight;
+    const v = Number(input.value);
+    if (!Number.isFinite(v) || v < 0) return;
+    proposalWeights[key] = v;
+    input.closest(".pw")?.classList.toggle("changed", v !== Number(TOTAL_WEIGHTS[key]));
+    const nowActive = PROPOSAL_PRESETS.find((p) => PROPOSAL_KEYS.every((k) => Number(p.weights[k]) === Number(proposalWeights[k])));
+    presetBox.querySelectorAll("[data-preset]").forEach((b) => b.classList.toggle("on", nowActive?.key === b.dataset.preset));
+    saveProposalState();
+    renderProposalResults();
+  }));
+  weightBox.querySelector("#pw-cut")?.addEventListener("input", (event) => {
+    const v = Number(event.target.value);
+    if (!Number.isFinite(v)) return;
+    proposalCut = v;
+    event.target.closest(".pw")?.classList.toggle("changed", v !== CURRENT_RECOMMEND_CUT);
+    saveProposalState();
+    renderProposalResults();
+  });
+
+  const search = document.querySelector("#proposalSearch");
+  if (search && !search.dataset.bound) {
+    search.dataset.bound = "1";
+    search.addEventListener("input", renderProposalResults);
+  }
+  return true;
+}
+
+function renderProposal() {
+  if (!proposalControlsBuilt) proposalControlsBuilt = buildProposalControls();
+  renderProposalResults();
+}
+
+function renderProposalResults() {
+  const formula = document.querySelector("#proposalFormula");
+  const kpiBox = document.querySelector("#proposalKpis");
+  const tabBox = document.querySelector("#proposalTabs");
+  const head = document.querySelector("#proposalHead");
+  const body = document.querySelector("#proposalBody");
+  if (!kpiBox || !tabBox || !head || !body) return;
+
+  const weightSum = PROPOSAL_KEYS.reduce((sum, key) => sum + (Number(proposalWeights[key]) || 0), 0);
+  if (formula) {
+    formula.textContent = `개편안 총점 = (${PROPOSAL_KEYS.map((k) => `${scoreLabels[k]}×${Number(proposalWeights[k]).toFixed(1)}`).join(" + ")}) ÷ ${weightSum.toFixed(1)}`
+      + (weightSum ? "" : " · 가중치가 모두 0이라 계산할 수 없습니다.");
+  }
+
+  const rows = buildProposalRows();
+  const flips = rows.filter((r) => r.flipped);
+  const candidates = rows.filter((r) => !r.group);
+  const comparisons = rows.filter((r) => r.group);
+  const toRecommend = flips.filter((r) => r.after === "추천").length;
+  const toHold = flips.filter((r) => r.after === "보류").length;
+  const recBefore = candidates.filter((r) => r.before === "추천").length;
+  const recAfter = candidates.filter((r) => r.after === "추천").length;
+  const sepNow = separationRate(rows, (r) => r.current);
+  const sepNext = separationRate(rows, (r) => r.next);
+  const sepNowNm = separationRate(rows, (r) => r.currentNoMarket);
+  const sepNextNm = separationRate(rows, (r) => r.nextNoMarket);
+  const pct = (s) => (s.rate === null ? "—" : `${(s.rate * 100).toFixed(1)}%`);
+
+  const navCount = document.querySelector("#proposalNavCount");
+  if (navCount) navCount.textContent = flips.length;
+
+  kpiBox.innerHTML = `
+    <div class="kpi"><span>판정이 바뀌는 작품</span><strong>${flips.length}</strong><small>보류 → 추천 ${toRecommend} · 추천 → 보류 ${toHold}</small></div>
+    <div class="kpi"><span>후보작 추천 (비교용 제외)</span><strong class="kpi-recommend">${recBefore}<span class="kpi-arrow">→</span>${recAfter}</strong><small>후보작 ${candidates.length}편 기준</small></div>
+    <div class="kpi"><span>흥행·부진 구분력</span><strong>${pct(sepNow)}<span class="kpi-arrow">→</span>${pct(sepNext)}</strong><small>비교용 흥행 ${sepNow.hits} × 부진 ${sepNow.flops}</small></div>
+    <div class="kpi"><span>구분력 · 흥행성 제외</span><strong>${pct(sepNowNm)}<span class="kpi-arrow">→</span>${pct(sepNextNm)}</strong><small>결과를 알고 매긴 흥행성을 빼고 본 값</small></div>`;
+
+  const pools = { flip: flips, candidate: candidates, comparison: comparisons, all: rows };
+  tabBox.innerHTML = "";
+  PROPOSAL_VIEWS.forEach((v) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("aria-selected", proposalViewKey === v.key ? "true" : "false");
+    btn.className = `status-tab ${proposalViewKey === v.key ? "active" : ""}`;
+    btn.innerHTML = `${v.label} <span>${pools[v.key].length}</span>`;
+    btn.addEventListener("click", () => { proposalViewKey = v.key; renderProposalResults(); });
+    tabBox.append(btn);
+  });
+
+  const query = (document.querySelector("#proposalSearch")?.value || "").trim().toLowerCase();
+  const dir = proposalSortDir === "asc" ? 1 : -1;
+  const sortValue = (r) => ({ title: r.item.title, current: r.current, next: r.next, delta: r.delta, verdict: r.after }[proposalSortKey]);
+  const visible = pools[proposalViewKey]
+    .filter((r) => !query || r.item.title.toLowerCase().includes(query))
+    .sort((a, b) => {
+      const x = sortValue(a), y = sortValue(b);
+      const diff = typeof x === "string" ? x.localeCompare(y, "ko") : x - y;
+      return dir * diff || b.next - a.next || a.item.title.localeCompare(b.item.title, "ko");
+    });
+
+  const sb = (key, label, cls = "") => {
+    const on = proposalSortKey === key;
+    return `<th class="${cls}"><button type="button" class="sort-btn ${on ? "on" : ""}" data-psort="${key}">${label}<i>${on ? (proposalSortDir === "desc" ? "▼" : "▲") : ""}</i></button></th>`;
+  };
+  head.innerHTML = `<tr><th class="pt-rank">#</th>${sb("title", "작품")}${sb("current", "현행", "pt-num")}${sb("next", "개편안", "pt-num")}${sb("delta", "변화", "pt-num")}${sb("verdict", "판정 (현행 → 개편안)")}</tr>`;
+  head.querySelectorAll("[data-psort]").forEach((btn) => btn.addEventListener("click", () => {
+    const key = btn.dataset.psort;
+    if (proposalSortKey === key) proposalSortDir = proposalSortDir === "desc" ? "asc" : "desc";
+    else { proposalSortKey = key; proposalSortDir = key === "title" || key === "verdict" ? "asc" : "desc"; }
+    renderProposalResults();
+  }));
+
+  if (!visible.length) {
+    const msg = !items.length ? "데이터를 불러오는 중입니다."
+      : proposalViewKey === "flip" && !query ? "이 가중치로는 판정이 바뀌는 작품이 없습니다."
+      : "조건에 맞는 작품이 없습니다.";
+    body.innerHTML = `<tr><td colspan="6" class="pt-empty">${msg}</td></tr>`;
+    return;
+  }
+
+  const pill = (v) => `<span class="status-badge status-${{ "추천": "recommend", "보류": "hold", "리서치 필요": "research" }[v]}">${escapeHtml(v)}</span>`;
+  body.innerHTML = visible.map((r, i) => {
+    const deltaCls = r.delta > 0 ? "up" : r.delta < 0 ? "down" : "zero";
+    const deltaText = `${r.delta > 0 ? "+" : ""}${r.delta.toFixed(1)}`;
+    const groupChip = r.group ? `<span class="pt-group pt-${r.group}">${r.group === "hit" ? "비교용 · 흥행" : "비교용 · 부진"}</span>` : "";
+    return `
+      <tr class="${r.flipped ? "pt-flip" : ""}" data-pid="${escapeHtml(r.item.id)}" tabindex="0">
+        <td class="pt-rank">${i + 1}</td>
+        <td class="pt-title"><strong>${escapeHtml(r.item.title)}</strong><span class="pt-meta">${rightsBadgeHtml(r.item)}${groupChip}</span></td>
+        <td class="pt-num">${r.current.toFixed(1)}</td>
+        <td class="pt-num"><strong>${r.next.toFixed(1)}</strong></td>
+        <td class="pt-num pt-delta ${deltaCls}">${deltaText}</td>
+        <td class="pt-verdict">${r.flipped ? `${pill(r.before)}<span class="pt-arrow">→</span>${pill(r.after)}` : pill(r.after)}</td>
+      </tr>`;
+  }).join("");
+  body.querySelectorAll("tr[data-pid]").forEach((tr) => {
+    const open = () => {
+      const item = items.find((c) => c.id === tr.dataset.pid);
+      if (item) openDetail(item);
+    };
+    tr.addEventListener("click", open);
+    tr.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); }
+    });
+  });
 }
