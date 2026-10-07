@@ -72,6 +72,7 @@ const requiredShape = {
   castingDirection: "주연/조연/연출 방향 3가지를 포함한 캐스팅 방향",
   comparables: ["유사 성공작1", "유사 성공작2", "유사 성공작3"],
   recommendation: "추천 | 보류 | 리서치 필요",
+  rightsStatus: "열림 | 확인 필요 | 선점 | 영상화 완료",
   recommendationReason: "보류·리서치 필요일 때 그 사유 한 줄",
   scores: {
     dramaFit: 0.0,
@@ -218,6 +219,7 @@ let sortDir = "desc";       // desc | asc
 let typeFilterValue = "all";
 let favoritesOnly = false;
 let serialFilterValue = "all";
+let rightsFilterValue = "available"; // 기본: 확보 가능(열림·확인 필요)만 표시
 
 if (els.schemaPreview) {
   els.schemaPreview.textContent = JSON.stringify(requiredShape, null, 2);
@@ -373,7 +375,7 @@ function averageScore(item) {
 // 추천 상태 분류 — 탭 필터·배지에 공통 사용
 const STATUS_TABS = [
   { key: "all", label: "전체" },
-  { key: "recommend", label: "검토 후보" },
+  { key: "recommend", label: "추천" },
   { key: "research", label: "리서치 필요" },
   { key: "hold", label: "보류" },
 ];
@@ -390,6 +392,32 @@ function statusBadgeHtml(item) {
   if (statusKey(item) === "recommend") return ""; // 추천은 배지 없이 표시 (리서치 필요·보류만 표시)
   const reason = item.recommendationReason ? ` title="${escapeHtml(item.recommendationReason)}"` : "";
   return `<span class="status-badge status-${statusKey(item)}"${reason}>${escapeHtml(item.recommendation || "리서치 필요")}</span>`;
+}
+
+// 판권 상태 — 판정(추천/보류/리서치)과 별개로 관리
+const RIGHTS_STATUSES = ["열림", "확인 필요", "선점", "영상화 완료"];
+const RIGHTS_FILTERS = [
+  { key: "available", label: "확보 가능", match: (rs) => rs === "열림" || rs === "확인 필요" },
+  { key: "all", label: "전체", match: () => true },
+  ...RIGHTS_STATUSES.map((rs) => ({ key: rs, label: rs, match: (v) => v === rs })),
+];
+
+function normalizeRightsStatus(value) {
+  const v = String(value || "").trim();
+  return RIGHTS_STATUSES.includes(v) ? v : "확인 필요";
+}
+
+function rightsKey(item) {
+  return { "열림": "open", "확인 필요": "check", "선점": "taken", "영상화 완료": "made" }[item.rightsStatus] || "check";
+}
+
+function rightsBadgeHtml(item) {
+  return `<span class="rights-badge rights-${rightsKey(item)}" title="판권 상태">${escapeHtml(item.rightsStatus)}</span>`;
+}
+
+function matchesRightsFilter(item) {
+  const f = RIGHTS_FILTERS.find((r) => r.key === rightsFilterValue) || RIGHTS_FILTERS[0];
+  return f.match(item.rightsStatus);
 }
 
 function starButtonHtml(item, extraClass = "") {
@@ -518,6 +546,7 @@ function normalizeItem(raw, options = {}) {
     dbComparisons: toArray(raw.dbComparisons),
     recommendation: String(raw.recommendation || "리서치 필요").trim(),
     recommendationReason: String(raw.recommendationReason || "").trim(),
+    rightsStatus: normalizeRightsStatus(raw.rightsStatus),
     starred: Boolean(raw.starred),
     userMemo: String(raw.userMemo || ""),
     scores: {
@@ -669,13 +698,14 @@ function filteredItems() {
   }
 
   return sorted.filter((item) => {
-    const haystack = [item.title, item.originalType, item.recommendation, item.sourceInfo.platform, item.rightsInfo.holder, ...item.genre].join(" ").toLowerCase();
+    const haystack = [item.title, item.originalType, item.recommendation, item.rightsStatus, item.sourceInfo.platform, item.rightsInfo.holder, ...item.genre].join(" ").toLowerCase();
     const matchesQuery = !query || haystack.includes(query);
     const matchesType = typeFilterValue === "all" || item.originalType === typeFilterValue;
     const matchesStatus = statusFilter === "all" || statusKey(item) === statusFilter;
     const matchesFav = !favoritesOnly || item.starred;
     const matchesSerial = serialFilterValue === "all" || (item.sourceInfo.status || "미입력") === serialFilterValue;
-    return matchesQuery && matchesType && matchesStatus && matchesFav && matchesSerial;
+    const matchesRights = matchesRightsFilter(item);
+    return matchesQuery && matchesType && matchesStatus && matchesFav && matchesSerial && matchesRights;
   });
 }
 
@@ -706,6 +736,8 @@ function renderMetrics() {
   if (els.recommendedCount) els.recommendedCount.textContent = items.filter((item) => statusKey(item) === "recommend").length;
   if (els.researchCount) els.researchCount.textContent = items.filter((item) => statusKey(item) === "research").length;
   if (els.heldCount) els.heldCount.textContent = items.filter((item) => statusKey(item) === "hold").length;
+  const pickKpi = document.querySelector("#pickCount");
+  if (pickKpi) pickKpi.textContent = items.filter((item) => statusKey(item) === "recommend" && (item.rightsStatus === "열림" || item.rightsStatus === "확인 필요")).length;
   const favoriteKpi = document.querySelector("#favoriteCount");
   if (favoriteKpi) favoriteKpi.textContent = items.filter((item) => item.starred).length;
   const rawAvg = items.length ? items.reduce((sum, item) => sum + averageScore(item), 0) / items.length : 0;
@@ -716,7 +748,8 @@ function renderStatusTabs() {
   if (!els.statusTabs) return;
   els.statusTabs.innerHTML = "";
   STATUS_TABS.forEach((tab) => {
-    const count = tab.key === "all" ? items.length : items.filter((item) => statusKey(item) === tab.key).length;
+    const pool = items.filter(matchesRightsFilter);
+    const count = tab.key === "all" ? pool.length : pool.filter((item) => statusKey(item) === tab.key).length;
     const btn = document.createElement("button");
     btn.type = "button";
     btn.setAttribute("role", "tab");
@@ -749,6 +782,7 @@ function reasonCardsInto(container, list) {
         <strong>${escapeHtml(item.title)}</strong>
         <span class="reason-card-score">${averageScore(item).toFixed(1)}</span>
       </span>
+      <span class="fav-meta">${rightsBadgeHtml(item)}</span>
       <span class="reason-card-meta">${escapeHtml([item.originalType, ...item.genre.slice(0, 2)].filter(Boolean).join(" · "))}</span>
       <span class="reason-card-text">${escapeHtml(item.recommendationReason || "사유가 아직 기록되지 않았습니다.")}</span>
     `;
@@ -777,7 +811,7 @@ function renderFavorites() {
           <strong>${escapeHtml(item.title)}</strong>
           <span class="reason-card-score">${averageScore(item).toFixed(1)}</span>
         </span>
-        <span class="fav-meta">${statusBadgeHtml(item)}<span class="reason-card-meta">${escapeHtml([item.originalType, ...item.genre.slice(0, 2)].filter(Boolean).join(" · "))}</span></span>
+        <span class="fav-meta">${statusBadgeHtml(item)}${rightsBadgeHtml(item)}<span class="reason-card-meta">${escapeHtml([item.originalType, ...item.genre.slice(0, 2)].filter(Boolean).join(" · "))}</span></span>
         <span class="fav-logline">${escapeHtml(item.logline || "")}</span>
         ${reason}
         ${item.userMemo ? `<span class="fav-memo"><strong>내 메모</strong> ${escapeHtml(item.userMemo)}</span>` : ""}
@@ -820,6 +854,12 @@ function renderFilters() {
     <span class="chip-sep"></span>
     <button type="button" class="type-chip fav-chip ${favoritesOnly ? "on" : ""}" data-fav="1">★ 관심만 <span>${items.filter((i) => i.starred).length}</span></button>
     <span class="chip-sep"></span>
+    <span class="chip-label">판권</span>
+    ${RIGHTS_FILTERS.map((r) => {
+      const n = items.filter((i) => r.match(i.rightsStatus)).length;
+      return `<button type="button" class="type-chip ${rightsFilterValue === r.key ? "on" : ""}" data-rights="${escapeHtml(r.key)}">${escapeHtml(r.label)} <span>${n}</span></button>`;
+    }).join("")}
+    <span class="chip-sep"></span>
     <span class="chip-label">연재</span>
     ${["all", "연재 중", "완결", "휴재", "미입력"].map((v) => {
       const n = items.filter((i) => v === "all" || (i.sourceInfo.status || "미입력") === v).length;
@@ -834,6 +874,12 @@ function renderFilters() {
   chipBar.querySelectorAll("[data-serial]").forEach((btn) => btn.addEventListener("click", () => {
     serialFilterValue = btn.dataset.serial;
     renderFilters();
+    renderList();
+  }));
+  chipBar.querySelectorAll("[data-rights]").forEach((btn) => btn.addEventListener("click", () => {
+    rightsFilterValue = btn.dataset.rights;
+    renderFilters();
+    renderStatusTabs();
     renderList();
   }));
   chipBar.querySelector("[data-fav]")?.addEventListener("click", () => {
@@ -910,7 +956,7 @@ function renderList() {
         <small>${escapeHtml(meta)}</small>
         ${status !== "recommend" && item.recommendationReason ? `<small class="row-reason">${escapeHtml(item.recommendationReason)}</small>` : ""}
       </span>
-      <span>${statusBadgeHtml(item)}</span>
+      <span class="row-badges">${statusBadgeHtml(item)}${rightsBadgeHtml(item)}</span>
       <span class="row-total tone-${status === "hold" ? "held" : scoreTone(total)}">${total.toFixed(1)}</span>
       <span class="mini-bars">${bars}</span>
       <span class="row-ref">${ref}</span>
@@ -956,7 +1002,7 @@ function renderDetail() {
   }
 
   const node = els.detailTemplate.content.cloneNode(true);
-  node.querySelector(".detail-type").innerHTML = `${statusBadgeHtml(item)}<span>${escapeHtml(`${item.originalType} · 제작 난이도 ${item.productionDifficulty}`)}</span>`;
+  node.querySelector(".detail-type").innerHTML = `${statusBadgeHtml(item)}${rightsBadgeHtml(item)}<span>${escapeHtml(`${item.originalType} · 제작 난이도 ${item.productionDifficulty}`)}</span>`;
   node.querySelector(".detail-title").innerHTML = `${escapeHtml(item.title)} ${starButtonHtml(item, "detail-star")}`;
   node.querySelector(".detail-logline").textContent = item.logline;
   const reasonBox = node.querySelector(".reason-box");
