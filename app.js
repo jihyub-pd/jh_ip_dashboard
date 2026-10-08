@@ -259,7 +259,12 @@ function rowToItem(dbItem) {
   }, { keepUpdatedAt: true });
 }
 
+function assertWriteAccess() {
+  if (!window.DashboardAuth?.canWrite) throw new Error("소유자로 로그인한 뒤 수정할 수 있습니다.");
+}
+
 async function saveItemToCloud(normalizedItem) {
+  if (!window.DashboardAuth?.canWrite) return { ok: false, error: "소유자 로그인 권한을 확인하세요." };
   if (!supabaseClient) return { ok: false, mode: "local", error: "Supabase client가 초기화되지 않았습니다." };
   const dbPayload = {
     id: normalizedItem.id,
@@ -283,7 +288,7 @@ async function syncLoadItems() {
         .order("updatedAt", { ascending: false });
       if (error) throw error;
       const cloudItems = Array.isArray(data) ? data.map(rowToItem) : [];
-      if (cloudItems.length === 0 && localItems.length > 0 && !localStorage.getItem(MIGRATION_KEY)) {
+      if (window.DashboardAuth?.canWrite && cloudItems.length === 0 && localItems.length > 0 && !localStorage.getItem(MIGRATION_KEY)) {
         const migrated = [];
         for (const item of localItems) {
           const result = await saveItemToCloud(item);
@@ -313,6 +318,7 @@ function finalizeLoad() {
 }
 
 async function syncSaveItem(normalizedItem, options = {}) {
+  if (!window.DashboardAuth?.canWrite) return { ok: false, error: "소유자 로그인 권한을 확인하세요." };
   setLocalItems(items);
   if (!supabaseClient) return { ok: false, mode: "local", error: "Supabase가 연결되지 않아 현재 브라우저에만 저장했습니다." };
   const result = await saveItemToCloud(normalizedItem);
@@ -321,21 +327,23 @@ async function syncSaveItem(normalizedItem, options = {}) {
 }
 
 async function syncDeleteItem(id) {
+  assertWriteAccess();
   const previousItems = [...items];
   items = items.filter((candidate) => candidate.id !== id);
   setLocalItems(items);
   if (supabaseClient) {
-    const { error } = await supabaseClient.from(TABLE_NAME).delete().eq("id", id);
-    if (error) {
+    const { data, error } = await supabaseClient.from(TABLE_NAME).delete().eq("id", id).select("id");
+    if (error || !data?.some(row => row.id === id)) {
       items = previousItems;
       setLocalItems(items);
       render();
-      throw error;
+      throw error || new Error("삭제 권한이 없거나 삭제 대상이 없습니다.");
     }
   }
 }
 
 async function replaceCloudItems(restoredItems) {
+  assertWriteAccess();
   if (!supabaseClient) return;
   const { data, error: loadError } = await supabaseClient.from(TABLE_NAME).select("id");
   if (loadError) throw loadError;
@@ -426,14 +434,22 @@ function starButtonHtml(item, extraClass = "") {
 }
 
 async function toggleStar(id) {
+  if (!window.DashboardAuth?.canWrite) return;
   const item = items.find((candidate) => candidate.id === id);
   if (!item) return;
+  const previousStarred = item.starred;
   item.starred = !item.starred;
   render();
   const detailOpen = document.querySelector("#detailView")?.classList.contains("active-view");
   if (detailOpen && selectedId === id) renderDetail();
   const result = await syncSaveItem(item, { silent: true });
-  if (!result.ok) console.warn("관심 표시 저장 실패:", result.error);
+  if (!result.ok) {
+    item.starred = previousStarred;
+    setLocalItems(items);
+    render();
+    if (detailOpen) renderDetail();
+    alert(`관심 표시 저장 실패: ${getErrorMessage(result.error)}`);
+  }
 }
 
 function bindStarButtons(root) {
@@ -642,11 +658,15 @@ function parseInput() {
 }
 
 async function upsertItem(raw) {
+  assertWriteAccess();
+  const previousItems = [...items];
   const normalized = normalizeItem(raw);
   const existingIndex = items.findIndex((item) => item.id === normalized.id || item.title === normalized.title);
   if (existingIndex >= 0) {
     normalized.id = items[existingIndex].id;
     normalized.createdAt = items[existingIndex].createdAt;
+    normalized.starred = items[existingIndex].starred;
+    normalized.userMemo = items[existingIndex].userMemo;
     if (items[existingIndex].aiReport && !normalized.aiReport) {
       normalized.aiReport = items[existingIndex].aiReport;
     }
@@ -657,7 +677,12 @@ async function upsertItem(raw) {
   selectedId = normalized.id;
   render();
   const result = await syncSaveItem(normalized);
-  if (!result.ok) throw new Error(getErrorMessage(result.error));
+  if (!result.ok) {
+    items = previousItems;
+    setLocalItems(items);
+    render();
+    throw new Error(getErrorMessage(result.error));
+  }
   return normalized;
 }
 
@@ -1106,6 +1131,7 @@ function renderDetail() {
   if (memoInput) {
     memoInput.value = item.userMemo || "";
     memoInput.addEventListener("input", () => {
+      if (!window.DashboardAuth?.canWrite) return;
       item.userMemo = memoInput.value;
       if (memoStatus) memoStatus.textContent = "저장 중...";
       if (memoTimeout) clearTimeout(memoTimeout);
@@ -1367,8 +1393,9 @@ if (els.saveBtn) {
 // ==========================================
 // 9. 초기화
 // ==========================================
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   initSupabase();
+  await window.DashboardAuth?.initialize(supabaseClient);
   if (!IS_PROD) {
     const badge = document.createElement("div");
     badge.textContent = "TEST 서버 · kdrama_ips_test";

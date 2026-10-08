@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css?v=20260927e" />
     <link rel="stylesheet" href="./redesign.css?v=20261007a" />
+    <link rel="stylesheet" href="./auth.css?v=20261008a" />
   </head>
   <body>
     <div class="app-shell">
@@ -27,6 +28,15 @@
           <button class="nav-btn" data-view="proposal">가중치 개편안 <span id="proposalNavCount" class="nav-count">0</span></button>
         </nav>
 
+        <section class="auth-panel" aria-label="소유자 로그인">
+          <p id="authStatus" role="status" aria-live="polite">읽기 전용 · 로그인 상태 확인 중</p>
+          <form id="authForm">
+            <label for="authEmail">로그인 이메일</label>
+            <input id="authEmail" type="email" autocomplete="email" required />
+            <button id="authSend" type="submit" class="ghost-btn">로그인 링크 받기</button>
+          </form>
+          <button id="authLogout" type="button" class="ghost-btn" hidden>로그아웃</button>
+        </section>
         <div class="side-bottom">
           <p class="side-note">총점 = 5개 항목 가중 평균 (드라마 적합 ×1.0 · 흥행성 ×0.8 · 차별성·확장성·캐릭터 매력도 ×1.2). 제작성·글로벌은 참고 지표</p>
           <p class="side-label">도구</p>
@@ -356,6 +366,7 @@
     </template>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./app.js?v=20261007a"></script>
+    <script src="./auth.js?v=20261008a"></script>
+    <script src="./app.js?v=20261008a"></script>
   </body>
 </html>
