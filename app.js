@@ -218,8 +218,9 @@ let sortKey = "total";      // total | 5축 키 | productionFeasibility | global
 let sortDir = "desc";       // desc | asc
 let typeFilterValue = "all";
 let favoritesOnly = false;
+let genreFilterValue = "all";
 let serialFilterValue = "all";
-let rightsFilterValue = "available"; // 기본: 확보 가능(열림·확인 필요)만 표시
+let rightsFilterValue = "all"; // 전체 목록에서 조건을 조합해 탐색
 
 if (els.schemaPreview) {
   els.schemaPreview.textContent = JSON.stringify(requiredShape, null, 2);
@@ -405,7 +406,7 @@ function statusBadgeHtml(item) {
 // 판권 상태 — 판정(추천/보류/리서치)과 별개로 관리
 const RIGHTS_STATUSES = ["열림", "확인 필요", "선점", "영상화 완료"];
 const RIGHTS_FILTERS = [
-  { key: "available", label: "확보 가능", match: (rs) => rs === "열림" || rs === "확인 필요" },
+  { key: "available", label: "열림·확인 필요", match: (rs) => rs === "열림" || rs === "확인 필요" },
   { key: "all", label: "전체", match: () => true },
   ...RIGHTS_STATUSES.map((rs) => ({ key: rs, label: rs, match: (v) => v === rs })),
 ];
@@ -730,7 +731,8 @@ function filteredItems() {
     const matchesFav = !favoritesOnly || item.starred;
     const matchesSerial = serialFilterValue === "all" || (item.sourceInfo.status || "미입력") === serialFilterValue;
     const matchesRights = matchesRightsFilter(item);
-    return matchesQuery && matchesType && matchesStatus && matchesFav && matchesSerial && matchesRights;
+    const matchesGenre = typeof window.IPExplorer?.matchesGenre !== "function" || window.IPExplorer.matchesGenre(item, genreFilterValue);
+    return matchesQuery && matchesType && matchesStatus && matchesFav && matchesSerial && matchesRights && matchesGenre;
   });
 }
 
