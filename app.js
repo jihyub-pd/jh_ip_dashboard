@@ -219,7 +219,6 @@ let sortDir = "desc";       // desc | asc
 let typeFilterValue = "all";
 let favoritesOnly = false;
 let genreFilterValue = "all";
-let serialFilterValue = "all";
 let rightsFilterValue = "all"; // 전체 목록에서 조건을 조합해 탐색
 
 if (els.schemaPreview) {
@@ -729,10 +728,9 @@ function filteredItems() {
     const matchesType = typeFilterValue === "all" || item.originalType === typeFilterValue;
     const matchesStatus = statusFilter === "all" || statusKey(item) === statusFilter;
     const matchesFav = !favoritesOnly || item.starred;
-    const matchesSerial = serialFilterValue === "all" || (item.sourceInfo.status || "미입력") === serialFilterValue;
     const matchesRights = matchesRightsFilter(item);
     const matchesGenre = typeof window.IPExplorer?.matchesGenre !== "function" || window.IPExplorer.matchesGenre(item, genreFilterValue);
-    return matchesQuery && matchesType && matchesStatus && matchesFav && matchesSerial && matchesRights && matchesGenre;
+    return matchesQuery && matchesType && matchesStatus && matchesFav && matchesRights && matchesGenre;
   });
 }
 
@@ -887,20 +885,9 @@ function renderFilters() {
       const n = items.filter((i) => r.match(i.rightsStatus)).length;
       return `<button type="button" class="type-chip ${rightsFilterValue === r.key ? "on" : ""}" data-rights="${escapeHtml(r.key)}">${escapeHtml(r.label)} <span>${n}</span></button>`;
     }).join("")}
-    <span class="chip-sep"></span>
-    <span class="chip-label">연재</span>
-    ${["all", "연재 중", "완결", "휴재", "미입력"].map((v) => {
-      const n = items.filter((i) => v === "all" || (i.sourceInfo.status || "미입력") === v).length;
-      if (v !== "all" && !n) return "";
-      return `<button type="button" class="type-chip ${serialFilterValue === v ? "on" : ""}" data-serial="${v}">${v === "all" ? "전체" : v} <span>${n}</span></button>`;
-    }).join("")}`;
+    `;
   chipBar.querySelectorAll("[data-type]").forEach((btn) => btn.addEventListener("click", () => {
     typeFilterValue = btn.dataset.type;
-    renderFilters();
-    renderList();
-  }));
-  chipBar.querySelectorAll("[data-serial]").forEach((btn) => btn.addEventListener("click", () => {
-    serialFilterValue = btn.dataset.serial;
     renderFilters();
     renderList();
   }));
@@ -980,7 +967,7 @@ function renderList() {
     button.innerHTML = `
       <span class="row-rank">${selectMode ? `<input type="checkbox" class="ip-checkbox" ${isSelected ? "checked" : ""} onclick="event.stopPropagation()" aria-label="${escapeHtml(item.title)} 선택">` : index + 1}</span>
       <span class="row-title">
-        <span class="row-title-line">${starButtonHtml(item)}<strong>${escapeHtml(item.title)}</strong>${serialTagHtml(item)}</span>
+        <span class="row-title-line">${starButtonHtml(item)}<strong>${escapeHtml(item.title)}</strong></span>
         <small>${escapeHtml(meta)}</small>
         ${status !== "recommend" && item.recommendationReason ? `<small class="row-reason">${escapeHtml(item.recommendationReason)}</small>` : ""}
       </span>

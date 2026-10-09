@@ -26,9 +26,9 @@
  document.body.append(dialog);
  function populateSaved(){presets.replaceChildren();const first=make('option','저장한 조건 선택');first.value='';presets.append(first);saved.forEach((s,i)=>{const o=make('option',s.name);o.value=String(i);presets.append(o)})}
  function persist(){try{localStorage.setItem(storageKey,JSON.stringify(saved));return true}catch{message.textContent='브라우저 저장 공간을 사용할 수 없어 조건을 저장하지 못했습니다.';return false}}
- function capture(){return {query:els.searchInput.value,type:typeFilterValue,status:statusFilter,rights:rightsFilterValue,serial:serialFilterValue,favorites:favoritesOnly,genre:genreFilterValue,sort:sortKey,direction:sortDir}}
+ function capture(){return {query:els.searchInput.value,type:typeFilterValue,status:statusFilter,rights:rightsFilterValue,favorites:favoritesOnly,genre:genreFilterValue,sort:sortKey,direction:sortDir}}
  function apply(f){
-  els.searchInput.value=typeof f.query==='string'?f.query:'';typeFilterValue=typeof f.type==='string'?f.type:'all';statusFilter=['all','recommend','research','hold'].includes(f.status)?f.status:'all';rightsFilterValue=RIGHTS_FILTERS.some(r=>r.key===f.rights)?f.rights:'all';serialFilterValue=typeof f.serial==='string'?f.serial:'all';favoritesOnly=f.favorites===true;genreFilterValue=typeof f.genre==='string'?f.genre:'all';sortKey=['total','date','title',...Object.keys(scoreLabels)].includes(f.sort)?f.sort:'total';sortDir=f.direction==='asc'?'asc':'desc';syncSortSelect();render();
+  els.searchInput.value=typeof f.query==='string'?f.query:'';typeFilterValue=typeof f.type==='string'?f.type:'all';statusFilter=['all','recommend','research','hold'].includes(f.status)?f.status:'all';rightsFilterValue=RIGHTS_FILTERS.some(r=>r.key===f.rights)?f.rights:'all';favoritesOnly=f.favorites===true;genreFilterValue=typeof f.genre==='string'?f.genre:'all';sortKey=['total','date','title',...Object.keys(scoreLabels)].includes(f.sort)?f.sort:'total';sortDir=f.direction==='asc'?'asc':'desc';syncSortSelect();render();
  }
  genre.addEventListener('change',()=>{genreFilterValue=genre.value;renderList()});
  presets.addEventListener('change',()=>{if(presets.value==='')return;const s=saved[Number(presets.value)];if(s){apply(s.filters);name.value=s.name;message.textContent='저장한 조건을 적용했습니다.'}});
