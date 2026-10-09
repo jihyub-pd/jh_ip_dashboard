@@ -7,7 +7,7 @@ function renderCandidates(){
  const records=candidatePack.records.filter(r=>(type==='all'||r.originalType===type)&&(batch==='all'||String(r.batch)===batch)&&(!hide||!registered.has(normalize(r.title)))&&[r.title,r.author,r.genre,r.platform].join(' ').toLowerCase().includes(query));
  const fragment=document.createDocumentFragment();for(const r of records){
   const tr=document.createElement('tr');tr.append(node('td',String(r.order)));const title=document.createElement('td'),link=node('a',r.title);link.href=r.source;link.target='_blank';link.rel='noopener noreferrer';title.append(link);
-  if(r.relatedWorks?.length)title.append(node('small','함께 검토: '+r.relatedWorks.join(', ')));title.append(node('small','서지 확인 · 판권 확인 필요'));tr.append(title,node('td',r.author),node('td',r.originalType),node('td',r.genre),node('td',r.platform));tr.append(node('td',registered.has(normalize(r.title))?'분석 보드 등록됨':'분석 대기'));fragment.append(tr)
+  if(r.relatedWorks?.length)title.append(node('small','함께 검토: '+r.relatedWorks.join(', ')));title.append(node('small','서지 확인 · 판권 확인 필요'));tr.append(title,node('td',r.author),node('td',r.originalType),node('td',r.genre),node('td',r.platform));tr.append(node('td',registered.has(normalize(r.title))?'분석 보드 등록됨':(r.status||'분석 대기')));fragment.append(tr)
  }
  get('candidateRows').replaceChildren(fragment);get('candidateCount').textContent=`${records.length}개 표시 / 최초 후보 100개`;
 }
