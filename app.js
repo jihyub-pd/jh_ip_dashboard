@@ -933,6 +933,7 @@ function renderList() {
       <span>${sb("total", "총점")}</span>
       <span class="mini-bars-head">${sb("dramaFit", "드라마")}${sb("marketPotential", "흥행")}${sb("originality", "차별")}${sb("scalability", "확장")}${sb("characterAppeal", "캐릭터")}</span>
       <span class="ref-sort">참고 ${sb("productionFeasibility", "제작")} · ${sb("globalPotential", "글로벌")}</span>
+      <span class="compare-column compare-column-head">비교</span>
     `;
     head.querySelectorAll(".sort-btn").forEach((btn) => {
       btn.addEventListener("click", () => {

@@ -49,8 +49,8 @@
   const visible=filteredItems();count.textContent=`${visible.length}개 표시 / 전체 ${items.length}개 · 비교 선택 ${selected.size}개`;compare.textContent=`선택 작품 비교 (${selected.size}/5)`;compare.disabled=selected.size<2;clear.disabled=!selected.size;
   const rows=els.ipList.querySelectorAll('.ip-row:not(.ip-row-head)');rows.forEach((row,i)=>{
    const item=visible[i];if(!item||selectMode)return;
-   const wrap=make('label',null,'compare-pick'),box=make('input');box.type='checkbox';box.checked=selected.has(item.id);box.setAttribute('aria-label',item.title+' 비교 선택');box.dataset.compareId=item.id;wrap.append(box,make('span','비교'));
-   wrap.addEventListener('click',e=>e.stopPropagation());wrap.addEventListener('keydown',e=>e.stopPropagation());box.addEventListener('change',()=>{if(box.checked){if(selected.size>=5){box.checked=false;message.textContent='한 번에 최대 5개 작품을 비교할 수 있습니다.';return}selected.add(item.id)}else selected.delete(item.id);message.textContent='';renderList()});row.querySelector('.row-title').append(wrap);
+   const wrap=make('label',null,'compare-pick compare-column'),box=make('input');box.type='checkbox';box.checked=selected.has(item.id);box.setAttribute('aria-label',item.title+' 비교 선택');box.dataset.compareId=item.id;wrap.append(box,make('span','비교'));
+   wrap.addEventListener('click',e=>e.stopPropagation());wrap.addEventListener('keydown',e=>e.stopPropagation());box.addEventListener('change',()=>{if(box.checked){if(selected.size>=5){box.checked=false;message.textContent='한 번에 최대 5개 작품을 비교할 수 있습니다.';return}selected.add(item.id)}else selected.delete(item.id);message.textContent='';renderList()});row.append(wrap);
   });
  }
  function showComparison(){
