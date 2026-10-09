@@ -564,6 +564,8 @@ function normalizeItem(raw, options = {}) {
     recommendationReason: String(raw.recommendationReason || "").trim(),
     rightsStatus: normalizeRightsStatus(raw.rightsStatus),
     starred: Boolean(raw.starred),
+    reviewCompleted: raw.reviewCompleted === true,
+    reviewCompletedAt: typeof raw.reviewCompletedAt === "string" ? raw.reviewCompletedAt : null,
     userMemo: String(raw.userMemo || ""),
     scores: {
       dramaFit: clampScore(raw.scores?.dramaFit),
@@ -730,7 +732,7 @@ function filteredItems() {
     const matchesFav = !favoritesOnly || item.starred;
     const matchesRights = matchesRightsFilter(item);
     const matchesGenre = typeof window.IPExplorer?.matchesGenre !== "function" || window.IPExplorer.matchesGenre(item, genreFilterValue);
-    return matchesQuery && matchesType && matchesStatus && matchesFav && matchesRights && matchesGenre;
+    return matchesQuery && matchesType && matchesStatus && matchesFav && matchesRights && matchesGenre && (!window.IPReview || window.IPReview.includes(item));
   });
 }
 
@@ -1327,7 +1329,7 @@ if (els.deleteSelectedBtn) {
   });
 }
 
-if (els.searchInput) els.searchInput.addEventListener("input", renderList);
+if (els.searchInput) els.searchInput.addEventListener("input", () => renderList());
 if (els.typeFilter) els.typeFilter.addEventListener("input", () => { typeFilterValue = els.typeFilter.value; renderFilters(); renderList(); });
 if (els.sortSelect) els.sortSelect.addEventListener("input", () => {
   const map = { score: "total", date: "date", title: "title" };

@@ -6,7 +6,7 @@ window.DashboardAuth = (() => {
   let mailSending = false;
   let mailCooldownUntil = 0;
   let cooldownTimer = null;
-  const writeSelector = '#saveBtn, #addSampleBtn, #toggleSelectBtn, #deleteSelectedBtn, #restoreBtn, .star-btn, .delete-btn, .memo-input';
+  const writeSelector = '#saveBtn, #addSampleBtn, #toggleSelectBtn, #deleteSelectedBtn, #restoreBtn, .star-btn, .delete-btn, .memo-input, .review-complete-btn';
   const disabledBefore = new WeakMap();
   const status = () => document.querySelector('#authStatus');
   function applyControls() {
