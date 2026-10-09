@@ -1,9 +1,9 @@
 {
   "createdAt": "2026-10-09",
   "baselineCount": 211,
-  "count": 100,
-  "status": "list_ready_not_analyzed",
-  "note": "기존211개 및 명시적 원작별칭과 중복 제거한 분석 대기 목록. 추천 순위·점수 및 판권 확보 가능성 판정이 아님. 웹소설/웹툰 각색판은 같은 원작으로 묶음. 서지는2차자료 기준이며 정밀분석에서 원플랫폼과 최신 판권 재확인. <요리GO>와 직접 후속작 <별난식당>은 하나의 검토 대상으로 묶음.",
+  "count": 150,
+  "status": "all_uploaded",
+  "note": "기존211개와 중복 제거한 최초100개와 추가50개.150개전부검토·업로드 완료. 공개자료 기반 예비 스크리닝이며 정보 제한 작품은 리서치 필요로 기록. 번호는 작업순서이고 추천순위가 아님; 열림도실제미계약확정이 아님.",
   "records": [
     {
       "title": "당신의 과녁",
@@ -771,7 +771,7 @@
       "title": "호랑이형님",
       "author": "이상규",
       "originalType": "웹툰",
-      "genre": "동양풍 판타지, 액션",
+      "genre": "동양판타지, 액션, 보호서사",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%ED%98%B8%EB%9E%91%EC%9D%B4%ED%98%95%EB%8B%98",
       "officialLinks": [
@@ -779,9 +779,9 @@
         "https://series.naver.com/comic/detail.series?productNo=1880317"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-041",
       "order": 41,
       "batch": 3
@@ -790,7 +790,7 @@
       "title": "초인의 시대",
       "author": "섭이",
       "originalType": "웹툰",
-      "genre": "판타지, 액션, 슈퍼히어로, 소년",
+      "genre": "슈퍼히어로, 액션, 판타지",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%EC%B4%88%EC%9D%B8%EC%9D%98%20%EC%8B%9C%EB%8C%80",
       "officialLinks": [
@@ -799,9 +799,9 @@
         "https://comic.naver.com/webtoon/list?titleId=730694"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-042",
       "order": 42,
       "batch": 3
@@ -810,7 +810,7 @@
       "title": "조의 영역",
       "author": "조석",
       "originalType": "웹툰",
-      "genre": "스릴러, SF, 포스트 아포칼립스, 호러",
+      "genre": "괴수재난, 스릴러, 생존",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%EC%A1%B0%EC%9D%98%20%EC%98%81%EC%97%AD",
       "officialLinks": [
@@ -818,9 +818,9 @@
         "https://series.naver.com/comic/detail.series?productNo=1381199"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "영상화 완료",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-043",
       "order": 43,
       "batch": 3
@@ -829,7 +829,7 @@
       "title": "살아남은 로맨스",
       "author": "이연",
       "originalType": "웹툰",
-      "genre": "스릴러, 다크 판타지, 책빙의, 학원, 좀비, 루프",
+      "genre": "생존스릴러, 루프판타지, 학원",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%EC%82%B4%EC%95%84%EB%82%A8%EC%9D%80%20%EB%A1%9C%EB%A7%A8%EC%8A%A4",
       "officialLinks": [
@@ -837,9 +837,9 @@
         "https://series.naver.com/comic/detail.nhn?productNo=5842642"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-044",
       "order": 44,
       "batch": 3
@@ -848,7 +848,7 @@
       "title": "그녀의 심청",
       "author": "스토리: seri 작화: 비완",
       "originalType": "웹툰",
-      "genre": "백합, 미스터리",
+      "genre": "고전재해석, 여성로맨스, 미스터리",
       "platform": "코미코 카카오페이지 봄툰 네이버 시리즈 리디 레진코믹스 미스터블루 원스토리 애니툰 이만배",
       "source": "https://namu.wiki/w/%EA%B7%B8%EB%85%80%EC%9D%98%20%EC%8B%AC%EC%B2%AD",
       "officialLinks": [
@@ -857,9 +857,9 @@
         "https://series.naver.com/comic/detail.series?productNo=4257108"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-045",
       "order": 45,
       "batch": 3
@@ -868,7 +868,7 @@
       "title": "오민혁 단편선",
       "author": "오민혁",
       "originalType": "웹툰",
-      "genre": "옴니버스, 드라마",
+      "genre": "옴니버스, 드라마, SF",
       "platform": "네이버 웹툰",
       "source": "https://namu.wiki/w/%EC%98%A4%EB%AF%BC%ED%98%81%20%EB%8B%A8%ED%8E%B8%EC%84%A0",
       "officialLinks": [
@@ -876,9 +876,9 @@
         "http://comic.naver.com/webtoon/list.nhn?titleId=667010&weekday=tue"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-046",
       "order": 46,
       "batch": 3
@@ -887,7 +887,7 @@
       "title": "환생동물학교",
       "author": "엘렌 심",
       "originalType": "웹툰",
-      "genre": "드라마",
+      "genre": "휴먼판타지, 동물, 학원",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%ED%99%98%EC%83%9D%EB%8F%99%EB%AC%BC%ED%95%99%EA%B5%90",
       "officialLinks": [
@@ -895,9 +895,9 @@
         "https://series.naver.com/comic/detail.nhn?productNo=3050030"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-047",
       "order": 47,
       "batch": 3
@@ -906,7 +906,7 @@
       "title": "어서오세요, 305호에!",
       "author": "와난",
       "originalType": "웹툰",
-      "genre": "일상, 개그, 드라마, 퀴어",
+      "genre": "일상코미디, 퀴어드라마, 관계극",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%EC%96%B4%EC%84%9C%EC%98%A4%EC%84%B8%EC%9A%94%2C%20305%ED%98%B8%EC%97%90%21",
       "officialLinks": [
@@ -914,9 +914,9 @@
         "https://series.naver.com/comic/detail.series?productNo=1954379"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-048",
       "order": 48,
       "batch": 3
@@ -925,16 +925,16 @@
       "title": "나 혼자 만렙 뉴비",
       "author": "메슬로우",
       "originalType": "웹소설",
-      "genre": "현대 판타지, 탑등반, 게임빙의",
+      "genre": "현대판타지, 탑등반, 게임현실화",
       "platform": "네이버 시리즈",
       "source": "https://namu.wiki/w/%EB%82%98%20%ED%98%BC%EC%9E%90%20%EB%A7%8C%EB%A0%99%20%EB%89%B4%EB%B9%84",
       "officialLinks": [
         "https://series.naver.com/novel/detail.series?productNo=5206283"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-049",
       "order": 49,
       "batch": 3
@@ -943,7 +943,7 @@
       "title": "내가 키운 S급들",
       "author": "근서",
       "originalType": "웹소설",
-      "genre": "헌터, 회귀, 남주",
+      "genre": "헌터판타지, 회귀, 가족드라마",
       "platform": "문피아 네이버 시리즈 카카오페이지 리디 조아라 교보문고 미스터블루 원스토리 북큐브",
       "source": "https://namu.wiki/w/%EB%82%B4%EA%B0%80%20%ED%82%A4%EC%9A%B4%20S%EA%B8%89%EB%93%A4",
       "officialLinks": [
@@ -952,9 +952,9 @@
         "https://ridibooks.com/books/2065016312"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-050",
       "order": 50,
       "batch": 3
@@ -963,7 +963,7 @@
       "title": "백작가의 망나니가 되었다",
       "author": "유려한",
       "originalType": "웹소설",
-      "genre": "퓨전 판타지, 책빙의, 망나니, 착각",
+      "genre": "책빙의, 모험판타지, 착각코미디",
       "platform": "문피아 네이버 시리즈 원스토리 리디 카카오페이지 조아라 미스터블루 북큐브",
       "source": "https://namu.wiki/w/%EB%B0%B1%EC%9E%91%EA%B0%80%EC%9D%98%20%EB%A7%9D%EB%82%98%EB%8B%88%EA%B0%80%20%EB%90%98%EC%97%88%EB%8B%A4",
       "officialLinks": [
@@ -972,9 +972,9 @@
         "https://page.kakao.com/content/51863028"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-051",
       "order": 51,
       "batch": 3
@@ -983,7 +983,7 @@
       "title": "SSS급 죽어야 사는 헌터",
       "author": "신노아",
       "originalType": "웹소설",
-      "genre": "탑등반, 루프, 성좌",
+      "genre": "탑등반, 루프판타지, 휴먼드라마",
       "platform": "문피아 네이버 시리즈 리디 카카오페이지 조아라 원스토리 미스터블루 북큐브",
       "source": "https://namu.wiki/w/SSS%EA%B8%89%20%EC%A3%BD%EC%96%B4%EC%95%BC%20%EC%82%AC%EB%8A%94%20%ED%97%8C%ED%84%B0",
       "officialLinks": [
@@ -992,9 +992,9 @@
         "https://page.kakao.com/content/52822434"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-052",
       "order": 52,
       "batch": 3
@@ -1003,7 +1003,7 @@
       "title": "멸망한 세계의 취사병",
       "author": "마일드커피",
       "originalType": "웹소설",
-      "genre": "아포칼립스, 요리",
+      "genre": "아포칼립스, 요리판타지, 군대생존",
       "platform": "네이버 시리즈",
       "source": "https://namu.wiki/w/%EB%A9%B8%EB%A7%9D%ED%95%9C%20%EC%84%B8%EA%B3%84%EC%9D%98%20%EC%B7%A8%EC%82%AC%EB%B3%91",
       "officialLinks": [
@@ -1011,9 +1011,9 @@
         "https://series.naver.com/novel/detail.series?productNo=9118559"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-053",
       "order": 53,
       "batch": 3
@@ -1022,7 +1022,7 @@
       "title": "낙원의 이론",
       "author": "정선우",
       "originalType": "웹소설",
-      "genre": "로맨스 판타지, 사이버펑크, SF",
+      "genre": "SF로맨스, 디스토피아, 청춘",
       "platform": "네이버 시리즈 교보문고 미스터블루 원스토리 카카오페이지",
       "source": "https://namu.wiki/w/%EB%82%99%EC%9B%90%EC%9D%98%20%EC%9D%B4%EB%A1%A0",
       "officialLinks": [
@@ -1030,9 +1030,9 @@
         "https://page.kakao.com/content/64312453"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-054",
       "order": 54,
       "batch": 3
@@ -1041,16 +1041,16 @@
       "title": "악녀는 마리오네트",
       "author": "한이림",
       "originalType": "웹소설",
-      "genre": "로맨스 판타지, 회귀, 책빙의",
+      "genre": "궁중로맨스, 책빙의, 권력드라마",
       "platform": "카카오페이지",
       "source": "https://namu.wiki/w/%EC%95%85%EB%85%80%EB%8A%94%20%EB%A7%88%EB%A6%AC%EC%98%A4%EB%84%A4%ED%8A%B8",
       "officialLinks": [
         "https://page.kakao.com/content/52099606"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-055",
       "order": 55,
       "batch": 3
@@ -1059,7 +1059,7 @@
       "title": "악역의 엔딩은 죽음뿐",
       "author": "권겨을",
       "originalType": "웹소설",
-      "genre": "로맨스 판타지, 게임빙의, 악녀빙의",
+      "genre": "게임빙의, 로맨스판타지, 생존",
       "platform": "카카오페이지 리디 네이버 시리즈",
       "source": "https://namu.wiki/w/%EC%95%85%EC%97%AD%EC%9D%98%20%EC%97%94%EB%94%A9%EC%9D%80%20%EC%A3%BD%EC%9D%8C%EB%BF%90",
       "officialLinks": [
@@ -1067,9 +1067,9 @@
         "https://series.naver.com/novel/detail.nhn?productNo=5039321"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-056",
       "order": 56,
       "batch": 3
@@ -1078,16 +1078,16 @@
       "title": "재혼 황후",
       "author": "알파타르트",
       "originalType": "웹소설",
-      "genre": "궁중 로맨스, 후회, 계약, 재혼",
+      "genre": "궁중로맨스, 재혼, 권력드라마",
       "platform": "네이버웹소설 네이버 시리즈",
       "source": "https://namu.wiki/w/%EC%9E%AC%ED%98%BC%20%ED%99%A9%ED%9B%84",
       "officialLinks": [
         "https://series.naver.com/novel/detail.series?productNo=3713078"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "선점",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-057",
       "order": 57,
       "batch": 3
@@ -1096,7 +1096,7 @@
       "title": "어느 날 공주가 되어버렸다",
       "author": "플루토스",
       "originalType": "웹소설",
-      "genre": "로맨스 판타지, 책빙의",
+      "genre": "책빙의, 가족판타지, 궁중로맨스",
       "platform": "리디 카카오페이지 네이버 시리즈 교보문고 원스토리",
       "source": "https://namu.wiki/w/%EC%96%B4%EB%8A%90%20%EB%82%A0%20%EA%B3%B5%EC%A3%BC%EA%B0%80%20%EB%90%98%EC%96%B4%EB%B2%84%EB%A0%B8%EB%8B%A4",
       "officialLinks": [
@@ -1105,9 +1105,9 @@
         "https://series.naver.com/novel/detail.nhn?productNo=3907419"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-058",
       "order": 58,
       "batch": 3
@@ -1116,7 +1116,7 @@
       "title": "나의 마녀",
       "author": "스토리: 해윤 작화: MAS",
       "originalType": "웹툰",
-      "genre": "로맨스, 판타지",
+      "genre": "로맨스판타지, 불멸, 휴먼드라마",
       "platform": "북큐브 다음 웹툰 네이버 시리즈 카카오페이지 봄툰 미스터블루 원스토리 리디 큐툰 레진코믹스",
       "source": "https://namu.wiki/w/%EB%82%98%EC%9D%98%20%EB%A7%88%EB%85%80",
       "officialLinks": [
@@ -1125,9 +1125,9 @@
         "https://ridibooks.com/books/120037638"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-059",
       "order": 59,
       "batch": 3
@@ -1136,7 +1136,7 @@
       "title": "묘진전",
       "author": "젤리빈",
       "originalType": "웹툰",
-      "genre": "판타지 드라마, 민담, 신화",
+      "genre": "설화판타지, 가족드라마, 복수",
       "platform": "카카오웹툰 카카오페이지",
       "source": "https://namu.wiki/w/%EB%AC%98%EC%A7%84%EC%A0%84",
       "officialLinks": [
@@ -1144,9 +1144,9 @@
         "https://page.kakao.com/content/60466979"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-060",
       "order": 60,
       "batch": 3
@@ -1155,7 +1155,7 @@
       "title": "양말도깨비",
       "author": "만물상",
       "originalType": "웹툰",
-      "genre": "드라마, 로맨스, 판타지, 동화, 군상극",
+      "genre": "판타지, 로맨스, 성장",
       "platform": "다음 웹툰 카카오페이지",
       "source": "https://namu.wiki/w/%EC%96%91%EB%A7%90%EB%8F%84%EA%B9%A8%EB%B9%84",
       "officialLinks": [
@@ -1164,9 +1164,9 @@
         "https://page.kakao.com/content/52500124"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-061",
       "order": 61,
       "batch": 4
@@ -1175,7 +1175,7 @@
       "title": "불멸의 날들",
       "author": "허긴개",
       "originalType": "웹툰",
-      "genre": "액션, 미스터리",
+      "genre": "SF, 액션, 미스터리",
       "platform": "레진코믹스",
       "source": "https://namu.wiki/w/%EB%B6%88%EB%A9%B8%EC%9D%98%20%EB%82%A0%EB%93%A4",
       "officialLinks": [
@@ -1184,9 +1184,9 @@
         "https://www.lezhin.com/ko/comic/ImmortalDays/3"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-062",
       "order": 62,
       "batch": 4
@@ -1195,7 +1195,7 @@
       "title": "푸른 눈의 책사",
       "author": "골드키위새",
       "originalType": "웹툰",
-      "genre": "동양풍 판타지",
+      "genre": "정치 스릴러, 동양 판타지, 멜로드라마",
       "platform": "카카오웹툰 카카오페이지",
       "source": "https://namu.wiki/w/%ED%91%B8%EB%A5%B8%20%EB%88%88%EC%9D%98%20%EC%B1%85%EC%82%AC",
       "officialLinks": [
@@ -1203,9 +1203,9 @@
         "https://page.kakao.com/content/65466221?tab_type=preview"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-063",
       "order": 63,
       "batch": 4
@@ -1214,7 +1214,7 @@
       "title": "퀘스트지상주의",
       "author": "스토리: 유누니 작화: 태완",
       "originalType": "웹툰",
-      "genre": "드라마, 게임 판타지, 학원액션",
+      "genre": "학원 액션, 게임 판타지, 성장",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%ED%80%98%EC%8A%A4%ED%8A%B8%EC%A7%80%EC%83%81%EC%A3%BC%EC%9D%98",
       "officialLinks": [
@@ -1222,9 +1222,9 @@
         "https://series.naver.com/comic/detail.series?productNo=6707823"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-064",
       "order": 64,
       "batch": 4
@@ -1233,7 +1233,7 @@
       "title": "현실퀘스트",
       "author": "스토리: 이주운 작화: 태성",
       "originalType": "웹툰",
-      "genre": "학원액션, 게임빙의",
+      "genre": "학원 액션, 게임 판타지, 회귀",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%ED%98%84%EC%8B%A4%ED%80%98%EC%8A%A4%ED%8A%B8",
       "officialLinks": [
@@ -1242,9 +1242,9 @@
         "https://series.naver.com/comic/detail.series?productNo=10741494"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-065",
       "order": 65,
       "batch": 4
@@ -1253,7 +1253,7 @@
       "title": "격기3반",
       "author": "스토리: 손 작가 → 이학 작화: 이학",
       "originalType": "웹툰",
-      "genre": "스릴러, 액션, 격투, SF, 철학",
+      "genre": "격투, 학원, 심리 스릴러",
       "platform": "코믹 챔프 네이버 웹툰 네이버 시리즈 리디 미스터블루 카카오페이지 원스토리 교보문고",
       "source": "https://namu.wiki/w/%EA%B2%A9%EA%B8%B03%EB%B0%98",
       "officialLinks": [
@@ -1262,9 +1262,9 @@
         "https://series.naver.com/comic/detail.series?productNo=3129461"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-066",
       "order": 66,
       "batch": 4
@@ -1281,9 +1281,9 @@
         "https://series.naver.com/comic/detail.series?productNo=6212853"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-067",
       "order": 67,
       "batch": 4
@@ -1292,7 +1292,7 @@
       "title": "럭키언럭키",
       "author": "가천가",
       "originalType": "웹툰",
-      "genre": "판타지 ( 어반 판타지 )",
+      "genre": "초능력, 학원, 성장",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%EB%9F%AD%ED%82%A4%EC%96%B8%EB%9F%AD%ED%82%A4",
       "officialLinks": [
@@ -1300,9 +1300,9 @@
         "https://series.naver.com/comic/detail.nhn?productNo=4607776"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-068",
       "order": 68,
       "batch": 4
@@ -1311,7 +1311,7 @@
       "title": "에피소드칵테일",
       "author": "정마루",
       "originalType": "웹툰",
-      "genre": "순정, 드라마",
+      "genre": "캠퍼스, 로맨스, 성장",
       "platform": "네이버 웹툰",
       "source": "https://namu.wiki/w/%EC%97%90%ED%94%BC%EC%86%8C%EB%93%9C%EC%B9%B5%ED%85%8C%EC%9D%BC",
       "officialLinks": [
@@ -1319,9 +1319,9 @@
         "http://comic.naver.com/webtoon/list.nhn?titleId=579352&weekday=thu"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-069",
       "order": 69,
       "batch": 4
@@ -1330,7 +1330,7 @@
       "title": "더 게이머",
       "author": "스토리: 성상영 작화: 상아",
       "originalType": "웹툰",
-      "genre": "게임 판타지",
+      "genre": "게임 판타지, 학원, 액션",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%EB%8D%94%20%EA%B2%8C%EC%9D%B4%EB%A8%B8",
       "officialLinks": [
@@ -1339,9 +1339,9 @@
         "https://series.naver.com/novel/detail.series?productNo=1361628"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-070",
       "order": 70,
       "batch": 4
@@ -1350,7 +1350,7 @@
       "title": "숲속의 담",
       "author": "다홍",
       "originalType": "웹툰",
-      "genre": "판타지, 포스트 아포칼립스, 드라마",
+      "genre": "판타지, 포스트 아포칼립스, 가족",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%EC%88%B2%EC%86%8D%EC%9D%98%20%EB%8B%B4",
       "officialLinks": [
@@ -1359,9 +1359,9 @@
         "https://series.naver.com/comic/detail.series?productNo=4732422"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-071",
       "order": 71,
       "batch": 4
@@ -1370,7 +1370,7 @@
       "title": "그 판타지 세계에서 사는 법",
       "author": "촌장",
       "originalType": "웹툰",
-      "genre": "판타지",
+      "genre": "정통 판타지, 모험, 정치",
       "platform": "네이버 웹툰",
       "source": "https://namu.wiki/w/%EA%B7%B8%20%ED%8C%90%ED%83%80%EC%A7%80%20%EC%84%B8%EA%B3%84%EC%97%90%EC%84%9C%20%EC%82%AC%EB%8A%94%20%EB%B2%95",
       "officialLinks": [
@@ -1378,9 +1378,9 @@
         "https://page.kakao.com/content/64395656"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-072",
       "order": 72,
       "batch": 4
@@ -1389,7 +1389,7 @@
       "title": "잔불의 기사",
       "author": "환댕",
       "originalType": "웹툰",
-      "genre": "판타지, 액션, 착각, 기사도",
+      "genre": "판타지, 복수, 심리 스릴러",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%EC%9E%94%EB%B6%88%EC%9D%98%20%EA%B8%B0%EC%82%AC",
       "officialLinks": [
@@ -1397,9 +1397,9 @@
         "https://series.naver.com/comic/detail.series?productNo=6034771"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-073",
       "order": 73,
       "batch": 4
@@ -1408,7 +1408,7 @@
       "title": "히어로 킬러",
       "author": "레고밟았어",
       "originalType": "웹소설",
-      "genre": "현대 판타지, 슈퍼히어로",
+      "genre": "슈퍼히어로, 미스터리, 다크 로맨스",
       "platform": "네이버웹소설 네이버 시리즈 카카오페이지",
       "source": "https://namu.wiki/w/%ED%9E%88%EC%96%B4%EB%A1%9C%20%ED%82%AC%EB%9F%AC",
       "officialLinks": [
@@ -1416,9 +1416,9 @@
         "https://page.kakao.com/content/53978994"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-074",
       "order": 74,
       "batch": 4
@@ -1427,7 +1427,7 @@
       "title": "버닝 이펙트",
       "author": "박태현",
       "originalType": "웹툰",
-      "genre": "액션, 판타지, 갱스터",
+      "genre": "액션, 디스토피아, 혁명",
       "platform": "카카오웹툰 네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%EB%B2%84%EB%8B%9D%20%EC%9D%B4%ED%8E%99%ED%8A%B8",
       "officialLinks": [
@@ -1436,9 +1436,9 @@
         "https://series.naver.com/comic/detail.series?productNo=11026242"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-075",
       "order": 75,
       "batch": 4
@@ -1447,7 +1447,7 @@
       "title": "레사",
       "author": "POGO",
       "originalType": "웹툰",
-      "genre": "다크 판타지, 어반 판타지, 신화, 액션",
+      "genre": "다크 판타지, 액션, 신화",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%EB%A0%88%EC%82%AC",
       "officialLinks": [
@@ -1456,9 +1456,9 @@
         "https://series.naver.com/comic/detail.nhn?productNo=1857277"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-076",
       "order": 76,
       "batch": 4
@@ -1467,7 +1467,7 @@
       "title": "개를 낳았다",
       "author": "이선",
       "originalType": "웹툰",
-      "genre": "드라마, 일상, 힐링",
+      "genre": "일상, 가족, 힐링",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%EA%B0%9C%EB%A5%BC%20%EB%82%B3%EC%95%98%EB%8B%A4",
       "officialLinks": [
@@ -1475,9 +1475,9 @@
         "https://series.naver.com/comic/detail.series?productNo=3441871"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-077",
       "order": 77,
       "batch": 4
@@ -1486,7 +1486,7 @@
       "title": "플랫다이어리",
       "author": "임현",
       "originalType": "웹툰",
-      "genre": "일상, 감성, 드라마",
+      "genre": "일상, 성장, 에세이",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%ED%94%8C%EB%9E%AB%EB%8B%A4%EC%9D%B4%EC%96%B4%EB%A6%AC",
       "officialLinks": [
@@ -1494,9 +1494,9 @@
         "https://series.naver.com/comic/detail.nhn?productNo=4005612"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-078",
       "order": 78,
       "batch": 4
@@ -1505,7 +1505,7 @@
       "title": "웰캄투실버라이프",
       "author": "솔녀",
       "originalType": "웹툰",
-      "genre": "일상, 드라마",
+      "genre": "일상, 가족, 힐링",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%EC%9B%B0%EC%BA%84%ED%88%AC%EC%8B%A4%EB%B2%84%EB%9D%BC%EC%9D%B4%ED%94%84",
       "officialLinks": [
@@ -1513,9 +1513,9 @@
         "https://series.naver.com/comic/detail.series?productNo=5252054"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-079",
       "order": 79,
       "batch": 4
@@ -1524,7 +1524,7 @@
       "title": "평범한 8반",
       "author": "영파카",
       "originalType": "웹툰",
-      "genre": "학원, 드라마, 개그",
+      "genre": "학원, 드라마, 성장",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%ED%8F%89%EB%B2%94%ED%95%9C%208%EB%B0%98",
       "officialLinks": [
@@ -1532,9 +1532,9 @@
         "https://series.naver.com/comic/detail.nhn?productNo=2146061"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "열림",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-080",
       "order": 80,
       "batch": 4
@@ -1543,14 +1543,14 @@
       "title": "악당의 아빠를 꼬셔라",
       "author": "달슬",
       "originalType": "웹소설",
-      "genre": "로맨스 판타지, 책빙의",
+      "genre": "로맨스 판타지, 책 빙의, 운명 바꾸기",
       "platform": "카카오페이지",
       "source": "https://namu.wiki/w/%EC%95%85%EB%8B%B9%EC%9D%98%20%EC%95%84%EB%B9%A0%EB%A5%BC%20%EA%BC%AC%EC%85%94%EB%9D%BC",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-081",
       "order": 81,
       "batch": 5
@@ -1559,14 +1559,14 @@
       "title": "이번 생은 가주가 되겠습니다",
       "author": "김로아",
       "originalType": "웹소설",
-      "genre": "로맨스 판타지, 환생, 회귀, 아기",
+      "genre": "로맨스 판타지, 회귀, 가문 성장",
       "platform": "카카오페이지",
       "source": "https://namu.wiki/w/%EC%9D%B4%EB%B2%88%20%EC%83%9D%EC%9D%80%20%EA%B0%80%EC%A3%BC%EA%B0%80%20%EB%90%98%EA%B2%A0%EC%8A%B5%EB%8B%88%EB%8B%A4",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-082",
       "order": 82,
       "batch": 5
@@ -1575,14 +1575,14 @@
       "title": "어느 날 내가 죽었습니다",
       "author": "이경혜",
       "originalType": "소설",
-      "genre": "성장",
+      "genre": "청소년 성장, 애도, 우정",
       "platform": "바람의아이들",
       "source": "https://namu.wiki/w/%EC%96%B4%EB%8A%90%20%EB%82%A0%20%EB%82%B4%EA%B0%80%20%EC%A3%BD%EC%97%88%EC%8A%B5%EB%8B%88%EB%8B%A4",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-083",
       "order": 83,
       "batch": 5
@@ -1591,7 +1591,7 @@
       "title": "황제와 여기사",
       "author": "안경원숭이",
       "originalType": "웹소설",
-      "genre": "로맨스 판타지",
+      "genre": "로맨스, 여성 기사, 전쟁 성장",
       "platform": "카카오페이지 네이버 시리즈",
       "source": "https://namu.wiki/w/%ED%99%A9%EC%A0%9C%EC%99%80%20%EC%97%AC%EA%B8%B0%EC%82%AC",
       "officialLinks": [
@@ -1599,9 +1599,9 @@
         "https://series.naver.com/novel/detail.series?productNo=2626273"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-084",
       "order": 84,
       "batch": 5
@@ -1610,7 +1610,7 @@
       "title": "애늙은이",
       "author": "환댕",
       "originalType": "웹툰",
-      "genre": "판타지, 액션",
+      "genre": "판타지, 모험, 생명과 상실",
       "platform": "네이버 웹툰 네이버 시리즈",
       "source": "https://namu.wiki/w/%EC%95%A0%EB%8A%99%EC%9D%80%EC%9D%B4%28%EC%9B%B9%ED%88%B0%29",
       "officialLinks": [
@@ -1618,9 +1618,9 @@
         "https://series.naver.com/comic/detail.series?productNo=11247508"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-085",
       "order": 85,
       "batch": 5
@@ -1629,14 +1629,14 @@
       "title": "섭주",
       "author": "박해로",
       "originalType": "소설",
-      "genre": "공포 장편소설",
+      "genre": "무속 공포, 미스터리, 빙의",
       "platform": "출판사 추가 확인",
       "source": "https://namu.wiki/w/%EB%B0%95%ED%95%B4%EB%A1%9C",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작가의 작품 목록에서 출간 제목 확인. 작품 원문·서점 서지·최신 판권은 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "order": 86,
       "candidateId": "first100-086",
       "batch": 5
@@ -1645,7 +1645,7 @@
       "title": "룬의 아이들",
       "author": "전민희",
       "originalType": "소설",
-      "genre": "서양 판타지",
+      "genre": "하이 판타지, 성장, 모험",
       "platform": "카카오페이지 네이버 시리즈",
       "source": "https://namu.wiki/w/%EB%A3%AC%EC%9D%98%20%EC%95%84%EC%9D%B4%EB%93%A4",
       "officialLinks": [
@@ -1653,9 +1653,9 @@
         "https://series.naver.com/novel/detail.series?productNo=5033830"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-087",
       "order": 87,
       "batch": 5
@@ -1664,16 +1664,16 @@
       "title": "피를 마시는 새",
       "author": "이영도",
       "originalType": "소설",
-      "genre": "판타지, 군상극, 대하소설",
+      "genre": "판타지, 정치 군상극, 전쟁",
       "platform": "하이텔 카카오페이지 네이버 시리즈 브릿G",
       "source": "https://namu.wiki/w/%ED%94%BC%EB%A5%BC%20%EB%A7%88%EC%8B%9C%EB%8A%94%20%EC%83%88",
       "officialLinks": [
         "https://ridibooks.com/books/682000410"
       ],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-088",
       "order": 88,
       "batch": 5
@@ -1682,14 +1682,14 @@
       "title": "파견자들",
       "author": "김초엽",
       "originalType": "소설",
-      "genre": "SF",
+      "genre": "SF, 생태 디스토피아, 탐사",
       "platform": "퍼블리온",
       "source": "https://namu.wiki/w/%ED%8C%8C%EA%B2%AC%EC%9E%90%EB%93%A4",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작품별 2차 서지 자료 확인. 최신 판권·각색 여부 및 원플랫폼 정보는 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-089",
       "order": 89,
       "batch": 5
@@ -1698,14 +1698,14 @@
       "title": "쇼코의 미소",
       "author": "최은영",
       "originalType": "소설",
-      "genre": "소설집",
+      "genre": "관계 드라마, 성장, 소설집",
       "platform": "문학동네",
       "source": "https://namu.wiki/w/%EC%B5%9C%EC%9D%80%EC%98%81%28%EC%86%8C%EC%84%A4%EA%B0%80%29",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작가의 작품 목록에서 출간 제목 확인. 작품 원문·서점 서지·최신 판권은 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-090",
       "order": 90,
       "batch": 5
@@ -1714,14 +1714,14 @@
       "title": "내게 무해한 사람",
       "author": "최은영",
       "originalType": "소설",
-      "genre": "소설집",
+      "genre": "관계 드라마, 여성 서사, 소설집",
       "platform": "문학동네",
       "source": "https://namu.wiki/w/%EC%B5%9C%EC%9D%80%EC%98%81%28%EC%86%8C%EC%84%A4%EA%B0%80%29",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
-      "rightsStatus": "확인 필요",
-      "metadataNote": "작가의 작품 목록에서 출간 제목 확인. 작품 원문·서점 서지·최신 판권은 정밀 분석에서 재확인.",
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "영상화 완료",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-091",
       "order": 91,
       "batch": 5
@@ -1730,14 +1730,14 @@
       "title": "애쓰지 않아도",
       "author": "최은영",
       "originalType": "소설",
-      "genre": "짧은 소설집",
+      "genre": "관계 드라마, 짧은 소설, 사회적 상처",
       "platform": "마음산책",
       "source": "https://namu.wiki/w/%EC%B5%9C%EC%9D%80%EC%98%81%28%EC%86%8C%EC%84%A4%EA%B0%80%29",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작가의 작품 목록에서 출간 제목 확인. 작품 원문·서점 서지·최신 판권은 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-092",
       "order": 92,
       "batch": 5
@@ -1746,14 +1746,14 @@
       "title": "아주 희미한 빛으로도",
       "author": "최은영",
       "originalType": "소설",
-      "genre": "소설집",
+      "genre": "관계 드라마, 여성 서사, 소설집",
       "platform": "문학동네",
       "source": "https://namu.wiki/w/%EC%B5%9C%EC%9D%80%EC%98%81%28%EC%86%8C%EC%84%A4%EA%B0%80%29",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작가의 작품 목록에서 출간 제목 확인. 작품 원문·서점 서지·최신 판권은 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-093",
       "order": 93,
       "batch": 5
@@ -1762,14 +1762,14 @@
       "title": "우리가 빛의 속도로 갈 수 없다면",
       "author": "김초엽",
       "originalType": "소설",
-      "genre": "SF 소설집",
+      "genre": "SF, 관계와 기억, 소설집",
       "platform": "출판사 추가 확인",
       "source": "https://namu.wiki/w/%EA%B9%80%EC%B4%88%EC%97%BD",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작가의 작품 목록에서 출간 제목 확인. 작품 원문·서점 서지·최신 판권은 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-094",
       "order": 94,
       "batch": 5
@@ -1778,14 +1778,14 @@
       "title": "방금 떠나온 세계",
       "author": "김초엽",
       "originalType": "소설",
-      "genre": "SF 소설집",
+      "genre": "SF, 몸과 소통, 소설집",
       "platform": "출판사 추가 확인",
       "source": "https://namu.wiki/w/%EA%B9%80%EC%B4%88%EC%97%BD",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작가의 작품 목록에서 출간 제목 확인. 작품 원문·서점 서지·최신 판권은 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-095",
       "order": 95,
       "batch": 5
@@ -1794,14 +1794,14 @@
       "title": "행성어 서점",
       "author": "김초엽",
       "originalType": "소설",
-      "genre": "SF 소설집",
+      "genre": "SF, 공존, 짧은 소설집",
       "platform": "출판사 추가 확인",
       "source": "https://namu.wiki/w/%EA%B9%80%EC%B4%88%EC%97%BD",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작가의 작품 목록에서 출간 제목 확인. 작품 원문·서점 서지·최신 판권은 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-096",
       "order": 96,
       "batch": 5
@@ -1810,14 +1810,14 @@
       "title": "므레모사",
       "author": "김초엽",
       "originalType": "소설",
-      "genre": "SF 중편소설",
+      "genre": "SF 호러, 재난, 디스토피아",
       "platform": "출판사 추가 확인",
       "source": "https://namu.wiki/w/%EA%B9%80%EC%B4%88%EC%97%BD",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작가의 작품 목록에서 출간 제목 확인. 작품 원문·서점 서지·최신 판권은 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-097",
       "order": 97,
       "batch": 5
@@ -1826,14 +1826,14 @@
       "title": "양면의 조개껍데기",
       "author": "김초엽",
       "originalType": "소설",
-      "genre": "SF 소설집",
+      "genre": "SF, 자아와 사랑, 소설집",
       "platform": "출판사 추가 확인",
       "source": "https://namu.wiki/w/%EA%B9%80%EC%B4%88%EC%97%BD",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작가의 작품 목록에서 출간 제목 확인. 작품 원문·서점 서지·최신 판권은 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-098",
       "order": 98,
       "batch": 5
@@ -1842,14 +1842,14 @@
       "title": "해파리 만개",
       "author": "김초엽",
       "originalType": "소설",
-      "genre": "SF 소설집",
+      "genre": "SF, 비인간 공존, 짧은 소설집",
       "platform": "출판사 추가 확인",
       "source": "https://namu.wiki/w/%EA%B9%80%EC%B4%88%EC%97%BD",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작가의 작품 목록에서 출간 제목 확인. 작품 원문·서점 서지·최신 판권은 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-099",
       "order": 99,
       "batch": 5
@@ -1858,17 +1858,960 @@
       "title": "올빼미 눈의 여자",
       "author": "박해로",
       "originalType": "소설",
-      "genre": "공포 장편소설",
+      "genre": "무속 공포, 미스터리, 사회 스릴러",
       "platform": "출판사 추가 확인",
       "source": "https://namu.wiki/w/%EB%B0%95%ED%95%B4%EB%A1%9C",
       "officialLinks": [],
       "checkedAt": "2026-10-09",
-      "status": "분석 대기",
+      "status": "대시보드 업로드 완료",
       "rightsStatus": "확인 필요",
-      "metadataNote": "작가의 작품 목록에서 출간 제목 확인. 작품 원문·서점 서지·최신 판권은 정밀 분석에서 재확인.",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요.",
       "candidateId": "first100-100",
       "order": 100,
       "batch": 5
+    },
+    {
+      "title": "데드라이프",
+      "author": "후렛샤/임진국",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=713975",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=713975"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "데드라이프",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 101,
+      "candidateId": "first100-101",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "좀비, 생존, 스릴러",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "행성인간",
+      "author": "조석",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=733047",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=733047"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "행성인간",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 102,
+      "candidateId": "first100-102",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "SF, 스릴러, 블랙코미디",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "관계의 종말",
+      "author": "김용키",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=752803",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=752803"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "관계의 종말",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 103,
+      "candidateId": "first100-103",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "심리, 스릴러, 공포",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "마음의 숙제",
+      "author": "고아라",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=721919",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=721919"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "살인스타그램",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 104,
+      "candidateId": "first100-104",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "로맨스, 판타지, 휴먼",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "신림/남/22",
+      "author": "김꿀빨/박만사",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=783055",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=783055"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "신림/남/22",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 105,
+      "candidateId": "first100-105",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "미스터리, 범죄, 스릴러",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "소녀재판",
+      "author": "루즌아/보로콤",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=743838",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=743838"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "소녀재판",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 106,
+      "candidateId": "first100-106",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "학원, 심리, 스릴러",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "아는 여자애",
+      "author": "허니비",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=738809",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=738809"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "아는 여자애",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 107,
+      "candidateId": "first100-107",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "로맨스, 회귀, 청춘",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "오!주예수여",
+      "author": "아현",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=655744",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=655744"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "오!주예수여",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 108,
+      "candidateId": "first100-108",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "로맨틱코미디, 학원, 판타지",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "언원티드",
+      "author": "둠스",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=698469",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=698469"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "언원티드",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 109,
+      "candidateId": "first100-109",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "회귀, 복수, 드라마",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "투명한 동거",
+      "author": "정서",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=677740",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=677740"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "투명한 동거",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 110,
+      "candidateId": "first100-110",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "로맨스, 판타지, 휴먼",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "더 복서",
+      "author": "정지훈",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=736989",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=736989"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "더 복서",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 111,
+      "candidateId": "first100-111",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "선점",
+      "genre": "스포츠, 성장, 심리",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "마른 가지에 바람처럼",
+      "author": "달새울",
+      "originalType": "웹소설",
+      "platform": "네이버시리즈(원작 웹소설), 네이버웹툰(각색)",
+      "source": "https://series.naver.com/novel/detail.series?productNo=2987280",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=748535",
+        "https://series.naver.com/novel/detail.series?productNo=2987280"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "마른 가지에 바람처럼",
+      "notes": "달새울 웹소설 원작과 화음 웹툰 각색을 같은 IP로 묶음. 원작 시리즈230화 완결, 각색 웹툰222화 별도 지표.",
+      "order": 112,
+      "candidateId": "first100-112",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "로맨스판타지, 치유, 정치",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "순정빌런",
+      "author": "세윤",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=797731",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=797731"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "순정빌런",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 113,
+      "candidateId": "first100-113",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "히어로, 로맨틱코미디, 액션",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "왕세자 입학도",
+      "author": "무번",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=739411",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=739411"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "왕세자 입학도",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 114,
+      "candidateId": "first100-114",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "사극, 성장, 학원",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "아이들의 권 선생님",
+      "author": "호우",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=460687",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=460687"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "아이들의 권 선생님",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 115,
+      "candidateId": "first100-115",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "휴먼, 코미디, 성장",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "칼부림",
+      "author": "고일권",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=602916",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=602916"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "칼부림",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 116,
+      "candidateId": "first100-116",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "사극, 액션, 복수",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "언터처블",
+      "author": "맛스타",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=612769",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=612769"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "언터쳐블",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 117,
+      "candidateId": "first100-117",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "로맨스, 판타지, 휴먼",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "이상하고 아름다운",
+      "author": "허니비",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=668723",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=668723"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "이상하고 아름다운",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 118,
+      "candidateId": "first100-118",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "로맨스, 판타지, 미스터리",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "트럼프",
+      "author": "이채은",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=524520",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=524520"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "트럼프",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 119,
+      "candidateId": "first100-119",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "판타지, 성장, 가족",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "전자오락수호대",
+      "author": "가스파드",
+      "originalType": "웹툰",
+      "platform": "네이버웹툰",
+      "source": "https://comic.naver.com/api/article/list/info?titleId=637931",
+      "officialLinks": [
+        "https://comic.naver.com/webtoon/list?titleId=637931"
+      ],
+      "checkedAt": "2026-10-09",
+      "originalTitleGroup": "전자오락수호대",
+      "notes": "분리된 시즌은 단일 원작으로 묶음;등록회차/관심/소개 공식확인. 최신영상권·4인관계는후속분석.",
+      "order": 120,
+      "candidateId": "first100-120",
+      "batch": 6,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "선점",
+      "genre": "판타지, 모험, 코미디",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "달러구트 꿈 백화점",
+      "author": "이미예",
+      "originalType": "소설",
+      "platform": "팩토리나인",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=245127051",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=245127051"
+      ],
+      "order": 121,
+      "candidateId": "first100-121",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "힐링판타지, 직장, 옴니버스",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "불편한 편의점",
+      "author": "김호연",
+      "originalType": "소설",
+      "platform": "나무옆의자",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=290457417",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=290457417"
+      ],
+      "order": 122,
+      "candidateId": "first100-122",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "생활드라마, 힐링, 앙상블",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "망원동 브라더스",
+      "author": "김호연",
+      "originalType": "소설",
+      "platform": "나무옆의자",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=342975130",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=342975130"
+      ],
+      "order": 123,
+      "candidateId": "first100-123",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "생활코미디, 동거, 재기",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "구의 증명",
+      "author": "최진영",
+      "originalType": "소설",
+      "platform": "은행나무",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=315614621",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=315614621"
+      ],
+      "order": 124,
+      "candidateId": "first100-124",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "비극로맨스, 심리, 애도",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "완전한 행복",
+      "author": "정유정",
+      "originalType": "소설",
+      "platform": "은행나무",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=272252933",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=272252933"
+      ],
+      "order": 125,
+      "candidateId": "first100-125",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "가족스릴러, 심리, 서스펜스",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "진이, 지니",
+      "author": "정유정",
+      "originalType": "소설",
+      "platform": "은행나무",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=192375095",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=192375095"
+      ],
+      "order": 126,
+      "candidateId": "first100-126",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "판타지, 휴먼, 생존",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "28",
+      "author": "정유정",
+      "originalType": "소설",
+      "platform": "은행나무",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=27128005",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=27128005"
+      ],
+      "order": 127,
+      "candidateId": "first100-127",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "재난, 생존, 휴먼",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "내 인생의 스프링 캠프",
+      "author": "정유정",
+      "originalType": "소설",
+      "platform": "비룡소",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=937237",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=937237"
+      ],
+      "order": 128,
+      "candidateId": "first100-128",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "성장, 로드무비, 시대극",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "페인트",
+      "author": "이희영",
+      "originalType": "소설",
+      "platform": "창비",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=189589576",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=189589576"
+      ],
+      "order": 129,
+      "candidateId": "first100-129",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "청소년, SF, 가족",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "순례 주택",
+      "author": "유은실",
+      "originalType": "소설",
+      "platform": "비룡소",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=266745690",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=266745690"
+      ],
+      "order": 130,
+      "candidateId": "first100-130",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "가족, 생활코미디, 성장",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "체리새우: 비밀글입니다",
+      "author": "황영미",
+      "originalType": "소설",
+      "platform": "문학동네",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=179700075",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=179700075"
+      ],
+      "order": 131,
+      "candidateId": "first100-131",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "청소년, 우정, 성장",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "오백 년째 열다섯",
+      "author": "김혜정",
+      "originalType": "소설",
+      "platform": "위즈덤하우스",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=287089333",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=287089333"
+      ],
+      "order": 132,
+      "candidateId": "first100-132",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "청소년판타지, 신화, 성장",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "하쿠다 사진관",
+      "author": "허태연",
+      "originalType": "소설",
+      "platform": "놀",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=298100354",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=298100354"
+      ],
+      "order": 133,
+      "candidateId": "first100-133",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "힐링, 생활, 직업",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "비가 오면 열리는 상점",
+      "author": "유영광",
+      "originalType": "소설",
+      "platform": "클레이하우스",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=318677116",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=318677116"
+      ],
+      "order": 134,
+      "candidateId": "first100-134",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "판타지, 모험, 성장",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "세계를 건너 너에게 갈게",
+      "author": "이꽃님",
+      "originalType": "소설",
+      "platform": "문학동네",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=133668671",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=133668671"
+      ],
+      "order": 135,
+      "candidateId": "first100-135",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "타임슬립, 가족, 미스터리",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "시간을 파는 상점",
+      "author": "김선영",
+      "originalType": "소설",
+      "platform": "자음과모음",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=16166340",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=16166340"
+      ],
+      "order": 136,
+      "candidateId": "first100-136",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "청소년, 의뢰미스터리, 성장",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "나인",
+      "author": "천선란",
+      "originalType": "소설",
+      "platform": "창비",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=282188797",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=282188797"
+      ],
+      "order": 137,
+      "candidateId": "first100-137",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "SF, 청소년미스터리, 성장",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "여름을 한 입 베어 물었더니",
+      "author": "이꽃님",
+      "originalType": "소설",
+      "platform": "문학동네",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=322940527",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=322940527"
+      ],
+      "order": 138,
+      "candidateId": "first100-138",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "청소년로맨스, 미스터리, 스포츠",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "여름의 빌라",
+      "author": "백수린",
+      "originalType": "소설",
+      "platform": "문학동네",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=244899880",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=244899880"
+      ],
+      "order": 139,
+      "candidateId": "first100-139",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "문학옴니버스, 여성, 관계",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "일의 기쁨과 슬픔",
+      "author": "장류진",
+      "originalType": "소설",
+      "platform": "창비",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=212921347",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=212921347"
+      ],
+      "order": 140,
+      "candidateId": "first100-140",
+      "batch": 7,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "직장, 블랙코미디, 옴니버스",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "달까지 가자",
+      "author": "장류진",
+      "originalType": "소설",
+      "platform": "창비",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=259678611",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=259678611"
+      ],
+      "order": 141,
+      "candidateId": "first100-141",
+      "batch": 8,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "영상화 완료",
+      "genre": "직장, 우정, 금융블랙코미디",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "어서 오세요, 휴남동 서점입니다",
+      "author": "황보름",
+      "originalType": "소설",
+      "platform": "클레이하우스",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=403300683",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=403300683"
+      ],
+      "order": 142,
+      "candidateId": "first100-142",
+      "batch": 8,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "힐링, 직장, 앙상블",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "구미호 식당",
+      "author": "박현숙",
+      "originalType": "소설",
+      "platform": "특별한서재",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=144651017",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=144651017"
+      ],
+      "order": 143,
+      "candidateId": "first100-143",
+      "batch": 8,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "사후판타지, 가족, 휴먼",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "허구의 삶",
+      "author": "이금이",
+      "originalType": "소설",
+      "platform": "문학동네",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=214230229",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=214230229"
+      ],
+      "order": 144,
+      "candidateId": "first100-144",
+      "batch": 8,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "평행세계, 성장, 미스터리",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "달의 바다",
+      "author": "정한아",
+      "originalType": "소설",
+      "platform": "문학동네",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=318854993",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=318854993"
+      ],
+      "order": 145,
+      "candidateId": "first100-145",
+      "batch": 8,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "성장, 여행, 가족",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "시선으로부터,",
+      "author": "정세랑",
+      "originalType": "소설",
+      "platform": "문학동네",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=241313700",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=241313700"
+      ],
+      "order": 146,
+      "candidateId": "first100-146",
+      "batch": 8,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "가족, 여성, 여행",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "피프티 피플",
+      "author": "정세랑",
+      "originalType": "소설",
+      "platform": "창비",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=277214767",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=277214767"
+      ],
+      "order": 147,
+      "candidateId": "first100-147",
+      "batch": 8,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "휴먼, 의료, 앙상블",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "한 스푼의 시간",
+      "author": "구병모",
+      "originalType": "소설",
+      "platform": "위즈덤하우스",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=337280908",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=337280908"
+      ],
+      "order": 148,
+      "candidateId": "first100-148",
+      "batch": 8,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "SF, 생활, 휴먼",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "위저드 베이커리",
+      "author": "구병모",
+      "originalType": "소설",
+      "platform": "창비",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=291031965",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=291031965"
+      ],
+      "order": 149,
+      "candidateId": "first100-149",
+      "batch": 8,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "다크판타지, 청소년, 가족",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
+    },
+    {
+      "title": "버드 스트라이크",
+      "author": "구병모",
+      "originalType": "소설",
+      "platform": "창비",
+      "source": "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=185645447",
+      "officialLinks": [
+        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=185645447"
+      ],
+      "order": 150,
+      "candidateId": "first100-150",
+      "batch": 8,
+      "status": "대시보드 업로드 완료",
+      "rightsStatus": "확인 필요",
+      "genre": "판타지, 모험, 성장",
+      "checkedAt": "2026-10-09",
+      "metadataNote": "공개 원작 소개·출처·점수 독립 검증 후 업로드. 정보 부족은 리서치 필요로 구분; 최신 계약 범위는 권리자 확인 필요."
     }
-  ]
+  ],
+  "uploadedCount": 150,
+  "updatedAt": "2026-10-09"
 }
