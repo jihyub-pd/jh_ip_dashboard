@@ -581,7 +581,7 @@ function normalizeItem(raw, options = {}) {
     scoreRationales: normalizeScoreRationales(raw.scoreRationales || raw.scoreReasons || raw.scoreAnalysis || raw.scoreDescriptions),
     notes: String(raw.notes || "").trim(),
     sourceInfo: normalizeFactObject(raw.sourceInfo, ["platform", "status", "checkedAt"]),
-    rightsInfo: normalizeFactObject(raw.rightsInfo, ["holder", "contact", "note", "checkedAt"]),
+    rightsInfo: normalizeRightsInfo(raw.rightsInfo),
     reactionMetrics: (Array.isArray(raw.reactionMetrics) ? raw.reactionMetrics : [])
       .map((m) => normalizeFactObject(m, ["label", "value", "checkedAt", "source"]))
       .filter((m) => m.label && m.value),
@@ -1483,6 +1483,31 @@ function normalizeFactObject(raw, keys) {
   return out;
 }
 
+function normalizeRightsInfo(raw) {
+  return {
+    ...normalizeFactObject(raw, ["holder", "contact", "note", "checkedAt"]),
+    adaptationEvidence: (Array.isArray(raw?.adaptationEvidence) ? raw.adaptationEvidence : [])
+      .filter((entry) => entry && typeof entry === "object")
+      .map((entry) => ({ ...entry }))
+  };
+}
+
+function adaptationEvidenceHtml(evidence) {
+  if (!evidence.length) return '<span class="fact-empty">영상화 진행·공개 근거 미확인</span>';
+  const stages = { announced: "계약·제작 발표", in_production: "제작 중", released: "공개됨", unknown: "공개 여부 미확인" };
+  return `<ul class="fact-metrics">${evidence.map((entry) => {
+    let link = "";
+    try {
+      const url = new URL(entry.evidenceUrl);
+      if (url.protocol === "https:" && !url.username && !url.password) {
+        link = `<a href="${escapeHtml(url.href)}" target="_blank" rel="noopener noreferrer">근거 보기</a>`;
+      }
+    } catch { /* Invalid links are displayed as unavailable, never activated. */ }
+    const date = entry.releaseDate && entry.stage === "released" ? ` · 공개일 ${entry.releaseDate}` : "";
+    return `<li><strong>${escapeHtml([entry.kind, entry.title].filter(Boolean).join(" · "))}</strong><span>${entry.scope === "partial" ? "수록작 일부 · " : ""}${escapeHtml(stages[entry.stage] || stages.unknown)}${escapeHtml(date)}</span>${entry.originalMatchEvidence ? `<small>${escapeHtml(entry.originalMatchEvidence)}</small>` : ""}<small>${entry.checkedAt ? `${escapeHtml(entry.checkedAt)} 확인 · ` : ""}${link || "근거 링크 미확인"}</small></li>`;
+  }).join("")}</ul>`;
+}
+
 function serialTagHtml(item) {
   const st = item.sourceInfo.status;
   if (!st) return "";
@@ -1505,6 +1530,7 @@ function renderFactPanel(container, item) {
     <dl class="fact-grid">
       <div><dt>연재처 · 상태</dt><dd>${src.platform || src.status ? `${escapeHtml(src.platform || "-")} ${serialTagHtml(item)} ${when(src.checkedAt)}` : dash}</dd></div>
       <div><dt>판권 보유처</dt><dd>${rights.holder || rights.note ? `${escapeHtml(rights.holder || "보유처 미확인")}${rights.contact ? `<br><small>${escapeHtml(rights.contact)}</small>` : ""}${rights.note ? `<br><small>${escapeHtml(rights.note)}</small>` : ""} ${when(rights.checkedAt)}` : dash}</dd></div>
+      <div class="fact-wide"><dt>영상화 진행·공개 근거</dt><dd>${adaptationEvidenceHtml(rights.adaptationEvidence)}</dd></div>
       <div><dt>예상 편성 규격</dt><dd>${fmt.format ? `<strong>${escapeHtml(fmt.format)}</strong>${fmt.reason ? `<br><small>${escapeHtml(fmt.reason)}</small>` : ""}` : dash}</dd></div>
       <div class="fact-wide"><dt>원작 반응 수치</dt><dd>${metrics}</dd></div>
     </dl>`;
