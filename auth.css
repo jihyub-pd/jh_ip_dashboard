@@ -5,3 +5,8 @@
 .auth-panel button { font-size: 12px; }
 button:disabled, textarea.memo-input:disabled { opacity: .55; cursor: not-allowed; }
 @media print { .auth-panel { display: none; } }
+
+.auth-panel select { width:100%; padding:8px; margin-bottom:10px; border:1px solid #ccc; border-radius:6px; }
+.auth-panel details { margin-top:12px; font-size:12px; }
+.auth-panel details form { margin-top:10px; }
+.auth-panel [hidden] { display:none !important; }

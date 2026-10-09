@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>211개 IP 재검토</title><link rel="stylesheet" href="auth.css?v=20261009a"><link rel="stylesheet" href="review.css?v=20261009a"></head>
+<body><main class="app-shell"><a href="./">← 대시보드</a><h1>211개 작품 재검토</h1><p>원작과 영상화 정보를 분리하고, 확인된 사실·점수 근거를 수정한 검토안입니다. 추가 확인이 남은 항목은 작품별로 표시합니다.</p>
+<p id="reviewSummary" role="status">검토 결과를 불러오고 있습니다.</p>
+<section class="auth-panel"><p id="authStatus" role="status" aria-live="polite">로그인 상태 확인 중</p><form id="authForm"><label for="authEmail">로그인 이메일</label><input id="authEmail" type="email" autocomplete="email" required><button id="authSend" type="submit">로그인 링크 받기</button></form><button id="authLogout" type="button" hidden>로그아웃</button></section>
+<section class="apply-panel"><h2>검토안 반영</h2><p>최초 한 번, 아래 설치 SQL을 Supabase SQL Editor에서 실행하세요. 이후 소유자로 로그인한 상태에서 반영 버튼을 누르면 됩니다.</p><button id="copySetup" type="button">설치 SQL 복사</button><details><summary>설치 SQL 보기</summary><p>소유자만 실행할 수 있는 일괄 반영 함수를 설치합니다. 이 SQL 자체는 작품 데이터를 바꾸지 않습니다.</p><textarea id="setupSql" readonly aria-label="설치 SQL"></textarea></details>
+<p>반영하면 서버에서 현재 211개를 비공개 백업한 뒤 분석을 한 번에 갱신합니다. 관심 표시·개인 메모·등록일은 보존하며, 검토 이후 분석이 수정된 작품이 있으면 전체 반영을 중단합니다.</p><button id="reviewApply" type="button" disabled>백업 후 재검토 반영</button><p id="applyStatus" role="status" aria-live="polite"></p></section>
+<section><h2>작품별 변경</h2><label for="reviewSearch">작품 검색</label><input id="reviewSearch" type="search" placeholder="제목 검색"><label><input id="changesOnly" type="checkbox"> 점수·판정·인물이 바뀌는 작품만</label><div id="reviewList"></div></section>
+</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="auth.js?v=20261009a"></script><script src="review.js?v=20261009a"></script></body></html>
