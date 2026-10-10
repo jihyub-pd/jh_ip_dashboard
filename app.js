@@ -238,7 +238,16 @@ function getLocalItems() {
 }
 
 function setLocalItems(nextItems) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(nextItems));
+  const serialized = JSON.stringify(nextItems);
+  try {
+    localStorage.setItem(STORAGE_KEY, serialized);
+    return true;
+  } catch (error) {
+    // The cloud is authoritative; an optional browser cache must not block it.
+    if (!supabaseClient) throw error;
+    console.warn("브라우저 캐시 저장을 생략하고 서버 데이터를 계속 사용합니다.", error.name);
+    return false;
+  }
 }
 
 function getErrorMessage(error) {
