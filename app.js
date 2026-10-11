@@ -291,12 +291,8 @@ async function syncLoadItems() {
   const localItems = getLocalItems();
   if (supabaseClient) {
     try {
-      const { data, error } = await supabaseClient
-        .from(TABLE_NAME)
-        .select("id,title,createdAt,updatedAt,content")
-        .order("updatedAt", { ascending: false });
-      if (error) throw error;
-      const cloudItems = Array.isArray(data) ? data.map(rowToItem) : [];
+      const data = await readCloudRows("id,title,createdAt,updatedAt,content");
+      const cloudItems = data.map(rowToItem).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
       if (window.DashboardAuth?.canWrite && cloudItems.length === 0 && localItems.length > 0 && !localStorage.getItem(MIGRATION_KEY)) {
         const migrated = [];
         for (const item of localItems) {
@@ -319,6 +315,15 @@ async function syncLoadItems() {
   }
   items = localItems;
   finalizeLoad();
+}
+
+async function readCloudRows(columns) {
+  return window.CloudPages.collectPages(async (offset, size) => {
+    const { data, error } = await supabaseClient.from(TABLE_NAME)
+      .select(columns).order("id", { ascending: true }).range(offset, offset + size - 1);
+    if (error) throw error;
+    return data;
+  });
 }
 
 function finalizeLoad() {
@@ -354,8 +359,7 @@ async function syncDeleteItem(id) {
 async function replaceCloudItems(restoredItems) {
   assertWriteAccess();
   if (!supabaseClient) return;
-  const { data, error: loadError } = await supabaseClient.from(TABLE_NAME).select("id");
-  if (loadError) throw loadError;
+  const data = await readCloudRows("id");
   const restoredIds = new Set(restoredItems.map((item) => item.id));
   const idsToDelete = (data || []).map((row) => row.id).filter((id) => !restoredIds.has(id));
   if (idsToDelete.length > 0) {
