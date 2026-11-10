@@ -1169,7 +1169,7 @@ function renderDetail() {
   bindStarButtons(els.detailPanel);
   const developButton = document.createElement("button");
   developButton.className = "primary-btn";
-  developButton.textContent = "이 IP로 기획개발";
+  developButton.textContent = "이 IP의 기획안 보기";
   developButton.addEventListener("click", () => window.DevelopmentStudio?.open(item));
   els.detailPanel.querySelector(".detail-actions")?.prepend(developButton);
 

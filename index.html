@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="./explore.css?v=20261009b" />
     <link rel="stylesheet" href="./review-state.css?v=20261009a" />
     <link rel="stylesheet" href="./requests.css?v=20261013a" />
-  <link rel="stylesheet" href="./development.css?v=20261110a">
+  <link rel="stylesheet" href="./development.css?v=20261110b">
   </head>
   <body>
     <div class="app-shell">
@@ -60,17 +60,14 @@
       <main class="main">
 <section id="developmentView" class="view">
  <header class="topbar"><div><p class="eyebrow">PRIVATE DEVELOPMENT STUDIO</p><h2>기획개발</h2><p id="devConnection"></p></div><button id="devRefresh" class="ghost-btn">새로고침</button></header>
- <div id="devProgress" class="dev-progress" hidden aria-live="polite"><h3>진행 상황</h3><p id="devProgressText"></p><p id="devProgressHint"></p></div>
  <div class="dev-layout">
- <form id="devForm" class="dev-panel"><h3>새 기획개발</h3><p id="devParent" hidden></p><fieldset id="devInputFields">
- <label for="devMode">시작 방식</label><select id="devMode"><option value="ip">대시보드 원작 IP</option><option value="idea">내 로그라인·캐릭터 아이디어</option></select>
- <div id="devIpField"><label for="devSource">원작 IP</label><select id="devSource"><option value="">작품 선택</option></select></div>
- <div id="devIdeaField" hidden><label for="devTitle">가제</label><input id="devTitle" maxlength="200"></div>
- <label for="devMaterials">원작 자료 또는 아이디어</label><textarea id="devMaterials" rows="8" maxlength="150000" placeholder="원문·사건 정리·댓글 분석 또는 로그라인과 캐릭터 아이디어를 입력하세요. 원작 IP는 기존 분석도 함께 가져옵니다."></textarea>
- <label for="devFile">텍스트 자료 첨부 (.md / .txt)</label><input id="devFile" type="file" accept=".md,.txt,text/plain,text/markdown">
- <label for="devRequest">개발 방향 또는 수정 의견</label><textarea id="devRequest" rows="4" maxlength="10000" placeholder="유지할 요소, 강조할 관계, 수정할 점 등을 적어주세요."></textarea>
- </fieldset><div class="dev-actions"><button id="devSubmit" class="primary-btn">기획개발 시작</button><button id="devReset" type="button" class="ghost-btn">새 의뢰로 전환</button></div><p id="devMessage" role="status" aria-live="polite"></p></form>
- <section class="dev-panel"><h3>기획안 및 버전 기록</h3><div id="devHistory"></div></section>
+ <section class="dev-panel"><p class="eyebrow">CHATGPT → IP DASHBOARD</p><h3>채팅에서 개발하고, 여기에서 확인하세요</h3>
+ <p>ChatGPT에서 원작이나 아이디어로 기획개발을 의뢰하면, 완성한 기획안과 프리비주얼을 이곳에 등록합니다. 별도 OpenAI API 연결은 필요하지 않습니다.</p>
+ <ol><li>ChatGPT에서 원작 자료와 개발 방향 전달</li><li>기획안 작성 · 독립 레드팀 검토 · 수정</li><li>완성본 등록 후 이곳에서 확인</li></ol>
+ <p>연결된 ChatGPT 대화에서 등록 작업을 수행합니다. 대시보드가 채팅을 감시하거나 AI를 자동 실행하지는 않습니다.</p>
+ <label for="devSource">원작별 기획안</label><select id="devSource"><option value="">전체 기획안</option></select>
+ <p id="devMessage" role="status" aria-live="polite"></p></section>
+ <section class="dev-panel"><h3>기획안 및 버전 기록</h3><div id="devHistory"></div><button id="devMore" class="ghost-btn" hidden>더 보기</button></section>
  </div><article id="devResult" class="dev-panel dev-result"></article>
 </section>
 
@@ -417,10 +414,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./auth.js?v=20261009b"></script>
     <script src="./cloud-pages.js?v=20261011a"></script>
-    <script src="./app.js?v=20261011a"></script>
+    <script src="./app.js?v=20261110b"></script>
     <script src="./explore.js?v=20261009c"></script>
     <script src="./review-state.js?v=20261009a"></script>
     <script src="./requests.js?v=20261013a"></script>
-  <script src="./development.js?v=20261110a"></script>
+  <script src="./development.js?v=20261110b"></script>
   </body>
 </html>

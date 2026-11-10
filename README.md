@@ -1,25 +1,11 @@
 # jh_ip_dashboard
-## 기획개발
 
-소유자 전용 `기획개발` 탭에서 기존 IP 또는 아이디어를 접수하고 결과·PDF·프리비주얼·수정 버전을 확인한다. 운영/테스트 환경별로 `queued` 또는 `processing` 의뢰는 최대 한 건이다. DB의 부분 고유 인덱스가 여러 탭의 동시 접수도 차단한다.
+## 기획개발: ChatGPT 결과 보관
 
-### 배포 상태 (2026-11-10)
+기획개발은 ChatGPT에서 진행하고, 연결된 Supabase 도구로 완성본을 등록한다. 대시보드의 소유자 전용 기획개발 탭에서 원작별 기획안·프리비주얼·PDF·수정 버전을 확인한다. 수정 의견은 요청 문구를 복사해 기존 ChatGPT 대화에 전달한다. 이 화면은 AI 실행 버튼이나 별도 API 키를 요구하지 않는다.
 
-- `install-development.sql`, `development-immediate.sql`을 대상 Supabase 프로젝트에 적용하고 권한·중복 접수 검사를 트랜잭션 롤백으로 검증했다.
-- 서버 함수 배포는 자동 승인 검토에서 차단됐다. 비공개 자료의 OpenAI API 전송 및 함수 내부 인증 방식에 대한 사용자 승인이 필요하다. 함수 배포와 API 설정이 완료될 때까지 UI의 생성 버튼은 비활성화된다.
-- `development-scheduler.sql`은 함수 배포 후 적용할 준비 파일이며 아직 실행하지 않았다.
+`CHATGPT_PUBLISHING.md`에 등록 규약과 준비 스크립트 사용법이 있다. 서버 전용 등록 함수가 중복 업로드를 방지하며, 파일과 검토 기록을 검증한 뒤 완료 처리한다. 브라우저에는 읽기 권한만 있고, 소유자 이외에는 기획안·첨부 파일을 볼 수 없다. 기존 버전은 보존한다.
 
-### 실행 연결
+DB 설정: 기존 `install-development.sql`, `development-immediate.sql`에 이어 `development-chatgpt-import.sql` 적용. 이전 API runner와 scheduler 코드는 보존했지만 배포/예약 실행하지 않는다. 활성 화면에서 호출하지 않는다.
 
-1. `supabase/functions/development-runner`를 배포한다. 함수는 사용자 JWT를 `auth.getUser`로 검증하고 기존 소유자 RPC로 권한을 확인한다. 내부 진행 호출은 DB의 비공개 랜덤 토큰으로 검증한다. 플랫폼 JWT 게이트 대신 이 함수 내부 인증을 사용하므로 배포 설정은 `verify_jwt=false`다.
-2. Supabase Edge Function Secrets에 `OPENAI_API_KEY`를 설정한다. 키를 저장소나 브라우저 코드에 넣지 않는다. 선택 환경 변수는 `OPENAI_MODEL`, `OPENAI_REVIEW_MODEL`이다. 기본 텍스트 모델은 `gpt-6-astra`이며 사용하는 계정의 모델 및 이미지 도구 권한을 확인한다.
-3. `development-scheduler.sql`을 적용한다. 접수 직후 브라우저가 첫 AI 작업을 시작하며, 서버의 분 단위 진행 확인이 브라우저 종료 후에도 후속 단계를 이어간다. 분 단위 확인은 새 의뢰를 기다리는 지연이 아니라 이미 접수한 비동기 응답의 진행 확인이다.
-4. 테스트 환경에서 실제 AI 생성·이미지·PDF·독립 검토 기록·최종 저장을 확인한 뒤 운영한다. 현재 실제 유료 API 생성은 검증 전이다.
-
-### 처리와 복구
-
-자료 조사, 초안, 별도 Responses API 요청으로 독립 레드팀, 수정, 별도 요청으로 재검증을 실행한다. 미충족이면 수정·재검증을 한 차례 더 수행하고 보완 필요로 제출할 수 있다. 인물·공간 이미지를 생성하고 한글 PDF를 만든다. 자료·이미지·PDF는 소유자 전용 RLS 테이블에 저장한다. 원작 분석 공개 테이블에는 쓰지 않는다.
-
-외부 AI 접수 전에 상태를 기록한다. 접수 응답 유실은 중복 과금을 피하도록 실패 처리한다. 단계별 response ID와 독립 검토 run ID를 보존한다. 임시 API 응답은 결과 저장 후 삭제를 시도한다. API 오류는 실패 상태로 보여주며 사용자가 다시 시도할 수 있다. 생성은 별도 API 사용료가 발생한다.
-
-검증 명령은 `node --experimental-strip-types --test tests/*test.*`다. 프롬프트의 독립 입력 구성과 수정안 재검증을 확인하며, 실제 모델 품질을 검증하는 테스트는 아니다.
+검증: `node --experimental-strip-types --test tests/*test.*`, `python3 -m unittest discover -s tests -p 'test_*.py'`. SQL 등록·권한·버전 테스트는 트랜잭션 롤백으로 수행한다. 실제 기획안 제작과 파일 생성 품질 검증은 각 결과물을 등록할 때 별도로 수행한다.
