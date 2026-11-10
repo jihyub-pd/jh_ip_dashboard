@@ -599,7 +599,9 @@ function normalizeItem(raw, options = {}) {
       .map((m) => normalizeFactObject(m, ["label", "value", "checkedAt", "source"]))
       .filter((m) => m.label && m.value),
     formatSuggestion: normalizeFactObject(raw.formatSuggestion, ["format", "reason"]),
-    aiReport: raw.aiReport || ""
+    aiReport: String(raw.aiReport || ""),
+    dramaPlanMarkdown: String(raw.dramaPlanMarkdown || ""),
+    redTeamAnalysisMarkdown: String(raw.redTeamAnalysisMarkdown || "")
   };
 }
 
@@ -1167,12 +1169,148 @@ function renderDetail() {
   els.detailPanel.innerHTML = "";
   els.detailPanel.append(node);
   bindStarButtons(els.detailPanel);
+  const documentViewer = buildIpDocumentViewer(item);
+  if (documentViewer) {
+    const actions = els.detailPanel.querySelector(".detail-actions");
+    actions?.parentNode?.insertBefore(documentViewer, actions);
+  }
   const developButton = document.createElement("button");
   developButton.className = "primary-btn";
-  developButton.textContent = "이 IP의 기획안 보기";
-  developButton.addEventListener("click", () => window.DevelopmentStudio?.open(item));
+  developButton.textContent = documentViewer ? "기획안 바로 보기" : "기획개발 기록 보기";
+  developButton.addEventListener("click", () => {
+    if (documentViewer) {
+      documentViewer.hidden = false;
+      documentViewer.scrollIntoView({ behavior: "smooth", block: "start" });
+      documentViewer.querySelector("button")?.focus({ preventScroll: true });
+    } else {
+      window.DevelopmentStudio?.open(item);
+    }
+  });
   els.detailPanel.querySelector(".detail-actions")?.prepend(developButton);
+  if (documentViewer) {
+    const historyButton = document.createElement("button");
+    historyButton.className = "secondary-btn";
+    historyButton.textContent = "기획개발 버전 기록";
+    historyButton.addEventListener("click", () => window.DevelopmentStudio?.open(item));
+    els.detailPanel.querySelector(".detail-actions")?.insertBefore(historyButton, els.detailPanel.querySelector(".delete-btn"));
+  }
 
+}
+
+function buildIpDocumentViewer(item) {
+  let plan = String(item.dramaPlanMarkdown || "").trim();
+  let redTeam = String(item.redTeamAnalysisMarkdown || "").trim();
+  const report = String(item.aiReport || "").trim();
+  if ((!plan || !redTeam) && report) {
+    const divider = report.search(/\n---\n\n# 성공 가능성 및 레드팀 분석/);
+    if (divider >= 0) {
+      if (!plan) plan = report.slice(0, divider).replace(/^# 드라마 기획안\s*/, "").trim();
+      if (!redTeam) redTeam = report.slice(divider).replace(/^\n?---\n\n# 성공 가능성 및 레드팀 분석\s*/, "").trim();
+    } else if (!plan) {
+      plan = report;
+    }
+  }
+  const documents = [
+    { key: "plan", label: "드라마 기획안", text: plan },
+    { key: "redteam", label: "성공 가능성 · 레드팀", text: redTeam }
+  ].filter((document) => document.text);
+  if (!documents.length) return null;
+
+  const section = document.createElement("section");
+  section.className = "ip-document-viewer";
+  section.id = `ip-documents-${item.id}`;
+  const heading = document.createElement("div");
+  heading.className = "ip-document-head";
+  heading.innerHTML = `<div><p class="eyebrow">DEVELOPMENT DOCUMENTS</p><h3>기획안 및 검토 보고서</h3></div>`;
+  const tabs = document.createElement("div");
+  tabs.className = "ip-document-tabs";
+  tabs.setAttribute("role", "tablist");
+  tabs.setAttribute("aria-label", "기획 문서 선택");
+  const body = document.createElement("article");
+  body.className = "ip-document-body";
+
+  const activate = (key) => {
+    tabs.querySelectorAll("button").forEach((button) => {
+      const active = button.dataset.documentKey === key;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    const selected = documents.find((document) => document.key === key) || documents[0];
+    body.replaceChildren(renderSimpleMarkdown(selected.text));
+  };
+  documents.forEach((document, index) => {
+    const button = documentNode("button", document.label);
+    button.type = "button";
+    button.className = `ip-document-tab${index === 0 ? " active" : ""}`;
+    button.dataset.documentKey = document.key;
+    button.setAttribute("role", "tab");
+    button.setAttribute("aria-selected", index === 0 ? "true" : "false");
+    button.addEventListener("click", () => activate(document.key));
+    tabs.append(button);
+  });
+  heading.append(tabs);
+  section.append(heading, body);
+  activate(documents[0].key);
+  return section;
+}
+
+function documentNode(tag, text = "") {
+  const element = document.createElement(tag);
+  element.textContent = text;
+  return element;
+}
+
+function appendInlineMarkdown(parent, text) {
+  String(text).split(/(\*\*[^*]+\*\*)/g).filter(Boolean).forEach((part) => {
+    if (part.startsWith("**") && part.endsWith("**")) parent.append(documentNode("strong", part.slice(2, -2)));
+    else parent.append(document.createTextNode(part));
+  });
+}
+
+function renderSimpleMarkdown(markdown) {
+  const root = document.createElement("div");
+  root.className = "ip-document-prose";
+  const lines = String(markdown).replace(/\r/g, "").split("\n");
+  let list = null;
+  const closeList = () => { list = null; };
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (!line.trim()) { closeList(); continue; }
+    if (/^\|.*\|$/.test(line) && /^\|[\s:|-]+\|$/.test(lines[index + 1] || "")) {
+      const table = document.createElement("table");
+      const head = document.createElement("thead");
+      const body = document.createElement("tbody");
+      const cells = (value) => value.slice(1, -1).split("|").map((cell) => cell.trim());
+      const tr = document.createElement("tr");
+      cells(line).forEach((cell) => { const th = documentNode("th"); appendInlineMarkdown(th, cell); tr.append(th); });
+      head.append(tr); table.append(head, body); index += 1;
+      while (/^\|.*\|$/.test(lines[index + 1] || "")) {
+        const row = document.createElement("tr");
+        cells(lines[index + 1]).forEach((cell) => { const td = documentNode("td"); appendInlineMarkdown(td, cell); row.append(td); });
+        body.append(row); index += 1;
+      }
+      root.append(table); closeList(); continue;
+    }
+    const heading = line.match(/^(#{1,4})\s+(.+)$/);
+    if (heading) {
+      const level = Math.min(4, heading[1].length + 1);
+      const element = documentNode(`h${level}`); appendInlineMarkdown(element, heading[2]); root.append(element); closeList(); continue;
+    }
+    if (/^---+$/.test(line.trim())) { root.append(document.createElement("hr")); closeList(); continue; }
+    const bullet = line.match(/^[-*]\s+(.+)$/);
+    if (bullet) {
+      if (!list || list.tagName !== "UL") { list = document.createElement("ul"); root.append(list); }
+      const li = documentNode("li"); appendInlineMarkdown(li, bullet[1]); list.append(li); continue;
+    }
+    const numbered = line.match(/^\d+\.\s+(.+)$/);
+    if (numbered) {
+      if (!list || list.tagName !== "OL") { list = document.createElement("ol"); root.append(list); }
+      const li = documentNode("li"); appendInlineMarkdown(li, numbered[1]); list.append(li); continue;
+    }
+    if (line.startsWith("> ")) { const quote = documentNode("blockquote"); appendInlineMarkdown(quote, line.slice(2)); root.append(quote); closeList(); continue; }
+    const paragraph = documentNode("p"); appendInlineMarkdown(paragraph, line); root.append(paragraph); closeList();
+  }
+  return root;
 }
 
 function renderListInto(list, values) {
