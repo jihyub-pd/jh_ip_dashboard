@@ -73,7 +73,7 @@ const requiredShape = {
   comparables: ["유사 성공작1", "유사 성공작2", "유사 성공작3"],
   recommendation: "추천 | 보류 | 리서치 필요",
   rightsStatus: "열림 | 확인 필요 | 선점 | 영상화 완료",
-  recommendationReason: "보류·리서치 필요일 때 그 사유 한 줄",
+  recommendationReason: "보류 사유 또는 추천·보류 판단에 필요한 미확인 원작 근거 한 줄",
   scores: {
     dramaFit: 0.0,
     marketPotential: 0.0,
@@ -433,7 +433,8 @@ function rightsKey(item) {
 }
 
 function rightsBadgeHtml(item) {
-  return `<span class="rights-badge rights-${rightsKey(item)}" title="판권 상태">${escapeHtml(item.rightsStatus)}</span>`;
+  const label = item.rightsStatus === "확인 필요" ? "판권 확인 필요" : item.rightsStatus;
+  return `<span class="rights-badge rights-${rightsKey(item)}" title="판권 상태">${escapeHtml(label)}</span>`;
 }
 
 function matchesRightsFilter(item) {
@@ -649,8 +650,8 @@ function toArray(value) {
 }
 
 function validateItem(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return ["JSON 객체여야 합니다."];
   const errors = [];
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) errors.push("JSON 객체여야 합니다.");
   if (!raw.title) errors.push("title이 필요합니다.");
   if (!raw.logline) errors.push("logline이 필요합니다.");
   if (!raw.scores || typeof raw.scores !== "object") errors.push("scores가 필요합니다.");
@@ -658,6 +659,11 @@ function validateItem(raw) {
     const value = raw.scores?.[key];
     if (value === undefined || Number.isNaN(Number(value))) errors.push(`scores.${key}는 숫자여야 합니다.`);
   });
+  const reason = String(raw.recommendationReason || "").trim();
+  const rightsOnlyReason = /^(?:영상화\s*)?판권(?:\s*(?:상태|보유처|계약|옵션|가용성|확보\s*여부|여부))?\s*(?:만\s*|[은는이가]\s*)?(?:미확인|불명확|확인\s*(?:필요|중|안\s*됨|되지\s*않음))[.!。]?$/;
+  if (statusKey(raw) === "research" && rightsOnlyReason.test(reason)) {
+    errors.push('판권 미확인은 rightsStatus의 "확인 필요"로 기록하세요. recommendation은 원작 분석을 기준으로 선택하세요.');
+  }
   return errors;
 }
 
@@ -754,7 +760,7 @@ function filteredItems() {
 function updatePrompt() {
   if (!els.promptText) return;
   const title = els.promptTitle?.value?.trim() || "{{원작 제목}}";
-  els.promptText.value = `다음 원작 IP를 한국 드라마로 제작할 가능성 관점에서 분석해줘.\n반드시 JSON만 출력하고, JSON 밖에는 어떤 설명도 쓰지 마.\n\n원작 제목: ${title}\n\n${CHARACTER_RUBRIC_TEXT}\n\n${JSON.stringify(requiredShape, null, 2)}`;
+  els.promptText.value = `다음 원작 IP를 한국 드라마로 제작할 가능성 관점에서 분석해줘.\n반드시 JSON만 출력하고, JSON 밖에는 어떤 설명도 쓰지 마.\n\n원작 제목: ${title}\n\n[추천 판정과 판권 상태] recommendation은 원작 분석을 기준으로 판단한다. 원작에 대한 근거가 부족해 추천·보류를 판단하기 어려울 때만 "리서치 필요"로 기록하고, recommendationReason에 확인할 원작 근거를 적는다. 판권만 미확인인 경우 rightsStatus를 "확인 필요"로 기록하고 원작 평가에 따라 추천 또는 보류를 선택한다.\n\n${CHARACTER_RUBRIC_TEXT}\n\n${JSON.stringify(requiredShape, null, 2)}`;
 }
 
 function updateBackupText() {
